@@ -19,4 +19,5 @@ jobs:
         run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
       - name: Deploy Project Artifacts to Vercel
         run: |
-          vercel deploy --token=${{ secrets.VERCEL_TOKEN }} --prebuilt
+          msg=`vercel deploy --token=${{ secrets.VERCEL_TOKEN }} --prebuilt`
+          echo "::notice title={[Preview] Deployed on Vercel}::{$msg}"
