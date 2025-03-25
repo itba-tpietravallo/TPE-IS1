@@ -4,13 +4,20 @@ env:
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 on:
   push:
+    paths:
+      - 'web/**'
     branches-ignore:
       - main
 jobs:
-  Deploy-Preview:
+  Deploy-Production:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./web
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: 'web'
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
       - name: Pull Vercel Environment Information
@@ -20,4 +27,4 @@ jobs:
       - name: Deploy Project Artifacts to Vercel
         run: |
           msg=`vercel deploy --token=${{ secrets.VERCEL_TOKEN }} --prebuilt`
-          echo "::notice title={[Preview] Deployed on Vercel}::{$msg}"
+          echo "::notice title={[Preview] Deployed on Vercel}::$msg"
