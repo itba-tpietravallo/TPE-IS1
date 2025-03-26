@@ -13,7 +13,7 @@ export default function Index() {
       <div className="flex flex-col items-center gap-16">
         <header className="flex flex-col items-center gap-9">
           <h1 className="leading text-2xl font-bold text-gray-800 dark:text-gray-100">
-            Welcome to <span className="sr-only">Remix</span>
+            Somos MatchPoint
           </h1>
           <div className="h-[144px] w-[434px]">
             <img
