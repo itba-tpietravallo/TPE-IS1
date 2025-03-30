@@ -1,12 +1,14 @@
-import React, { useState } from 'react'
-import { Alert, StyleSheet, View } from 'react-native'
-import { supabase } from '../lib/supabase'
-import { Button, Input } from '@rneui/themed'
+import React, { useState } from 'react';
+import { Alert, StyleSheet, View } from 'react-native';
+import { supabase } from '../lib/supabase';
+import { Button, Input } from '@rneui/themed';
+
+import { performOAuth } from '@/lib/auth';
 
 export default function Auth() {
-    const [email, setEmail] = useState('')
-    const [password, setPassword] = useState('')
-    const [loading, setLoading] = useState(false)
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [loading, setLoading] = useState(false);
 
     async function signInWithEmail() {
         setLoading(true)
@@ -62,6 +64,17 @@ export default function Auth() {
         </View>
         <View style={styles.verticallySpaced}>
             <Button title="Sign up" disabled={loading} onPress={() => signUpWithEmail()} />
+        </View>
+
+        <View>
+            {/* Sign in with Google */}
+            <Button
+                title="Sign in with Google"
+                disabled={loading}
+                onPress={() => {
+                    performOAuth("google");
+                }}
+            />
         </View>
     </View>
   )
