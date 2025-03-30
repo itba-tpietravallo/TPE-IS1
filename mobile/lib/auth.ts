@@ -6,7 +6,10 @@ import * as Linking from "expo-linking";
 import { supabase } from "./supabase";
 
 WebBrowser.maybeCompleteAuthSession(); // required for web only
-const redirectTo = makeRedirectUri();
+
+const redirectTo = makeRedirectUri({
+    'scheme': 'matchpoint://',
+});
 
 export const createSessionFromUrl = async (url: string) => {
     const { params, errorCode } = QueryParams.getQueryParams(url);
@@ -29,7 +32,7 @@ export const performOAuth = async (provider: "google" | "facebook") => {
     const { data, error } = await supabase.auth.signInWithOAuth({
         provider: provider,
         options: {
-        redirectTo,
+            redirectTo,
             skipBrowserRedirect: true,
         },
     });
