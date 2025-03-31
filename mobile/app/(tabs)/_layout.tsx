@@ -1,38 +1,26 @@
-import { HapticTab } from '@/components/HapticTab';
-import { IconSymbol } from '@/components/ui/IconSymbol';
+import React from "react";
+import { View, StyleSheet } from "react-native";
+import { Slot } from "expo-router";
+import NavigationBar from "../../components/NavigationBar";
+import TopBar from "@/components/TopBar";
 
-import { Tabs } from 'expo-router';
-import React from 'react';
-import { Platform } from 'react-native';
-
-export default function TabLayout() {
+export default function MainLayout() {
   return (
-    <Tabs
-      screenOptions={{
-        tabBarButton: HapticTab,
-        headerShown: false,
-        tabBarStyle: Platform.select({
-          ios: {
-            // Use a transparent background on iOS to show the blur effect
-            position: 'absolute',
-          },
-          default: {},
-        }),
-      }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: 'Profile',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.fill" color={color} />,
-        }}
-      />
-    </Tabs>
+    <View style={styles.container}>
+      <TopBar />
+      <View style={styles.content}>
+        <Slot />
+      </View>
+      <NavigationBar />
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  content: {
+    flex: 1, // Para que el contenido ocupe el espacio restante
+  },
+});
