@@ -4,7 +4,7 @@ import { Card, CardTitle } from '~/components/ui/card'
 import { useLoaderData } from '@remix-run/react';
 import { Suspense } from 'react';
 import { LoaderFunctionArgs } from '@remix-run/node';
-import supabase from '~/lib/supabase-helpers';
+import { createSupabaseClient } from '~/lib/supabase.client';
 
 export function loader(args: LoaderFunctionArgs) {
     const env = {
@@ -20,17 +20,18 @@ export function loader(args: LoaderFunctionArgs) {
 
 
 export function LoginCard() {
-    const { URL_ORIGIN } = useLoaderData<typeof loader>();
-    
+    const { URL_ORIGIN, env } = useLoaderData<typeof loader>();
+    const supabase = createSupabaseClient(env);
+
     return <Card className='flex flex-col p-4 justify-center items-center'>
         <CardTitle>Welcome to MatchPoint!</CardTitle>
         <div className='min-w-96'>
             <Suspense fallback={<div>Loading...</div>} >
                 <Auth
-                    supabaseClient={supabase()}
+                    supabaseClient={supabase}
                     appearance={{ theme: ThemeSupa }}
                     providers={['google', 'facebook']}
-                    redirectTo={ new URL(URL_ORIGIN).toString() }
+                    redirectTo={ new URL(URL_ORIGIN).toString() + "login/callback" }
                 />
             </Suspense>
         </div>
