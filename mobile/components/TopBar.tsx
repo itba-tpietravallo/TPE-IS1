@@ -4,6 +4,7 @@ import {
   SafeAreaView,
   Image,
   View,
+  Text,
   TouchableOpacity,
 } from "react-native";
 import { router } from "expo-router";
@@ -12,6 +13,7 @@ function TopBar() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.innerContainer}>
+        <Text style={styles.title}> MatchPoint</Text>
         <TouchableOpacity onPress={() => router.push("/(tabs)/profile")}>
           <Image
             style={styles.image}
@@ -32,13 +34,21 @@ const styles = StyleSheet.create({
   },
   innerContainer: {
     flexDirection: "row",
-    justifyContent: "flex-end",
+    justifyContent: "space-between",
     padding: 10,
   },
   image: {
     width: 30,
     height: 30,
     resizeMode: "contain",
+  },
+  title: {
+    fontSize: 24,
+    fontFamily: "Poppins",
+    fontWeight: "bold",
+    fontStyle: "italic",
+    color: "#f18f04",
+    marginLeft: 10,
   },
 });
 
