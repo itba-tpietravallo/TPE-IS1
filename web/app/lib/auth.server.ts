@@ -17,7 +17,7 @@ export async function authenticateUser(request: LoaderFunctionArgs["request"]) {
     } = await supabaseClient.auth.getUser();
 
     if (!user) {
-        return redirect('/');
+        return redirect('/login');
     }
 
     return {

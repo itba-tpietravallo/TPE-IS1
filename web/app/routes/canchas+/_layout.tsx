@@ -1,5 +1,5 @@
 import { LoaderFunctionArgs } from "@remix-run/node";
-import { Link, useLoaderData } from "@remix-run/react";
+import { Link, Outlet, useLoaderData } from "@remix-run/react";
 import { Button } from "~/components/ui/button";
 import { authenticateUser } from "~/lib/auth.server";
 
@@ -36,7 +36,7 @@ export default function CanchasLayout({
                 </div>
             </nav>
             <main className="pt-16">
-                {children}
+                <Outlet/>
             </main>
         </div>
     )
