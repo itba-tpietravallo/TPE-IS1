@@ -4,7 +4,7 @@ import { Card, CardTitle } from '~/components/ui/card'
 import { useLoaderData } from '@remix-run/react';
 import { Suspense } from 'react';
 import { LoaderFunctionArgs } from '@remix-run/node';
-import { createSupabaseClient } from '~/lib/supabase.client';
+import { createSupabaseClient } from '~/lib/supabase';
 
 export function loader(args: LoaderFunctionArgs) {
     const env = {
