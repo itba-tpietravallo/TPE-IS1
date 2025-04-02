@@ -1,5 +1,5 @@
+import { MapPin } from "lucide-react";
 import { Card, CardTitle, CardDescription, CardContent } from "~/components/ui/card";
-
 
 type FieldPreviewProps = {
     name: string;
@@ -28,23 +28,33 @@ export function FieldPreview(props:FieldPreviewProps) {
     <div className="flex p-2 w-full">
         <Card className="w-full">
             <CardTitle className="p-4"> {name} </CardTitle>
-            <CardDescription className="m-3">{location}</CardDescription>
-            <CardContent className="flex justify-center" >{img}</CardContent>
+            <CardDescription className="flex items-center gap-2 m-3">
+                <MapPin className="w-4 h-4 text-gray-500" />
+                {location}
+                </CardDescription>
+            <CardContent className="flex justify-center" >
+                <img src={img} className="w-full h-32 object-cover rounded-lg"/>
+            </CardContent>
         </Card>
     </div>
     );
 }
 
 export default function(){
-    // faltaria poner un parámetro a esta función para que le llegue el array fields,
-    // pero para testear/ver lo dejo asi
+    // esta data es para ver como se veria. Falta que me llegue por parámetro desde la BD la info.
+
     const fields = [
-        { name: "Voley 1", img: "(foto 1)", location: "Virrey del Pino 1818" },
-        { name: "Fulbo 2", img: "(foto 2)", location: "San Martin 1234" },
-        { name: "Hockey 3", img: "(foto 3)", location: "Corrientes 5678" },
-        { name: "Mini golf 4", img: "(foto 4)", location: "Lavalle 91011" },
-        { name: "Ajedrez 5", img: "(foto 5)", location: "Belgrano 1213" },
+        { name: "Voley 1", img: "medidas_sm.jpg", location: "Virrey del Pino 1818" },
+        { name: "Fulbo 2", img: "medidas_sm.jpg", location: "San Martin 1234" },
+        { name: "Hockey 3", img: "medidas_sm.jpg", location: "Corrientes 5678" },
+        { name: "Mini golf 4", img: "medidas_sm.jpg", location: "Lavalle 91011" },
+        { name: "Ajedrez 5", img: "medidas_sm.jpg", location: "Belgrano 1213" },
     ];
     
-    return <FieldsPreviewGrid fields={fields}/>;
+    return (
+        <div>
+            <br/>
+            <FieldsPreviewGrid fields={fields}/>
+        </div>
+    );
 }
