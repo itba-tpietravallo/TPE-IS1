@@ -6,15 +6,16 @@ interface props {
   name: string;
   sport: string;
   location: string;
+  images: string[];
 }
 function FieldPost(props: props) {
-  const { name, sport, location } = props;
+  const { name, sport, location, images } = props;
   return (
     <View>
       <ImageBackground
         style={styles.container}
         imageStyle={{ borderRadius: 15, opacity: 0.9 }}
-        source={require("@/assets/images/tenis.jpeg")}
+        source={{ uri: images[0] }}
       >
         <View style={styles.topContent}>
           <Text style={styles.title}>{props.name}</Text>
