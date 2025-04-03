@@ -77,7 +77,7 @@ export default function Index() {
             publica tu cancha para alquilar.
           </p>
           <div className="flex flex-wrap gap-8 mt-10">
-            <button className="bg-white hover:bg-[#f18f01]/50 shadow-lg rounded-lg p-6 w-full text-left">
+            <button className="bg-[#F2F4F3] hover:bg-[#f18f01]/50 shadow-lg rounded-lg p-6 w-full text-left">
               <h3 className="text-2xl font-bold text-[#223332] mb-4">
                 Para Deportistas
               </h3>
@@ -86,7 +86,7 @@ export default function Index() {
                 disponibles.
               </p>
             </button>
-            <button className="bg-white hover:bg-[#f18f01]/50 shadow-lg rounded-lg p-6 w-full text-left">
+            <button className="bg-[#F2F4F3] hover:bg-[#f18f01]/50 shadow-lg rounded-lg p-6 w-full text-left">
               <h3 className="text-2xl font-bold text-[#223332] mb-4">
                 Para Canchas
               </h3>
