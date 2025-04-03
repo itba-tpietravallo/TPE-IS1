@@ -15,6 +15,7 @@ import { Input } from "../../components/ui/input";
 import { Textarea } from "../../components/ui/textarea";
 import MultipleSelector, { Option } from "../../components/ui/multiselector";
 import { useRef, useState } from "react";
+import clsx from "clsx";
 
 export function NewField() {
 	const form = useForm({
@@ -37,8 +38,8 @@ export function NewField() {
 	];
 
 	return (
-		<div className="flex flex-col items-center justify-center h-screen space-y-12">
-			<h1 className="text-4xl font-bold mb-4">Publicar nueva cancha</h1>
+		<div className="flex flex-col items-center justify-center h-screen space-y-12 bg-[#f2f4f3]">
+			<h1 className="text-4xl font-bold mb-4 text-[#f18f01]">Publicar nueva cancha</h1>
 			<Form {...form}>
 				<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
 					<BasicBox
@@ -47,7 +48,7 @@ export function NewField() {
 						placeholder=""
 						description=""
 						box_specifications="w-6/12 h-10 text-lg px-4"
-						label_specifications="text-base font-sans"
+						label_specifications="text-base font-sans text-[#223332]"
 						form={form}
 					/>
 					<hr className="my-4 border-t border-gray-300" />
@@ -63,7 +64,7 @@ export function NewField() {
 						form={form}
 					/>
 					<div className="flex justify-center items-center w-full">
-						<Button className="w-2/12 h-10 text-base" type="submit">
+						<Button className="w-2/12 h-10 text-base bg-[#223332] hover:bg-[#f18f01]/80" type="submit">
 							Publicar
 						</Button>
 					</div>
@@ -98,11 +99,12 @@ function BasicBox({
 			name={section}
 			render={({ field }) => (
 				<FormItem>
-					<FormLabel className={label_specifications}>{label}</FormLabel>
+					<FormLabel className={clsx(`${label_specifications}`, "text-[#223332]")}>{label}</FormLabel>
 					<FormControl>
 						<Input
 							placeholder={placeholder}
 							className={box_specifications}
+							// className={clsx(`${box_specifications}`, "text-[#223332]")}
 							{...field}
 						/>
 					</FormControl>
@@ -121,7 +123,7 @@ function AddressSection({
 }) {
 	return (
 		<div className="flex flex-col space-y-5">
-			<FormLabel className="text-base font-sans">Dirección</FormLabel>
+			<FormLabel className="text-base font-sansfont-sans text-[#223332]">Dirección</FormLabel>
 			<div className="flex flex-row space-x-10">
 				<BasicBox
 					section="street"
@@ -174,7 +176,7 @@ function SelectFormSection({
 			render={() => (
 				<FormItem>
 					<div className="flex flex-col space-y-2">
-						<FormLabel className="text-base font-sans">Deporte/s</FormLabel>
+						<FormLabel className="text-base font-sans text-[#223332]">Deporte/s</FormLabel>
 						<div className="w-full">
 							<MultipleSelector
 								defaultOptions={options}
@@ -211,7 +213,7 @@ function DescriptionSection({
 			name="description"
 			render={({ field }) => (
 				<FormItem>
-					<FormLabel className="text-base font-sans">Descripción</FormLabel>
+					<FormLabel className="text-base font-sans text-[#223332]">Descripción</FormLabel>
 					<FormControl>
 						<Textarea
 							placeholder={placeholder}
@@ -259,7 +261,7 @@ function ImageSection({ form }: { form: UseFormReturn<any, any, undefined> }) {
 			name="image"
 			render={() => (
 				<FormItem>
-					<FormLabel className="text-base font-sans">Imágenes</FormLabel>
+					<FormLabel className="text-base font-sans text-[#223332]">Imágenes</FormLabel>
 					<FormControl>
 						<div className="flex flex-col gap-2">
 							<input
@@ -273,7 +275,7 @@ function ImageSection({ form }: { form: UseFormReturn<any, any, undefined> }) {
 
 							<Button
 								type="button"
-								className="w-1/5 h-8 text-sm py-2 px-6"
+								className="w-1/5 h-8 text-sm py-2 px-6 bg-[#223332] hover:bg-[#f18f01]/80"
 								onClick={handleButtonClick}
 							>
 								Seleccionar archivos
@@ -311,5 +313,8 @@ function ImageSection({ form }: { form: UseFormReturn<any, any, undefined> }) {
 		/>
 	);
 }
+
+// titulos de secciones verde
+//
 
 export default NewField;
