@@ -1,16 +1,3 @@
-import { Button } from "@rneui/themed";
-import { Text, View } from "react-native";
-
 export default function Index() {
-  return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      <Text>Edit app/index.tsx to edit this screen.</Text>
-    </View>
-  );
+  return null; // O puedes renderizar un componente placeholder mientras se navega
 }

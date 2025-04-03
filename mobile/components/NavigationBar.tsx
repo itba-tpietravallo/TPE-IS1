@@ -1,6 +1,6 @@
 import { router } from "expo-router";
 import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Image } from "react-native";
+import { View, TouchableOpacity, StyleSheet, Image } from "react-native";
 
 function NavigationBar() {
   return (
