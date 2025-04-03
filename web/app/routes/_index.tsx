@@ -52,11 +52,11 @@ export default function Index() {
                   No te quedes sin jugar
                 </h3>
               </div>
-              <div className="space-x-9 text-center mt-1">
-                <Button className="hover:bg-[#f18f01]/50" size={"xl"}>
+              <div className="space-x-9 text-center mt-1 ">
+                <Button className="hover:bg-[#f18f01]/50 text-[#F2F4F3]"  size={"xl"}>
                   Encontrá tu equipo
                 </Button>
-                <Button className="hover:bg-[#f18f01]/50" size={"xl"}>
+                <Button className="hover:bg-[#f18f01]/50 text-[#F2F4F3]" size={"xl"}>
                   Publicá tu cancha
                 </Button>
               </div>
