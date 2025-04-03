@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# Prettify
+FILES=$(git diff --cached --name-only --diff-filter=ACMR | sed 's| |\\ |g')
+[ -z "$FILES" ] && exit 0
+
+# Prettify web files
+cd web
+
+FILES=$(echo "$FILES" | grep -E '^web/' | sed 's|^web/||')
+echo "$FILES" | xargs npx prettier --ignore-unknown --write
+cd ..
+
+# Add back the prefix to the file paths
+FILES=$(echo "$FILES" | sed 's|^|web/|')
+# Add back the modified/prettified files to staging
+echo "$FILES" | xargs git add
+
+exit 0
