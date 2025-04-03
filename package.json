@@ -1,7 +1,10 @@
 {
+  "name": "matchpointapp",
+  "version": "1.0.0",
   "dependencies": {
-    "expo": "~52.0.42",
-    "expo-system-ui": "~4.0.9",
-    "react-native": "^0.76.8"
+    "husky": "^9.1.7"
+  },
+  "scripts": {
+    "prepare": "npx husky"
   }
 }
