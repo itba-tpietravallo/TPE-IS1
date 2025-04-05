@@ -27,7 +27,7 @@ function NavigationBar() {
       <View style={styles.separator} />
       <TouchableOpacity
         style={styles.button}
-        onPress={() => router.push("/(tabs)/torneos")}
+        onPress={() => router.push("/(tabs)/players")}
       >
         <Image
           style={styles.image}

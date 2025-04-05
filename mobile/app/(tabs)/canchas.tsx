@@ -9,11 +9,12 @@ function CanchasFeed() {
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
+        backgroundColor: "#f2f4f3",
       }}
     >
       <ScrollView
         horizontal={false}
-        contentContainerStyle={{ flexDirection: "column" }}
+        contentContainerStyle={{ flexDirection: "column", paddingBottom: 100 }}
         showsHorizontalScrollIndicator={false}
         showsVerticalScrollIndicator={false}
       >

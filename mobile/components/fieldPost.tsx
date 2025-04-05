@@ -46,17 +46,19 @@ function FieldPost(props: props) {
         </ImageBackground>
       </TouchableOpacity>
       <Modal
-        style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        style={styles.modal}
         visible={isModalVisible}
         transparent={true}
         onRequestClose={() => setIsModalVisible(false)}
       >
-        <PopUpReserva
-          onClose={handleCloseModal}
-          name={name}
-          location={location}
-          sport={sport}
-        />
+        <View style={styles.centeredView}>
+          <PopUpReserva
+            onClose={handleCloseModal}
+            name={name}
+            location={location}
+            sport={sport}
+          />
+        </View>
       </Modal>
     </View>
   );
@@ -103,6 +105,16 @@ const styles = StyleSheet.create({
     width: 25,
     height: 25,
     borderRadius: 25,
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)", // Opcional: fondo semitransparente
+  },
+  modal: {
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
 

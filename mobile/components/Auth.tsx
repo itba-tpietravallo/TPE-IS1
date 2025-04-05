@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Alert, StyleSheet, View, Text } from "react-native";
+import { Alert, StyleSheet, View, Text, Image } from "react-native";
 import { supabase } from "../lib/supabase";
 import { Button, Input } from "@rneui/themed";
 
@@ -40,6 +40,10 @@ export default function Auth() {
   return (
     <View style={styles.container}>
       <View style={{ alignItems: "center", justifyContent: "flex-start" }}>
+        <Image
+          source={require("@/assets/images/logo.png")}
+          style={{ width: 200, height: 200 }}
+        />
         <Text
           style={{
             fontSize: 60,

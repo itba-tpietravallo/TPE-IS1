@@ -1,3 +1,6 @@
+import CanchasFeed from "./canchas";
+import { Text } from "react-native";
+
 export default function Index() {
-  return null; // O puedes renderizar un componente placeholder mientras se navega
+  return <CanchasFeed />;
 }

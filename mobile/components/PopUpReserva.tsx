@@ -95,6 +95,7 @@ function PopUpReserva({ onClose, name, sport, location }: PopUpReservaProps) {
             value={selectedTime}
             mode="time"
             display="spinner"
+            minuteInterval={30}
             onChange={(event, time) => {
               if (time) {
                 setShowTime(false);
@@ -118,6 +119,8 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: "center",
     margin: 20,
+    //color: "#f2f4f3",
+    color: "#00ff00",
   },
   centeredView: {
     flex: 1,
