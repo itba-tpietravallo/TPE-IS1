@@ -208,14 +208,13 @@ export function FieldDetail(props: FieldProps) {
     setDescription,
   } = props;
   return (
-    <div className="h-full">
-      <MyMenubar />
+    <div className="h-full bg-[#f2f4f3]">
       <div className="h-full space-x-12 flex flex-row  items-center justify-center ">
         <Card className="max-w-lg w-full shadow-lg p-10">
           <CardHeader className="space-y-5">
             <CardTitle className="text-5xl font-bold">{name}</CardTitle>
             <div className="flex flex-row">
-              <img src="location-logo.png" className="w-[35px] h-[35px]" />
+              <img src="../location-logo.png" className="w-[35px] h-[35px]" />
               <CardDescription className="text-2xl">{location}</CardDescription>
             </div>
           </CardHeader>
@@ -245,7 +244,7 @@ let globalDescription =
   "Lionel Andrés Messi Cuccittini (Rosario, 24 de junio de 1987), conocido como Leo Messi, es un futbolista argentino que juega como delantero o centrocampista. Desde 2023, integra el plantel del Inter Miami de la MLS canadoestadounidense. Es también internacional con la selección de Argentina, de la que es capitán.";
 
 export default function () {
-  const imgs: string[] = ["img3-f11.jpg", "img2-f11.jpg", "img1-f11.jpg"];
+  const imgs: string[] = ["../img3-f11.jpg", "../img2-f11.jpg", "../img1-f11.jpg"];
   const [name, setName] = useState(globalName);
   const [location, setLocation] = useState(globalLocation);
   const [description, setDescription] = useState(globalDescription);
