@@ -6,8 +6,10 @@ import {
   StyleSheet,
   Image,
   TouchableOpacity,
+  Modal,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { ScreenHeight, ScreenWidth } from "@rneui/themed/dist/config";
 
 interface PopUpReservaProps {
   onClose: () => void;
@@ -15,13 +17,22 @@ interface PopUpReservaProps {
   name: string;
   sport: string;
   location: string;
+  images: string[];
 }
 
-function PopUpReserva({ onClose, name, sport, location }: PopUpReservaProps) {
+function PopUpReserva({
+  onClose,
+  name,
+  sport,
+  location,
+  images,
+}: PopUpReservaProps) {
   const [showDate, setShowDate] = useState(false);
   const [showTime, setShowTime] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedTime, setSelectedTime] = useState(new Date());
+
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
   return (
     <View style={styles.modalView}>
@@ -42,17 +53,51 @@ function PopUpReserva({ onClose, name, sport, location }: PopUpReservaProps) {
           justifyContent: "space-between",
         }}
       >
-        <View>
-          <Text style={{ fontSize: 32, fontWeight: "bold" }}>{name}</Text>
+        <View style={{ flex: 1, paddingRight: 10 }}>
+          <Text
+            style={{
+              fontSize: 32,
+              fontWeight: "bold",
+              justifyContent: "center",
+            }}
+          >
+            {name}
+          </Text>
           <Text style={{ fontSize: 16, color: "gray", marginBottom: 10 }}>
             {sport}
           </Text>
           <Text style={{ fontSize: 20 }}>{location}</Text>
         </View>
-        <Image
-          style={{ width: 100, height: 100, marginTop: 10, marginRight: 10 }}
-          source={require("@/assets/images/tenis.jpeg")}
-        />
+        <TouchableOpacity onPress={() => setIsModalVisible(true)}>
+          <Image
+            style={{ width: 120, height: 120, marginTop: 10, marginRight: 10 }}
+            source={{ uri: images[0] }}
+          />
+          <Modal
+            style={{
+              backgroundColor: "white",
+              borderRadius: 20,
+              justifyContent: "center",
+              margin: 20,
+              overflow: "hidden",
+              flex: 1,
+            }}
+            visible={isModalVisible}
+            transparent={true}
+            onRequestClose={() => setIsModalVisible(false)}
+          >
+            <View
+              style={{
+                flex: 1,
+                justifyContent: "center",
+                alignItems: "center",
+                backgroundColor: "white",
+                flexDirection: "column",
+                margin: 10,
+              }}
+            ></View>
+          </Modal>
+        </TouchableOpacity>
       </View>
       <Text style={{ padding: 20, paddingBottom: 0 }}>Descripción:</Text>
       <Text
@@ -119,27 +164,8 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: "center",
     margin: 20,
-    //color: "#f2f4f3",
     color: "#00ff00",
-  },
-  centeredView: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 22,
-  },
-  modalView2: {
-    margin: 20,
-    backgroundColor: "white",
-    borderRadius: 20,
-    width: "80%",
-    padding: 35,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
+    overflow: "hidden",
   },
 });
 

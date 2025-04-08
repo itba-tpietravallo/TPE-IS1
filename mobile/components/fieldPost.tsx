@@ -17,6 +17,7 @@ interface props {
   name: string;
   sport: string;
   location: string;
+  images: string[];
 }
 function FieldPost(props: props) {
   const { name, sport, location } = props;
@@ -30,7 +31,7 @@ function FieldPost(props: props) {
         <ImageBackground
           style={styles.container}
           imageStyle={{ borderRadius: 15, opacity: 0.9 }}
-          source={require("@/assets/images/tenis.jpeg")}
+          source={{ uri: props.images[0] }}
         >
           <View style={styles.topContent}>
             <Text style={styles.title}>{props.name}</Text>
@@ -57,6 +58,7 @@ function FieldPost(props: props) {
             name={name}
             location={location}
             sport={sport}
+            images={props.images}
           />
         </View>
       </Modal>
@@ -110,7 +112,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)", // Opcional: fondo semitransparente
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   modal: {
     justifyContent: "center",

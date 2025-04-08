@@ -6,7 +6,7 @@
     "typescript": "^5.8.2"
   },
   "devDependencies": {
-    "@itba-tpietravallo/drizzle-kit": "^0.30.8-1",
+    "@itba-tpietravallo/drizzle-kit": "^0.30.8-2",
     "@types/node": "^22.13.17",
     "tsx": "^4.19.3"
   }

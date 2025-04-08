@@ -1,9 +1,32 @@
 import { supabase } from "@/lib/supabase";
 import { Button, Image } from "@rneui/themed";
-
 import { StyleSheet, Text, View } from "react-native";
+import { useEffect, useState } from "react";
+
+type User = {
+  id: string;
+  full_name: string;
+  avatar_url: string;
+};
 
 export default function Index() {
+  const [user, setUser] = useState<User | null>(null);
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      supabase
+        .from("users")
+        .select("*")
+        .eq("id", user?.id)
+        .single()
+        .then(({ data, error }) => {
+          if (error) {
+            console.error("Error fetching user:", error);
+          } else {
+            setUser(data);
+          }
+        });
+    });
+  });
   return (
     <View
       style={{
@@ -16,17 +39,30 @@ export default function Index() {
         style={{
           marginBottom: 20,
           justifyContent: "space-between",
-          alignContent: "flex-start",
+          alignContent: "center",
         }}
       >
-        <View style={{ padding: 20 }}>
-          <Image
-            source={require("@/assets/images/profile.png")}
-            style={{ width: 100, height: 100 }}
-          />
+        <View style={{ padding: 20, alignContent: "center" }}>
+          <Text
+            style={{
+              fontSize: 30,
+              fontWeight: "bold",
+              color: "gray",
+              paddingBottom: 20,
+            }}
+          >
+            Usuario:
+          </Text>
+          <View style={{ alignItems: "center" }}>
+            <Image
+              source={{ uri: user?.avatar_url }}
+              style={{ width: 100, height: 100 }}
+            />
+            <Text style={{ fontSize: 30, fontWeight: "bold", paddingTop: 20 }}>
+              {user?.full_name}
+            </Text>
+          </View>
         </View>
-        <Text style={{ fontSize: 30, fontWeight: "bold" }}>Nombre:</Text>
-        <Text style={{ fontSize: 30, fontWeight: "bold" }}>Apellido:</Text>
       </View>
       <Button
         buttonStyle={styles.buttonContainer}
