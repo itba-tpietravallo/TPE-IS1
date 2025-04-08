@@ -1,13 +1,13 @@
 {
   "dependencies": {
     "dotenv": "^16.4.7",
-    "drizzle-orm": "^0.41.0",
+    "drizzle-orm": "0.41.0",
     "postgres": "^3.4.5",
     "typescript": "^5.8.2"
   },
   "devDependencies": {
+    "@itba-tpietravallo/drizzle-kit": "^0.30.8-1",
     "@types/node": "^22.13.17",
-    "drizzle-kit": "^0.30.6",
     "tsx": "^4.19.3"
   }
 }

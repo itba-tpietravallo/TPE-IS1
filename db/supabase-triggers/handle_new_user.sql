@@ -1,18 +1,22 @@
--- inserts a row into public.users
-create function public.handle_new_user()
-returns trigger
-language plpgsql
-security definer set search_path = ''
-as $$
-begin
-  insert into public.users (id, first_name, last_name, avatar)
-  values (new.id, new.raw_user_meta_data ->> 'first_name', new.raw_user_meta_data ->> 'last_name', new.raw_user_meta_data ->> 'avatar_url');
-  return new;
-end;
-$$;
+-- DROP FUNCTION handle_new_user CASCADE;
 
--- trigger the function every time a user is created
-create trigger on_auth_user_created
-  after insert on auth.users
-  for each row execute procedure public.handle_new_user();
+CREATE OR REPLACE FUNCTION handle_new_user() RETURNS trigger AS $$
+BEGIN
+    INSERT INTO public.users (id, full_name, avatar_url)
+    VALUES (
+        new.id, 
+        new.raw_user_meta_data->>'full_name', 
+        new.raw_user_meta_data->>'avatar_url'
+    )
+    ON CONFLICT (id) DO NOTHING;  -- This will ignore the insert if the id already exists
+    RETURN NEW;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE WARNING 'An error occurred while handling the new user: %', SQLERRM;
+        RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
+CREATE OR REPLACE TRIGGER on_auth_user_created
+AFTER INSERT ON auth.users
+FOR EACH ROW EXECUTE PROCEDURE handle_new_user();

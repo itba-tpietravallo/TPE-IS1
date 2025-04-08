@@ -1,6 +1,6 @@
 import { router } from "expo-router";
 import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Image } from "react-native";
+import { View, TouchableOpacity, StyleSheet, Image } from "react-native";
 
 function NavigationBar() {
   return (
@@ -27,7 +27,7 @@ function NavigationBar() {
       <View style={styles.separator} />
       <TouchableOpacity
         style={styles.button}
-        onPress={() => router.push("/(tabs)/torneos")}
+        onPress={() => router.push("/(tabs)/players")}
       >
         <Image
           style={styles.image}

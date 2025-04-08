@@ -1,6 +1,17 @@
 import { ScreenHeight } from "@rneui/themed/dist/config";
-import React from "react";
-import { StyleSheet, Text, View, ImageBackground, Image } from "react-native";
+import React, { useState } from "react";
+import { router } from "expo-router";
+
+import {
+  StyleSheet,
+  Text,
+  View,
+  ImageBackground,
+  Image,
+  TouchableOpacity,
+  Modal,
+} from "react-native";
+import PopUpReserva from "./PopUpReserva";
 
 interface props {
   name: string;
@@ -9,25 +20,46 @@ interface props {
 }
 function FieldPost(props: props) {
   const { name, sport, location } = props;
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const handleCloseModal = () => {
+    setIsModalVisible(false);
+  };
   return (
-    <View>
-      <ImageBackground
-        style={styles.container}
-        imageStyle={{ borderRadius: 15, opacity: 0.9 }}
-        source={require("@/assets/images/tenis.jpeg")}
+    <View style={{ flex: 1 }}>
+      <TouchableOpacity onPress={() => setIsModalVisible(true)}>
+        <ImageBackground
+          style={styles.container}
+          imageStyle={{ borderRadius: 15, opacity: 0.9 }}
+          source={require("@/assets/images/tenis.jpeg")}
+        >
+          <View style={styles.topContent}>
+            <Text style={styles.title}>{props.name}</Text>
+            <Text style={styles.sport}>{props.sport}</Text>
+          </View>
+          <View style={styles.bottomContent}>
+            <Image
+              style={styles.icon}
+              source={require("@/assets/images/cancha.png")}
+            />
+            <Text style={styles.text}>{props.location}</Text>
+          </View>
+        </ImageBackground>
+      </TouchableOpacity>
+      <Modal
+        style={styles.modal}
+        visible={isModalVisible}
+        transparent={true}
+        onRequestClose={() => setIsModalVisible(false)}
       >
-        <View style={styles.topContent}>
-          <Text style={styles.title}>{props.name}</Text>
-          <Text style={styles.sport}>{props.sport}</Text>
-        </View>
-        <View style={styles.bottomContent}>
-          <Image
-            style={styles.icon}
-            source={require("@/assets/images/cancha.png")}
+        <View style={styles.centeredView}>
+          <PopUpReserva
+            onClose={handleCloseModal}
+            name={name}
+            location={location}
+            sport={sport}
           />
-          <Text style={styles.text}>{props.location}</Text>
         </View>
-      </ImageBackground>
+      </Modal>
     </View>
   );
 }
@@ -73,6 +105,16 @@ const styles = StyleSheet.create({
     width: 25,
     height: 25,
     borderRadius: 25,
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)", // Opcional: fondo semitransparente
+  },
+  modal: {
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
 
