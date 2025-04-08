@@ -14,32 +14,106 @@ import {
 import { Input } from "../../components/ui/input";
 import { Textarea } from "../../components/ui/textarea";
 import MultipleSelector, { Option } from "../../components/ui/multiselector";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import clsx from "clsx";
+import { LoaderFunctionArgs } from "@remix-run/node";
+import { createBrowserClient, createServerClient } from "@supabase/ssr";
+import { useLoaderData } from "@remix-run/react";
+
+export function loader(args: LoaderFunctionArgs) {
+	const env = {
+		SUPABASE_URL: process.env.SUPABASE_URL!,
+		SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY!,
+	}
+	
+	return {
+		env,
+		URL_ORIGIN: new URL(args.request.url).origin
+	};
+}
 
 export function NewField() {
+	const { URL_ORIGIN, env } = useLoaderData<typeof loader>();
+
+	const supabase = createBrowserClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
+
 	const form = useForm({
 		defaultValues: { section: "" },
 	});
 
-	const onSubmit = (data: { section: string }) => {
-		console.log("Form submitted:", data);
-	};
+	const onSubmit = async (data: any) => {
+		try {
+			const files = data.image || [];
+    		const uploadedImageUrls: string[] = [];
 
-	const options: Option[] = [
-		{ label: "Fútbol", value: "football" },
-		{ label: "Hockey sobre césped", value: "field hockey" },
-		{ label: "Voley", value: "voleyball" },
-		{ label: "Básquet", value: "basketball" },
-		{ label: "Rugby", value: "rugby" },
-		{ label: "Handball", value: "handball" },
-		{ label: "Padel", value: "padel" },
-		{ label: "Tenis de mesa", value: "table tennis" },
-	];
+    		for (const file of files) {
+      			const filePath = `fields/${Date.now()}-${file.name}`;
+
+      			// Upload to Supabase storage
+      			const { error: uploadError } = await supabase.storage
+        				.from("venues")
+        				.upload(filePath, file);
+
+     			if (uploadError) {
+        			throw new Error(`Error uploading ${file.name}: ${uploadError.message}`);
+     			}
+
+      			// Get public URL
+     			const { data: publicUrlData } = supabase
+        				.storage
+        				.from("venues")
+        				.getPublicUrl(filePath);
+
+      			if (publicUrlData?.publicUrl) {
+        			uploadedImageUrls.push(publicUrlData.publicUrl);
+     			}
+    		}
+
+			// Insert form data into a table
+			const { error: insertError } = await supabase.from("fields").insert([
+				{
+					name: data.name,
+					street: data.street,
+					street_number: data.street_number,
+					neighborhood: data.neighbourhood,
+					city: data.city,
+					sports: data.sports,
+					images_urls: uploadedImageUrls,
+					description: data.description,
+				},
+			]);
+	
+			if (insertError) throw new Error(`Insert error: ${insertError.message}`);
+
+		} catch (err: any) {
+			console.error("Submission failed:", err.message || err);
+		}
+	};
+	
+
+	const [options, setOptions] = useState<Option[]>([]);
+
+	useEffect(() => {
+		supabase.from("sports").select("name").then((values) => {
+
+			if (values.error) {
+				console.error("Error fetching sports:", values.error.message);
+				return;
+			}
+
+			const fetchedOptions: Option[] = values.data.map((item) => ({
+				label: item.name,
+				value: item.name.toLowerCase(),
+			}));
+
+			setOptions(fetchedOptions);
+		});
+	}, []);
 
 	return (
-		<div className="flex flex-col items-center justify-center h-screen space-y-12 bg-[#f2f4f3]">
-			<h1 className="text-4xl font-bold mb-4 text-[#f18f01]">Publicar nueva cancha</h1>
+		<div className="flex flex-col items-center justify-center min-h-screen space-y-12 bg-[#f2f4f3]">
+
+			<h1 className="text-4xl font-bold mb-4 text-[#f18f01] mt-11">Publicar nueva cancha</h1>
 			<Form {...form}>
 				<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
 					<BasicBox
@@ -59,12 +133,12 @@ export function NewField() {
 					<ImageSection form={form} />
 					<hr className="my-4 border-t border-gray-300" />
 					<DescriptionSection
-						placeholder="Información adicional sobre su cancha y servicios. Por ejemplo, cantidad de jugadores, días y horarios de apertura."
+						placeholder="Información adicional sobre la cancha y servicios. Por ejemplo, cantidad de jugadores, días y horarios de apertura."
 						box_specifications="w-[800px] h-[200px] text-lg px-4"
 						form={form}
 					/>
 					<div className="flex justify-center items-center w-full">
-						<Button className="w-2/12 h-10 text-base bg-[#223332] hover:bg-[#f18f01]/80" type="submit">
+						<Button className="w-2/12 h-10 text-base bg-[#223332] hover:bg-[#f18f01]/80 mt-5 mb-11" type="submit">
 							Publicar
 						</Button>
 					</div>
@@ -104,7 +178,6 @@ function BasicBox({
 						<Input
 							placeholder={placeholder}
 							className={box_specifications}
-							// className={clsx(`${box_specifications}`, "text-[#223332]")}
 							{...field}
 						/>
 					</FormControl>
@@ -134,7 +207,7 @@ function AddressSection({
 					form={form}
 				/>
 				<BasicBox
-					section="number"
+					section="street_number"
 					label="Número"
 					placeholder=""
 					description=""
@@ -172,19 +245,19 @@ function SelectFormSection({
 	return (
 		<FormField
 			control={form.control}
-			name="sport"
+			name="sports"
 			render={() => (
 				<FormItem>
 					<div className="flex flex-col space-y-2">
 						<FormLabel className="text-base font-sans text-[#223332]">Deporte/s</FormLabel>
 						<div className="w-full">
 							<MultipleSelector
-								defaultOptions={options}
-								placeholder="Escriba el deporte si no aparece como opción..."
+								options={options}
+								placeholder="Escribir el deporte si no aparece como opción..."
 								creatable
 								emptyIndicator={
 									<p className="text-center] text-lg leading-10 text-gray-600 dark:text-gray-400">
-										ningún resultado encontrado.
+										Ningún resultado encontrado.
 									</p>
 								}
 							/>
@@ -258,7 +331,7 @@ function ImageSection({ form }: { form: UseFormReturn<any, any, undefined> }) {
 	return (
 		<FormField
 			control={form.control}
-			name="image"
+			name="images"
 			render={() => (
 				<FormItem>
 					<FormLabel className="text-base font-sans text-[#223332]">Imágenes</FormLabel>
@@ -313,8 +386,5 @@ function ImageSection({ form }: { form: UseFormReturn<any, any, undefined> }) {
 		/>
 	);
 }
-
-// titulos de secciones verde
-//
 
 export default NewField;
