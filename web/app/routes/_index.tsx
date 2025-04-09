@@ -47,7 +47,7 @@ export default function Index() {
 					<header className="flex flex-col items-center gap-5">
 						<div className="items-center justify-center space-y-10">
 							<div className="space-y-3">
-								<h1 className="relative text-center text-6xl font-extrabold text-[#f18f01] lg:text-9xl">
+								<h1 className="relative animate-bounce text-center text-6xl font-extrabold text-[#f18f01] [animation-iteration-count:1.49] lg:text-9xl">
 									MatchPo
 									<span className="relative inline-block">
 										i
