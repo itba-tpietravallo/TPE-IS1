@@ -40,14 +40,14 @@ export default function Index() {
 					<header className="flex flex-col items-center gap-5">
 						<div className="space-y-10">
 							<div className="space-y-3">
-								<h1 className="relative animate-bounce text-center text-6xl font-bold text-[#f18f01] [animation-iteration-count:1.49] lg:text-9xl">
+								<h1 className="relative text-center text-6xl font-bold text-[#f18f01] lg:text-9xl">
 									MatchPo
 									<span className="relative inline-block">
 										i
 										<img
 											src="../../public/matchpointpelota-logo.png"
 											alt="Dot for i"
-											className="absolute left-1/2 top-1.5 h-8 w-8 -translate-x-1/2 rounded-full"
+											className="absolute left-1/2 top-3 h-[20%] w-[80%] -translate-x-1/2 -translate-y-1/2 rounded-full lg:top-7"
 										/>
 									</span>
 									nt
