@@ -1,6 +1,7 @@
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
+import { MapPin } from "lucide-react";
 import { ChangeEventHandler, ReactNode, useState } from "react";
 
 import {
@@ -175,7 +176,7 @@ export function MyCarousel(props: CarouselProps) {
   return (
     <Carousel>
       <CarouselContent>
-        {imgSrc.map((img) => (
+        {imgSrc?.map((img) => (
           <CarouselItem>
             <img src={img} alt="Imagen Cancha" className="w-full h-full" />
           </CarouselItem>
@@ -214,7 +215,7 @@ export function FieldDetail(props: FieldProps) {
           <CardHeader className="space-y-5">
             <CardTitle className="text-5xl font-bold">{name}</CardTitle>
             <div className="flex flex-row">
-              <img src="../location-logo.png" className="w-[35px] h-[35px]" />
+              <MapPin className="w-6 h-6 text-gray-500" />
               <CardDescription className="text-2xl">{location}</CardDescription>
             </div>
           </CardHeader>
@@ -222,7 +223,7 @@ export function FieldDetail(props: FieldProps) {
             <div className="grid gap-4 py-4">{description}</div>
           </CardContent>
         </Card>
-        <div className="w-[600px] space-y-5 flex flex-col h-screen items-center justify-center ">
+        <div className="w-[400px] space-y-5 flex flex-col h-screen items-center justify-center ">
           <MyCarousel imgSrc={imgSrc} />
           <MySheet
             name={name}
@@ -238,6 +239,7 @@ export function FieldDetail(props: FieldProps) {
   );
 }
 
+// todo este código en qué queda ?
 let globalName = "Canchita";
 let globalLocation = "Av. Rolon 326, San Isidro, Buenos Aires";
 let globalDescription =
@@ -248,6 +250,7 @@ export default function () {
   const [name, setName] = useState(globalName);
   const [location, setLocation] = useState(globalLocation);
   const [description, setDescription] = useState(globalDescription);
+  //todo falta que el edit datos de la cancha le peguen a la db
 
   return (
     <FieldDetail
