@@ -126,19 +126,19 @@ export default function Index() {
 			</div>
 
 			{/* About Us Section */}
-			<div className="flex flex-row items-center justify-center bg-[#f2f4f3] py-20">
+			<div className="flex flex-row items-center justify-center bg-gradient-to-r from-black via-[#223332] to-[#223332] py-20">
 				{/* Columna Izquierda: Espacio para Imágenes */}
 				<div className="flex w-1/2 items-center justify-center">
 					{/* Aquí puedes agregar imágenes más adelante */}
-					<div className="w-3/4">
+					<div className="w-3/4 rounded">
 						<img src="/matchpoint-logo.png" alt="Logo" className="h-auto w-full rounded-lg shadow-lg" />
 					</div>
 				</div>
 
 				{/* Columna Derecha: Texto */}
 				<div className="flex w-1/2 flex-col space-y-6 pr-16">
-					<h2 className="mb-6 text-8xl font-bold text-[#223332]">Quienes somos</h2>
-					<p className="max-w-3xl text-left text-lg font-semibold text-[#223332]">
+					<h2 className="mb-6 text-8xl font-bold text-[#f18f01]">Quienes somos...</h2>
+					<p className="max-w-3xl text-left text-lg font-semibold text-[#f2f4f3]">
 						Desde autoridades del deporte como árbitros o jueces de mesa, hasta canchas donde jugar y
 						jugadores para completar tu equipo, MatchPoint nace para conectarlos a todos. Con el deporte
 						como motor, buscamos crear una comunidad que comparta la pasión por el juego y la competencia
