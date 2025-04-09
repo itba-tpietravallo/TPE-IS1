@@ -56,11 +56,17 @@ export default function Index() {
 									No te quedes sin jugar
 								</h3>
 							</div>
-							<div className="mt-1 space-x-9 text-center">
-								<Button className="text-[#F2F4F3] hover:bg-[#f18f01]/50" size={"xl"}>
+							<div className="mt-1 flex flex-col gap-4 text-center sm:flex-row sm:gap-9">
+								<Button
+									className="w-full bg-black text-[#F2F4F3] hover:bg-[#f18f01]/50 sm:w-auto"
+									size={"xl"}
+								>
 									Encontrá tu equipo
 								</Button>
-								<Button className="text-[#F2F4F3] hover:bg-[#f18f01]/50" size={"xl"}>
+								<Button
+									className="w-full bg-black text-[#F2F4F3] hover:bg-[#f18f01]/50 sm:w-auto"
+									size={"xl"}
+								>
 									Publicá tu cancha
 								</Button>
 							</div>
