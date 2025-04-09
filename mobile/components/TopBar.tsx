@@ -49,7 +49,7 @@ function TopBar() {
               fontSize: 24,
               fontFamily: "Poppins",
               fontWeight: "bold",
-              color: "#black",
+              color: "#223332",
               marginLeft: 0,
               paddingLeft: 0,
             }}

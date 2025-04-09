@@ -41,7 +41,7 @@ export const fieldsTable = pgTable(
 			type: "point",
 			mode: "xy",
 			srid: 4326,
-		}).notNull(),
+		}),
 		street_number: varchar({ length: 6 }).notNull(),
 		street: varchar({ length: 255 }).notNull(),
 		neighborhood: varchar({ length: 255 }).notNull(),
@@ -68,6 +68,7 @@ export const reservationsTable = pgTable("reservations", {
 	owner_id: uuid()
 		.notNull()
 		.references(() => usersTable.id, { onDelete: "cascade" }),
+	payments_id: uuid(),
 });
 
 export const payments = pgTable("mp_payments", {

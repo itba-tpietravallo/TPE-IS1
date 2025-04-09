@@ -4,26 +4,45 @@ import { supabase } from "@/lib/supabase";
 import React, { useEffect, useState } from "react";
 
 type Field = {
+  // lat: number;
+  // long: number;
+  // dist_meters: number;
   id: string;
   owner: string;
   avatar_url: string;
-  images: string[];
+  // ----------
   name: string;
-  lat: number;
-  long: number;
-  dist_meters: number;
+  images: string[];
+  sports: string[];
+  street_number: string;
+  street: string;
+  neighborhood: string;
+  description: string;
 };
 
 function CanchasFeed() {
   const [fields, setFields] = useState<Field[]>([]);
 
+  // useEffect(() => {
+  //   supabase
+  //     .rpc("nearby_fields", {
+  //       lat: -34.601, // @todo get user location
+  //       long: -58.382,
+  //       lim: 10,
+  //     })
+  //     .then(({ data, error }) => {
+  //       if (error) {
+  //         console.error("Error fetching fields:", error);
+  //       } else {
+  //         console.log("Fetched fields:", data);
+  //         setFields(data);
+  //       }
+  //     });
+  // }, []);
   useEffect(() => {
     supabase
-      .rpc("nearby_fields", {
-        lat: -34.601, // @todo get user location
-        long: -58.382,
-        lim: 10,
-      })
+      .from("fields")
+      .select("*")
       .then(({ data, error }) => {
         if (error) {
           console.error("Error fetching fields:", error);
@@ -31,7 +50,7 @@ function CanchasFeed() {
           setFields(data);
         }
       });
-  }, []);
+  });
 
   return (
     <View
@@ -51,10 +70,11 @@ function CanchasFeed() {
         {fields.map((field) => (
           <FieldPost
             name={field.name}
-            sport="Futbol"
-            location="Buenos Aires"
+            sport={field.sports[0]}
+            location={`${field.street} ${field.street_number}, ${field.neighborhood}`}
             key={field.id}
             images={field.images}
+            description={field.description}
           />
         ))}
       </ScrollView>

@@ -18,9 +18,10 @@ interface props {
   sport: string;
   location: string;
   images: string[];
+  description: string;
 }
 function FieldPost(props: props) {
-  const { name, sport, location } = props;
+  const { name, sport, location, description } = props;
   const [isModalVisible, setIsModalVisible] = useState(false);
   const handleCloseModal = () => {
     setIsModalVisible(false);
@@ -59,6 +60,7 @@ function FieldPost(props: props) {
             location={location}
             sport={sport}
             images={props.images}
+            description={description}
           />
         </View>
       </Modal>
@@ -81,10 +83,16 @@ const styles = StyleSheet.create({
     marginTop: 40,
   },
   bottomContent: {
+    backgroundColor: "black",
+    borderColor: "#747775",
+    paddingHorizontal: 12,
+    height: 30,
     flexDirection: "row",
-    justifyContent: "center",
     alignItems: "center",
-    marginBottom: 10,
+    justifyContent: "center",
+    opacity: 0.6,
+    borderBottomEndRadius: 15,
+    borderBottomStartRadius: 15,
   },
   title: {
     fontSize: 28,
@@ -94,7 +102,7 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 16,
-    color: "#000",
+    color: "#fff",
     marginTop: 1,
   },
   sport: {
