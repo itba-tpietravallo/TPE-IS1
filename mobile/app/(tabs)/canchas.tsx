@@ -52,8 +52,10 @@ function CanchasFeed() {
         {fields.map((field) => (
           <FieldPost
             name={field.name}
-            sport="Futbol" // Replace with actual sport name
-            location="Buenos Aires" // Replace with actual location name
+            sport="Futbol"
+            location="Buenos Aires"
+            key={field.id}
+            images={field.images}
           />
         ))}
       </ScrollView>
