@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -59,8 +59,8 @@ function PopUpReserva({
   }, []);
   const [showDate, setShowDate] = useState(false);
   const [showTime, setShowTime] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(() => new Date());
-  const [selectedTime, setSelectedTime] = useState(() => new Date());
+
+  const selectedDateTime = useRef(new Date());
 
   const [isModalVisible, setIsModalVisible] = useState(false);
 
@@ -70,8 +70,8 @@ function PopUpReserva({
       .from("reservations")
       .insert({
         field_id: id_field,
-        start_time: selectedDate.toLocaleTimeString(),
-        date: selectedDate.toLocaleDateString(),
+        start_time: selectedDateTime.current.toLocaleTimeString(),
+        date: selectedDateTime.current.toLocaleDateString(),
         owner_id: user?.id,
         payments_id: null,
       })
@@ -81,12 +81,6 @@ function PopUpReserva({
       .catch((error) => {
         console.log("Error creating reservation:", error);
       });
-  };
-
-  const [defaultDateValue, setDefaultDateValue] = useState(() => new Date());
-  const onChange = (e, date) => {
-    setSelectedDate(date);
-    setShowDate(false);
   };
 
   return (
@@ -141,22 +135,12 @@ function PopUpReserva({
               transparent={true}
               onRequestClose={() => setIsModalVisible(false)}
             >
-              {/* <View
-              style={{
-                flex: 1,
-                justifyContent: "center",
-                alignItems: "center",
-                backgroundColor: "white",
-                flexDirection: "column",
-                margin: 10,
-                }}
-                ></View> */}
               <View
                 style={{
                   flex: 1,
                   justifyContent: "center",
                   alignItems: "center",
-                  backgroundColor: "rgba(0,0,0,0.8)", // Semi-transparent background
+                  backgroundColor: "rgba(0,0,0,0.8)",
                   padding: 20,
                 }}
               >
@@ -200,45 +184,33 @@ function PopUpReserva({
         {description}
       </Text>
       <View style={styles.selection}>
-        <TouchableOpacity onPress={() => setShowDate(true)}>
+        <View>
           <Text style={styles.select}>Seleccionar fecha:</Text>
-          <Text style={styles.selected}>
-            {selectedDate.toLocaleDateString()}
-          </Text>
-        </TouchableOpacity>
-
-        {showDate && (
           <DateTimePicker
-            value={defaultDateValue}
+            value={selectedDateTime.current}
             mode="date"
-            display="spinner"
-            onChange={onChange}
-            minimumDate={defaultDateValue}
-          />
-        )}
-
-        <TouchableOpacity onPress={() => setShowTime(true)}>
-          <Text style={styles.select}>Seleccionar horario:</Text>
-          <Text style={styles.selected}>
-            {" "}
-            {selectedTime.toLocaleTimeString()}
-          </Text>
-        </TouchableOpacity>
-
-        {showTime && (
-          <DateTimePicker
-            value={selectedTime}
-            mode="time"
-            display="spinner"
-            minuteInterval={30}
-            onChange={(event, time) => {
-              if (time) {
-                setShowTime(false);
-                setSelectedTime(time);
+            onChange={(e, d) => {
+              if (e.type === "set"){
+                selectedDateTime.current.setFullYear(d!.getFullYear());
+                selectedDateTime.current.setDate(d!.getDate());
               }
             }}
+            minimumDate={new Date()}
           />
-        )}
+        </View>
+
+        <View>
+          <Text style={styles.select}>Seleccionar fecha:</Text>
+          <DateTimePicker
+            value={selectedDateTime.current}
+            mode="time"
+            minuteInterval={30}
+            onChange={(e,d) => {
+              if (e.type === "set")
+                selectedDateTime.current.setTime(d!.getTime());          
+            }}
+          />
+        </View>
       </View>
 
       <View style={{ padding: 20 }}>
