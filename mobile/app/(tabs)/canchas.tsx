@@ -75,6 +75,7 @@ function CanchasFeed() {
             key={field.id}
             images={field.images}
             description={field.description}
+            field_id={field.id}
           />
         ))}
       </ScrollView>

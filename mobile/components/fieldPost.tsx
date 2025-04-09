@@ -19,6 +19,7 @@ interface props {
   location: string;
   images: string[];
   description: string;
+  field_id: string;
 }
 function FieldPost(props: props) {
   const { name, sport, location, description } = props;
@@ -61,6 +62,7 @@ function FieldPost(props: props) {
             sport={sport}
             images={props.images}
             description={description}
+            id_field={props.field_id}
           />
         </View>
       </Modal>

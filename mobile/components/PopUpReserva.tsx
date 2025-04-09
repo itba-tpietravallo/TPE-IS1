@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -12,6 +12,13 @@ import DateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
 import { ScreenHeight, ScreenWidth } from "@rneui/themed/dist/config";
+import { supabase } from "@/lib/supabase";
+
+type User = {
+  id: string;
+  full_name: string;
+  avatar_url: string;
+};
 
 interface PopUpReservaProps {
   onClose: () => void;
@@ -21,6 +28,7 @@ interface PopUpReservaProps {
   location: string;
   images: string[];
   description: string;
+  id_field: string;
 }
 
 function PopUpReserva({
@@ -30,13 +38,56 @@ function PopUpReserva({
   location,
   images,
   description,
+  id_field,
 }: PopUpReservaProps) {
+  const [user, setUser] = useState<User | null>(null);
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      supabase
+        .from("users")
+        .select("*")
+        .eq("id", user?.id)
+        .single()
+        .then(({ data, error }) => {
+          if (error) {
+            console.error("Error fetching user:", error);
+          } else {
+            setUser(data);
+          }
+        });
+    });
+  }, []);
   const [showDate, setShowDate] = useState(false);
   const [showTime, setShowTime] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [selectedTime, setSelectedTime] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(() => new Date());
+  const [selectedTime, setSelectedTime] = useState(() => new Date());
 
   const [isModalVisible, setIsModalVisible] = useState(false);
+
+  const handleReservation = async () => {
+    console.log("BBBBB");
+    await supabase
+      .from("reservations")
+      .insert({
+        field_id: id_field,
+        start_time: selectedDate.toLocaleTimeString(),
+        date: selectedDate.toLocaleDateString(),
+        owner_id: user?.id,
+        payments_id: null,
+      })
+      .then(() => {
+        console.log("Reservation created successfully!");
+      })
+      .catch((error) => {
+        console.log("Error creating reservation:", error);
+      });
+  };
+
+  const [defaultDateValue, setDefaultDateValue] = useState(() => new Date());
+  const onChange = (e, date) => {
+    setSelectedDate(date);
+    setShowDate(false);
+  };
 
   return (
     <View style={styles.modalView}>
@@ -158,16 +209,11 @@ function PopUpReserva({
 
         {showDate && (
           <DateTimePicker
-            value={selectedDate}
+            value={defaultDateValue}
             mode="date"
             display="spinner"
-            onChange={(event, time) => {
-              if (time) {
-                setShowDate(false);
-                setSelectedTime(time);
-              }
-            }}
-            minimumDate={new Date()}
+            onChange={onChange}
+            minimumDate={defaultDateValue}
           />
         )}
 
@@ -196,7 +242,7 @@ function PopUpReserva({
       </View>
 
       <View style={{ padding: 20 }}>
-        <Button title="Reservar" onPress={onClose} />
+        <Button title="Reservar" onPress={() => handleReservation()} />
       </View>
     </View>
   );
