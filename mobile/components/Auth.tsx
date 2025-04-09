@@ -1,5 +1,12 @@
 import React, { useState } from "react";
-import { Alert, StyleSheet, View, Text, Image } from "react-native";
+import {
+  Alert,
+  StyleSheet,
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+} from "react-native";
 import { supabase } from "../lib/supabase";
 import { Button, Input } from "@rneui/themed";
 
@@ -39,26 +46,64 @@ export default function Auth() {
 
   return (
     <View style={styles.container}>
-      <View style={{ alignItems: "center", justifyContent: "flex-start" }}>
+      <View
+        style={{
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
         <Image
           source={require("@/assets/images/logo.png")}
           style={{ width: 200, height: 200 }}
         />
-        <Text
+        <View
           style={{
-            fontSize: 60,
-            fontFamily: "Poppins",
-            fontWeight: "bold",
-            fontStyle: "italic",
-            color: "#f18f04",
-            marginLeft: 10,
-            marginBottom: 50,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
           }}
         >
-          MatchPoint
+          <Text
+            style={{
+              fontSize: 60,
+              fontFamily: "Poppins",
+              fontWeight: "bold",
+              color: "#f18f04",
+            }}
+          >
+            {" "}
+            Match
+          </Text>
+          <Text
+            style={{
+              fontSize: 60,
+              fontFamily: "Poppins",
+              fontWeight: "bold",
+              color: "#223332",
+              marginLeft: 0,
+              marginRight: 20, // esto esta hardcodeado porque no entiendo cunado se me fue el paddingLeft
+              paddingLeft: 0,
+            }}
+          >
+            Point
+          </Text>
+        </View>
+        <Text
+          style={{
+            fontSize: 25,
+            opacity: 0.8,
+            fontWeight: "bold",
+            color: "#f18f04",
+            marginBottom: 50,
+            marginTop: 0,
+          }}
+        >
+          No te quedes sin jugar
         </Text>
       </View>
-      <View style={[styles.verticallySpaced, styles.mt20]}>
+
+      {/* <View style={[styles.verticallySpaced, styles.mt20]}>
         <Input
           label="Email"
           leftIcon={{ type: "font-awesome", name: "envelope" }}
@@ -92,17 +137,24 @@ export default function Auth() {
           disabled={loading}
           onPress={() => signUpWithEmail()}
         />
-      </View>
+      </View> */}
 
       <View>
         {/* Sign in with Google */}
-        <Button
-          title="Sign in with Google"
-          disabled={loading}
+        <TouchableOpacity
+          style={styles.button}
           onPress={() => {
             performOAuth("google");
           }}
-        />
+        >
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <Image
+              source={require("@/assets/images/google.png")}
+              style={{ width: 20, height: 20, marginRight: 12 }}
+            />
+            <Text style={styles.button_text}>Accedé con Google</Text>
+          </View>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -124,5 +176,22 @@ const styles = StyleSheet.create({
   },
   mt20: {
     marginTop: 20,
+  },
+  button: {
+    backgroundColor: "white",
+    borderWidth: 1,
+    borderColor: "#747775",
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    height: 40,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  button_text: {
+    fontSize: 14,
+    color: "#1f1f1f",
+    fontFamily: "sans-serif",
+    fontWeight: "bold",
   },
 });
