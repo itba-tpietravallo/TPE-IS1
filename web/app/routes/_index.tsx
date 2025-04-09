@@ -124,7 +124,7 @@ export default function Index() {
 					{/* Aquí puedes agregar imágenes más adelante */}
 					<div className="w-3/4">
 						<img
-							src="../../public/matchpoint-logo.png"
+							src="/matchpoint-logo.png"
 							alt="Logo"
 							className="h-auto w-full rounded-lg shadow-lg"
 						/>
