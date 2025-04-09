@@ -34,12 +34,12 @@ export default function Index() {
 		return () => clearInterval(interval); // Cleanup interval on component unmount
 	}, []);
 
-	const navigate = useNavigate()
- 
- 	const handleClick = () => {
- 		navigate("./canchas")
- 	}
- 
+	const navigate = useNavigate();
+
+	const handleClick = () => {
+		navigate("./canchas");
+	};
+
 	return (
 		<div>
 			<div className="flex h-screen items-center justify-center bg-gradient-to-r from-[#223332] to-[#223f37] bg-auto">
@@ -47,7 +47,7 @@ export default function Index() {
 					<header className="flex flex-col items-center gap-5">
 						<div className="items-center justify-center space-y-10">
 							<div className="space-y-3">
-								<h1 className="relative text-center text-6xl font-extrabold text-[#f18f01] lg:text-9xl ">
+								<h1 className="relative text-center text-6xl font-extrabold text-[#f18f01] lg:text-9xl">
 									MatchPo
 									<span className="relative inline-block">
 										i
@@ -63,7 +63,7 @@ export default function Index() {
 									No te quedes sin jugar
 								</h3>
 							</div>
-							<div className="mt-1 flex flex-col gap-4 text-center sm:flex-row sm:gap-9">
+							<div className="mt-1 flex flex-col items-center justify-center gap-4 text-center sm:flex-row sm:gap-9">
 								<Button
 									className="w-full bg-black text-[#F2F4F3] hover:bg-[#f18f01]/50 sm:w-auto"
 									size={"xl"}
@@ -131,11 +131,7 @@ export default function Index() {
 				<div className="flex w-1/2 items-center justify-center">
 					{/* Aquí puedes agregar imágenes más adelante */}
 					<div className="w-3/4">
-						<img
-							src="/matchpoint-logo.png"
-							alt="Logo"
-							className="h-auto w-full rounded-lg shadow-lg"
-						/>
+						<img src="/matchpoint-logo.png" alt="Logo" className="h-auto w-full rounded-lg shadow-lg" />
 					</div>
 				</div>
 
