@@ -34,8 +34,7 @@ export function FieldsPreviewGrid({fields}: FieldsPreviewGridProps) {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 w-full p-4">
             {fields.map((field, index) => (
                 
-                <FieldPreview key={index}
-                {...field} />
+                <FieldPreview key={field.id} {...field} />
 
             ))}
         </div>
