@@ -40,8 +40,17 @@ export default function Index() {
 					<header className="flex flex-col items-center gap-5">
 						<div className="space-y-10">
 							<div className="space-y-3">
-								<h1 className="text-center text-6xl font-bold text-[#f18f01] lg:text-9xl">
-									MatchPoint
+								<h1 className="relative animate-bounce text-center text-6xl font-bold text-[#f18f01] [animation-iteration-count:1.49] lg:text-9xl">
+									MatchPo
+									<span className="relative inline-block">
+										i
+										<img
+											src="../../public/matchpointpelota-logo.png"
+											alt="Dot for i"
+											className="absolute left-1/2 top-1.5 h-8 w-8 -translate-x-1/2 rounded-full"
+										/>
+									</span>
+									nt
 								</h1>
 								<h3 className="text-center text-2xl font-bold text-[#f18f01]/60 lg:text-4xl">
 									No te quedes sin jugar
@@ -103,18 +112,31 @@ export default function Index() {
 			</div>
 
 			{/* About Us Section */}
-			<div className="flex flex-row items-center justify-center bg-[#223332] py-20">
+			<div className="flex flex-row items-center justify-center bg-[#f2f4f3] py-20">
 				{/* Columna Izquierda: Espacio para Imágenes */}
 				<div className="flex w-1/2 items-center justify-center">
 					{/* Aquí puedes agregar imágenes más adelante */}
+					<div className="w-3/4">
+						<img
+							src="../../public/matchpoint-logo.png"
+							alt="Logo"
+							className="h-auto w-full rounded-lg shadow-lg"
+						/>
+					</div>
 				</div>
 
 				{/* Columna Derecha: Texto */}
 				<div className="flex w-1/2 flex-col space-y-6 pr-16">
-					<h2 className="mb-6 text-8xl font-bold text-[#f18f01]">Quienes somos</h2>
-					<p className="max-w-3xl text-left text-lg text-gray-600">
-						En realidad no se que poner aca. Un about us? Un FAQ? Mapa con las locations de las canchas? Nou
-						se pero siento que algo.
+					<h2 className="mb-6 text-8xl font-bold text-[#223332]">Quienes somos</h2>
+					<p className="max-w-3xl text-left text-lg text-[#223332]">
+						Desde autoridades del deporte como árbitros o jueces de mesa, hasta canchas donde jugar y
+						jugadores para completar tu equipo, MatchPoint nace para conectarlos a todos. Con el deporte
+						como motor, buscamos crear una comunidad que comparta la pasión por el juego y la competencia
+						para que
+						<span className="text-[#f18f01]"> no te quedes sin jugar. </span>
+						<br />
+						Hacete parte de nuestra comunidad y disfrutá de la experiencia.
+						<span className="text-[#f18f01]"> MatchPoint. </span>
 					</p>
 				</div>
 			</div>
