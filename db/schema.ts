@@ -11,20 +11,24 @@ import {
 	uuid,
 	AnyPgColumn,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm/sql";
 
 // BEGIN NOTICE: WARNING
 // THE AUTH SCHEMA AND AUTH USERS TABLE ARE A STUB FOR `auth.users` WHICH IS MANAGED BY SUPABASE.
 // THEY ARE NOT USED IN THE APPLICATION, BUT THEY ARE HERE FOR REFERENCE.
 // THE AUTH SCHEMA AND AUTH USERS TABLE ARE NOT MANAGED BY DRIZZLE ORM.
 // **** DO NOT ATTEMPT TO USE THEM IN YOUR CODE. ****
-const authSchema = pgSchema('auth');
-const authUsers = authSchema.table('users', {
-	id: uuid('id').primaryKey(),
+const authSchema = pgSchema("auth");
+const authUsers = authSchema.table("users", {
+	id: uuid("id").primaryKey(),
 });
 // END NOTICE: WARNING
 
 export const usersTable = pgTable("users", {
-	id: uuid().primaryKey().notNull().references((): AnyPgColumn => authUsers.id),
+	id: uuid()
+		.primaryKey()
+		.notNull()
+		.references((): AnyPgColumn => authUsers.id),
 	full_name: varchar({ length: 255 }).notNull(),
 	avatar_url: text(),
 });
@@ -38,7 +42,7 @@ export const fieldsTable = pgTable(
 			.references(() => usersTable.id),
 		name: varchar({ length: 255 }).notNull(),
 		location: geometry("location", {
-			type: "point",
+			type: "Point",
 			mode: "xy",
 			srid: 4326,
 		}),
@@ -73,8 +77,12 @@ export const reservationsTable = pgTable("reservations", {
 
 export const payments = pgTable("mp_payments", {
 	payment_id: uuid().primaryKey().notNull(),
-	user_id: uuid().notNull().references(() => usersTable.id, { onDelete: "cascade" }),
-	reservation_id: uuid().notNull().references(() => reservationsTable.id, { onDelete: "cascade" }),
+	user_id: uuid()
+		.notNull()
+		.references(() => usersTable.id, { onDelete: "cascade" }),
+	reservation_id: uuid()
+		.notNull()
+		.references(() => reservationsTable.id, { onDelete: "cascade" }),
 	last_updated: integer().notNull(),
 	status: varchar({ length: 255 }).notNull(),
 	transaction_amount: integer().notNull(),
