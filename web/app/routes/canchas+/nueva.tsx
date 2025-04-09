@@ -93,6 +93,8 @@ export function NewField() {
 		} catch (err: any) {
 			console.error("Submission failed:", err.message || err);
 		}
+
+		window.location.href = `${URL_ORIGIN}/canchas`;
 	};
 
 	const [options, setOptions] = useState<Option[]>([]);
