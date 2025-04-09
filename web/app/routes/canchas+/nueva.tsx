@@ -19,21 +19,26 @@ import clsx from "clsx";
 import { LoaderFunctionArgs } from "@remix-run/node";
 import { createBrowserClient, createServerClient } from "@supabase/ssr";
 import { useLoaderData } from "@remix-run/react";
+import { authenticateUser } from "~/lib/auth.server";
+import { User } from "@supabase/supabase-js";
 
-export function loader(args: LoaderFunctionArgs) {
+export async function loader(args: LoaderFunctionArgs) {
 	const env = {
 		SUPABASE_URL: process.env.SUPABASE_URL!,
 		SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY!,
-	}
-	
+	};
+
+	const user = (await authenticateUser(args.request)) as { user: User; avatar_url: string };
+
 	return {
 		env,
-		URL_ORIGIN: new URL(args.request.url).origin
+		URL_ORIGIN: new URL(args.request.url).origin,
+		user,
 	};
 }
 
 export function NewField() {
-	const { URL_ORIGIN, env } = useLoaderData<typeof loader>();
+	const { user, URL_ORIGIN, env } = useLoaderData<typeof loader>();
 
 	const supabase = createBrowserClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
 
@@ -44,76 +49,76 @@ export function NewField() {
 	const onSubmit = async (data: any) => {
 		try {
 			const files = data.image || [];
-    		const uploadedImageUrls: string[] = [];
+			const uploadedImageUrls: string[] = [];
 
-    		for (const file of files) {
-      			const filePath = `fields/${Date.now()}-${file.name}`;
+			for (const file of files) {
+				const filePath = `fields/${Date.now()}-${file.name}`;
 
-      			// Upload to Supabase storage
-      			const { error: uploadError } = await supabase.storage
-        				.from("venues")
-        				.upload(filePath, file);
+				// Upload to Supabase storage
+				const { error: uploadError } = await supabase.storage.from("venues").upload(filePath, file);
 
-     			if (uploadError) {
-        			throw new Error(`Error uploading ${file.name}: ${uploadError.message}`);
-     			}
+				if (uploadError) {
+					throw new Error(`Error uploading ${file.name}: ${uploadError.message}`);
+				}
 
-      			// Get public URL
-     			const { data: publicUrlData } = supabase
-        				.storage
-        				.from("venues")
-        				.getPublicUrl(filePath);
+				// Get public URL
+				const { data: publicUrlData } = supabase.storage.from("venues").getPublicUrl(filePath);
 
-      			if (publicUrlData?.publicUrl) {
-        			uploadedImageUrls.push(publicUrlData.publicUrl);
-     			}
-    		}
+				if (publicUrlData?.publicUrl) {
+					uploadedImageUrls.push(publicUrlData.publicUrl);
+				}
+			}
+
+			const sportsArray = Array.isArray(data.sports)
+				? data.sports.map((s: any) => (typeof s === "string" ? s : s.value || s.label))
+				: [];
 
 			// Insert form data into a table
 			const { error: insertError } = await supabase.from("fields").insert([
 				{
+					owner: user.user.id,
 					name: data.name,
 					street: data.street,
 					street_number: data.street_number,
 					neighborhood: data.neighbourhood,
 					city: data.city,
-					sports: data.sports,
-					images_urls: uploadedImageUrls,
+					sports: sportsArray,
+					images: uploadedImageUrls,
 					description: data.description,
+					avatar_url: user.avatar_url,
 				},
 			]);
-	
-			if (insertError) throw new Error(`Insert error: ${insertError.message}`);
 
+			if (insertError) throw new Error(`Insert error: ${insertError.message}`);
 		} catch (err: any) {
 			console.error("Submission failed:", err.message || err);
 		}
 	};
-	
 
 	const [options, setOptions] = useState<Option[]>([]);
 
 	useEffect(() => {
-		supabase.from("sports").select("name").then((values) => {
+		supabase
+			.from("sports")
+			.select("name")
+			.then((values) => {
+				if (values.error) {
+					console.error("Error fetching sports:", values.error.message);
+					return;
+				}
 
-			if (values.error) {
-				console.error("Error fetching sports:", values.error.message);
-				return;
-			}
+				const fetchedOptions: Option[] = values.data.map((item) => ({
+					label: item.name,
+					value: item.name.toLowerCase(),
+				}));
 
-			const fetchedOptions: Option[] = values.data.map((item) => ({
-				label: item.name,
-				value: item.name.toLowerCase(),
-			}));
-
-			setOptions(fetchedOptions);
-		});
+				setOptions(fetchedOptions);
+			});
 	}, []);
 
 	return (
-		<div className="flex flex-col items-center justify-center min-h-screen space-y-12 bg-[#f2f4f3]">
-
-			<h1 className="text-4xl font-bold mb-4 text-[#f18f01] mt-11">Publicar nueva cancha</h1>
+		<div className="flex min-h-screen flex-col items-center justify-center space-y-12 bg-[#f2f4f3]">
+			<h1 className="mb-4 mt-11 text-4xl font-bold text-[#f18f01]">Publicar nueva cancha</h1>
 			<Form {...form}>
 				<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
 					<BasicBox
@@ -137,8 +142,11 @@ export function NewField() {
 						box_specifications="w-[800px] h-[200px] text-lg px-4"
 						form={form}
 					/>
-					<div className="flex justify-center items-center w-full">
-						<Button className="w-2/12 h-10 text-base bg-[#223332] hover:bg-[#f18f01]/80 mt-5 mb-11" type="submit">
+					<div className="flex w-full items-center justify-center">
+						<Button
+							className="mb-11 mt-5 h-10 w-2/12 bg-[#223332] text-base hover:bg-[#f18f01]/80"
+							type="submit"
+						>
 							Publicar
 						</Button>
 					</div>
@@ -175,11 +183,7 @@ function BasicBox({
 				<FormItem>
 					<FormLabel className={clsx(`${label_specifications}`, "text-[#223332]")}>{label}</FormLabel>
 					<FormControl>
-						<Input
-							placeholder={placeholder}
-							className={box_specifications}
-							{...field}
-						/>
+						<Input placeholder={placeholder} className={box_specifications} {...field} />
 					</FormControl>
 					<FormDescription>{description}</FormDescription>
 					<FormMessage />
@@ -189,14 +193,10 @@ function BasicBox({
 	);
 }
 
-function AddressSection({
-	form,
-}: {
-	form: UseFormReturn<any, any, undefined>;
-}) {
+function AddressSection({ form }: { form: UseFormReturn<any, any, undefined> }) {
 	return (
 		<div className="flex flex-col space-y-5">
-			<FormLabel className="text-base font-sansfont-sans text-[#223332]">Dirección</FormLabel>
+			<FormLabel className="font-sansfont-sans text-base text-[#223332]">Dirección</FormLabel>
 			<div className="flex flex-row space-x-10">
 				<BasicBox
 					section="street"
@@ -235,28 +235,24 @@ function AddressSection({
 	);
 }
 
-function SelectFormSection({
-	form,
-	options,
-}: {
-	form: UseFormReturn<any, any, undefined>;
-	options: Option[];
-}) {
+function SelectFormSection({ form, options }: { form: UseFormReturn<any, any, undefined>; options: Option[] }) {
 	return (
 		<FormField
 			control={form.control}
 			name="sports"
-			render={() => (
+			render={({ field }) => (
 				<FormItem>
 					<div className="flex flex-col space-y-2">
-						<FormLabel className="text-base font-sans text-[#223332]">Deporte/s</FormLabel>
+						<FormLabel className="font-sans text-base text-[#223332]">Deporte/s</FormLabel>
 						<div className="w-full">
 							<MultipleSelector
+								value={field.value || []}
+								onChange={(val) => field.onChange(val)}
 								options={options}
 								placeholder="Escribir el deporte si no aparece como opción..."
 								creatable
 								emptyIndicator={
-									<p className="text-center] text-lg leading-10 text-gray-600 dark:text-gray-400">
+									<p className="text-center text-lg leading-10 text-gray-600 dark:text-gray-400">
 										Ningún resultado encontrado.
 									</p>
 								}
@@ -275,24 +271,16 @@ type DescriptionSectionProps = {
 	form: UseFormReturn<any, any, undefined>;
 };
 
-function DescriptionSection({
-	placeholder,
-	box_specifications,
-	form,
-}: DescriptionSectionProps) {
+function DescriptionSection({ placeholder, box_specifications, form }: DescriptionSectionProps) {
 	return (
 		<FormField
 			control={form.control}
 			name="description"
 			render={({ field }) => (
 				<FormItem>
-					<FormLabel className="text-base font-sans text-[#223332]">Descripción</FormLabel>
+					<FormLabel className="font-sans text-base text-[#223332]">Descripción</FormLabel>
 					<FormControl>
-						<Textarea
-							placeholder={placeholder}
-							className={box_specifications}
-							{...field}
-						/>
+						<Textarea placeholder={placeholder} className={box_specifications} {...field} />
 					</FormControl>
 					<FormMessage />
 				</FormItem>
@@ -334,7 +322,7 @@ function ImageSection({ form }: { form: UseFormReturn<any, any, undefined> }) {
 			name="images"
 			render={() => (
 				<FormItem>
-					<FormLabel className="text-base font-sans text-[#223332]">Imágenes</FormLabel>
+					<FormLabel className="font-sans text-base text-[#223332]">Imágenes</FormLabel>
 					<FormControl>
 						<div className="flex flex-col gap-2">
 							<input
@@ -348,7 +336,7 @@ function ImageSection({ form }: { form: UseFormReturn<any, any, undefined> }) {
 
 							<Button
 								type="button"
-								className="w-1/5 h-8 text-sm py-2 px-6 bg-[#223332] hover:bg-[#f18f01]/80"
+								className="h-8 w-1/5 bg-[#223332] px-6 py-2 text-sm hover:bg-[#f18f01]/80"
 								onClick={handleButtonClick}
 							>
 								Seleccionar archivos
@@ -356,17 +344,14 @@ function ImageSection({ form }: { form: UseFormReturn<any, any, undefined> }) {
 
 							<div className="text-sm">
 								{selectedFiles.length > 0 ? (
-									<ul className="list-disc pl-5 space-y-2">
+									<ul className="list-disc space-y-2 pl-5">
 										{selectedFiles.map((file, index) => (
-											<li
-												key={index}
-												className="flex items-center justify-between"
-											>
+											<li key={index} className="flex items-center justify-between">
 												<span>{file.name}</span>
 												<Button
 													variant="ghost"
 													size="sm"
-													className="ml-2 text-xs text-black "
+													className="ml-2 text-xs text-black"
 													onClick={() => handleRemoveFile(index)}
 												>
 													Remove
