@@ -1,20 +1,17 @@
 import { ActionFunctionArgs } from "@remix-run/node";
 import { SupabaseClient, User } from "@supabase/supabase-js";
 
-import { MercadoPagoConfig, Payment } from "mercadopago";
+import { MercadoPagoConfig, Payment, Preference } from "mercadopago";
 import { PaymentCreateData } from "mercadopago/dist/clients/payment/create/types";
 import { createSupabaseServerClient } from "~/lib/supabase.server";
 
 type PaymentRequest = {
-	processor: string;
-	amount: number;
-	currency: string;
-	description: string;
 	userId: string;
-	email: string;
-	installments?: number;
-	token: string;
-	name: string;
+	fieldId: string;
+	processor: string;
+	pending_url: string;
+	success_url: string;
+	failure_url: string;
 };
 
 export async function action({
@@ -25,12 +22,16 @@ export async function action({
 	let reqBody: PaymentRequest;
 
 	const { supabaseClient, headers } = createSupabaseServerClient(request);
-	const { data, error } = await supabaseClient.auth.getUser();
 
-	if (error) {
+	const { data, error } = await supabaseClient.auth.setSession({
+		access_token: `${request.headers.get("access_token")}`,
+		refresh_token: `${request.headers.get("refresh_token")}`,
+	});
+
+	if (error || data.user === null || data.session === null) {
 		return new Response("Unauthorized access", {
 			status: 401,
-			statusText: "Unauthorized access",
+			statusText: `Unauthorized access. ${request.headers.get("Authorization")}`,
 		});
 	}
 
@@ -53,8 +54,8 @@ export async function action({
 	}
 
 	switch (processor) {
-		case "mercado-pago": {
-			return await processMercadoPagoPayment(data.user, reqBody, supabaseClient);
+		case "mercado-pago-redirect": {
+			return await getMercadoPagoRedirectURL(data.user, reqBody, supabaseClient);
 		}
 
 		default:
@@ -65,97 +66,68 @@ export async function action({
 	}
 }
 
-async function processMercadoPagoPayment(
+async function getMercadoPagoRedirectURL(
 	user: User,
 	reqBody: PaymentRequest,
-	supabaseClient: SupabaseClient<any, "public", any>,
-) {
-	const field = await supabaseClient.from("fields").select("id").limit(1).single();
+	supabaseClient: SupabaseClient,
+): Promise<Response> {
+	const { success_url, failure_url, pending_url, fieldId } = reqBody;
 
-	if (field.error)
-		return new Response("Failed to fetch field", {
-			status: 500,
-			statusText: field.error.message,
-		});
-
-	const time = Math.floor(new Date().getTime() / 1000);
-
-	const reservation = await supabaseClient.from("reservations").insert({
-		date: new Date().toISOString().split("T")[0],
-		field_id: field.data.id,
-		start_time: time,
-		owner_id: user.id,
-	} as {
-		date: string;
-		field_id: string;
-		start_time: number;
-		owner_id: string;
-		id?: string | undefined;
-	});
-
-	if (reservation.error)
-		return new Response("Failed to create reservation", {
-			status: 500,
-			statusText: reservation.error.message,
-		});
-
-	const reservation_id = await supabaseClient
-		.from("reservations")
-		.select("id")
-		.eq("field_id", field.data.id)
-		.eq("owner_id", user.id)
-		.eq("date", new Date().toISOString().split("T")[0])
-		.eq("start_time", time)
-		.limit(1)
-		.single();
-
-	if (reservation_id.error || !reservation_id.data)
-		return new Response("Failed to fetch reservation", {
-			status: 500,
-			statusText: reservation_id.error.message,
-		});
-
-	const { amount, description, userId, email, installments, token, name } = reqBody;
-
-	const parts = (name || "Tomas Pietravallo").toString().split(" ");
-	const first_name = parts.shift();
-	const last_name = parts.join(" ");
-
-	const mercadoPagoConfig = new MercadoPagoConfig({
-		accessToken: process.env.MERCADO_PAGO_ACCESS_TOKEN!,
-	});
-
-	const paymentData: PaymentCreateData["body"] = {
-		transaction_amount: Number(amount),
-		description: description.toString(),
-		payer: {
-			email: email,
-			first_name: first_name,
-			last_name: last_name,
-		},
-		installments: Number(installments) || 1,
-		notification_url: "https://matchpoint.com/api/v1/payments/notifications",
-		external_reference: reservation_id.data.id.toString(),
-		token: token.toString(),
-	};
-
-	console.log("paymentData", paymentData);
-
-	const payment = await new Payment(mercadoPagoConfig).create({ body: paymentData });
-
-	if (payment.api_response.status !== 201) {
-		return new Response("Failed to create Mercado Pago payment", {
-			status: payment.api_response.status,
-			statusText: payment.status_detail,
+	if (!success_url || !pending_url || !failure_url || !fieldId) {
+		return new Response("Missing required fields", {
+			status: 400,
+			statusText: "Missing required fields",
 		});
 	}
 
-	console.log(payment);
+	const mercadoPagoConfig = new MercadoPagoConfig({
+		accessToken: process.env.MERCADO_PAGO_ACCESS_TOKEN!,
+		options: {},
+	});
 
-	console.log("strfied", JSON.stringify(payment));
+	const preference = await new Preference(mercadoPagoConfig).create({
+		body: {
+			items: [
+				{
+					id: fieldId,
+					title: "title",
+					description: "description",
+					unit_price: 100,
+					quantity: 1,
+					currency_id: "ARS",
+					category_id: "others",
+				},
+			],
+			back_urls: {
+				success: success_url,
+				failure: failure_url,
+				pending: pending_url,
+			},
+			auto_return: "approved",
+			payer: {
+				name: user.user_metadata.full_name.split(" ")[0],
+				surname: user.user_metadata.full_name.split(" ")[1],
+				email: user.email,
+			},
+			binary_mode: true,
+			notification_url: "https://matchpointapp.com.ar/api/v1/payments/notifications",
+			external_reference: `field:${fieldId}-user:${user.id}`,
+		},
+	});
 
-	return new Response("Mercado Pago payment processed successfully", {
+	if (
+		!preference ||
+		preference.api_response.status < 200 ||
+		preference.api_response.status >= 300 ||
+		!preference.init_point
+	) {
+		return new Response(`Error connecting to Mercado Pago preference.`, {
+			status: 500,
+			statusText: `Error connecting to Mercado Pago preference.`,
+		});
+	}
+
+	return new Response(preference.init_point, {
 		status: 200,
-		statusText: "OK",
 	});
 }
