@@ -134,15 +134,15 @@ export default function Index() {
 				{/* Columna Derecha: Texto */}
 				<div className="flex w-1/2 flex-col space-y-6 pr-16">
 					<h2 className="mb-6 text-8xl font-bold text-[#223332]">Quienes somos</h2>
-					<p className="max-w-3xl text-left text-lg text-[#223332]">
+					<p className="max-w-3xl text-left text-lg font-semibold text-[#223332]">
 						Desde autoridades del deporte como árbitros o jueces de mesa, hasta canchas donde jugar y
 						jugadores para completar tu equipo, MatchPoint nace para conectarlos a todos. Con el deporte
 						como motor, buscamos crear una comunidad que comparta la pasión por el juego y la competencia
 						para que
-						<span className="text-[#f18f01]"> no te quedes sin jugar. </span>
+						<span className="font-extrabold text-[#f18f01]"> no te quedes sin jugar. </span>
 						<br />
 						Hacete parte de nuestra comunidad y disfrutá de la experiencia.
-						<span className="text-[#f18f01]"> MatchPoint. </span>
+						<span className="font-extrabold text-[#f18f01]"> MatchPoint. </span>
 					</p>
 				</div>
 			</div>
