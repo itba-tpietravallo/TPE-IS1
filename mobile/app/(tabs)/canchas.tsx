@@ -29,7 +29,6 @@ function CanchasFeed() {
           console.error("Error fetching fields:", error);
         } else {
           setFields(data);
-          console.log("Data: ", data as Field[]);
         }
       });
   }, []);
