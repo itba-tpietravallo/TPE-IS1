@@ -1,6 +1,7 @@
 import type { MetaFunction } from "@remix-run/node";
 import { Button } from "../components/ui/button";
 import { useState, useEffect } from "react";
+import { useNavigate } from "@remix-run/react";
 
 export const meta: MetaFunction = () => {
 	return [{ title: "New MatchPoint App" }, { name: "description", content: "Welcome to MatchPoint!" }];
@@ -33,14 +34,20 @@ export default function Index() {
 		return () => clearInterval(interval); // Cleanup interval on component unmount
 	}, []);
 
+	const navigate = useNavigate()
+ 
+ 	const handleClick = () => {
+ 		navigate("./canchas")
+ 	}
+ 
 	return (
 		<div>
-			<div className="flex h-screen items-center justify-center bg-[#223332]">
+			<div className="flex h-screen items-center justify-center bg-gradient-to-r from-[#223332] to-[#223f37] bg-auto">
 				<div className="flex flex-col items-center gap-16">
 					<header className="flex flex-col items-center gap-5">
-						<div className="space-y-10">
+						<div className="items-center justify-center space-y-10">
 							<div className="space-y-3">
-								<h1 className="relative text-center text-6xl font-bold text-[#f18f01] lg:text-9xl">
+								<h1 className="relative text-center text-6xl font-extrabold text-[#f18f01] lg:text-9xl ">
 									MatchPo
 									<span className="relative inline-block">
 										i
@@ -64,6 +71,7 @@ export default function Index() {
 									Encontrá tu equipo
 								</Button>
 								<Button
+									onClick={handleClick}
 									className="w-full bg-black text-[#F2F4F3] hover:bg-[#f18f01]/50 sm:w-auto"
 									size={"xl"}
 								>

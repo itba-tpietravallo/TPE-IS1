@@ -1,6 +1,6 @@
 import { LoaderFunctionArgs } from "@remix-run/node";
 import { Link, Outlet, useLoaderData } from "@remix-run/react";
-import { Button } from "~/components/ui/button";
+import { Button, MyButton } from "~/components/ui/button";
 import { authenticateUser } from "~/lib/auth.server";
 
 const MenuBarLinks = [
@@ -22,7 +22,9 @@ export default function CanchasLayout({
         <div>
             <nav className="fixed top-0 left-0 right-0 bg-white shadow-md px-6 py-3 flex justify-between items-center z-10">
                 <ul className="flex gap-4 flex-row items-center">
-                    <div className="font-bold p-1 px-2 mx-2 outline rounded"><img src="/matchpoint-logo.png" className="w-[100px] h-[45px]"/></div> {/* @todo Reemplazar por logo */}
+                    <MyButton path="..">
+						<img src="/matchpoint-logo.png" className="h-[45px] w-[100px]" />
+					</MyButton>{" "}
                     {
                         MenuBarLinks.map((link) => {
                             return <li key={link.name}>
