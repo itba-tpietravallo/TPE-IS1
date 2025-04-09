@@ -52,7 +52,7 @@ export default function Index() {
 									<span className="relative inline-block">
 										i
 										<img
-											src="../../public/matchpointpelota-logo.png"
+											src="/matchpointpelota-logo.png"
 											alt="Dot for i"
 											className="absolute left-1/2 top-3 h-[20%] w-[80%] -translate-x-1/2 -translate-y-1/2 rounded-full lg:top-7"
 										/>
