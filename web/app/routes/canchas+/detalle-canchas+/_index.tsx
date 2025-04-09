@@ -1,9 +1,13 @@
+("use client");
+
+import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
+import { cn } from "~/lib/utils";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { MapPin } from "lucide-react";
-import { ChangeEventHandler, ReactNode, useState } from "react";
-
+import { ChangeEventHandler, ReactNode, useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "~/components/ui/card";
 
 import {
@@ -163,6 +167,37 @@ export function MyCarousel(props: CarouselProps) {
 	);
 }
 
+export type Reservation = {
+	id: string;
+	date: string;
+	hour: string;
+	name: string;
+};
+
+export const columns: ColumnDef<Reservation, unknown>[] = [
+	{
+		accessorKey: "date",
+		header: "Fecha",
+		meta: {
+			className: "w-1/3 text-center",
+		} as { className: string },
+	},
+	{
+		accessorKey: "hour",
+		header: "Hora",
+		meta: {
+			className: "w-1/3 text-center",
+		} as { className: string },
+	},
+	{
+		accessorKey: "name",
+		header: "Nombre",
+		meta: {
+			className: "w-1/3 text-center",
+		} as { className: string },
+	},
+];
+
 type FieldProps = {
 	imgSrc: string[];
 	name: string;
@@ -171,14 +206,16 @@ type FieldProps = {
 	setLocation: (e: string) => void;
 	description: string;
 	setDescription: (e: string) => void;
+	reservations: Reservation[];
 };
 
 export function FieldDetail(props: FieldProps) {
-	const { imgSrc, name, setName, location, setLocation, description, setDescription } = props;
+	const { imgSrc, name, setName, location, setLocation, description, setDescription , reservations} = props;
+
 	return (
 		<div className="h-full bg-[#f2f4f3]">
 			<div className="flex h-full flex-row items-center justify-center space-x-12">
-				<Card className="w-full max-w-lg p-10 shadow-lg">
+				<Card className="w-full max-w-3xl p-10 shadow-lg">
 					<CardHeader className="space-y-5">
 						<CardTitle className="text-5xl font-bold">{name}</CardTitle>
 						<div className="flex flex-row">
@@ -188,6 +225,7 @@ export function FieldDetail(props: FieldProps) {
 					</CardHeader>
 					<CardContent className="grid gap-4">
 						<div className="grid gap-4 py-4">{description}</div>
+						<DataTable columns={columns} data={reservations} />
 					</CardContent>
 				</Card>
 				<div className="flex h-screen w-[400px] flex-col items-center justify-center space-y-5">
@@ -206,6 +244,72 @@ export function FieldDetail(props: FieldProps) {
 	);
 }
 
+interface DataTableProps<TData, TValue> {
+	columns: ColumnDef<TData, TValue>[];
+	data: TData[];
+}
+
+export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData, TValue>) {
+	const table = useReactTable({
+		data,
+		columns,
+		getCoreRowModel: getCoreRowModel(),
+	});
+
+	return (
+		<div className="rounded-md border">
+			<Table className="w-full table-fixed">
+				<TableHeader>
+					{table.getHeaderGroups().map((headerGroup) => (
+						<TableRow key={headerGroup.id}>
+							{headerGroup.headers.map((header) => {
+								return (
+									<TableHead
+										key={header.id}
+										className={cn(
+											(header.column.columnDef.meta as { className?: string })?.className,
+										)}
+									>
+										{flexRender(header.column.columnDef.header, header.getContext())}
+									</TableHead>
+								);
+							})}
+						</TableRow>
+					))}
+				</TableHeader>
+				<TableBody>
+					{table.getRowModel().rows?.length ? (
+						table.getRowModel().rows.map((row) => (
+							<TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+								{row.getVisibleCells().map((cell) => (
+									<TableCell
+										key={cell.id}
+										className={cn(
+											(cell.column.columnDef.meta as { className?: string })?.className,
+										)}
+									>
+										{flexRender(cell.column.columnDef.cell, cell.getContext())}
+									</TableCell>
+								))}
+							</TableRow>
+						))
+					) : (
+						<TableRow>
+							<TableCell colSpan={columns.length} className="text-center">
+								No data available
+							</TableCell>
+						</TableRow>
+					)}
+				</TableBody>
+			</Table>
+		</div>
+	);
+}
+
+
+
+//!================================================================================= CHEQUEAR ESTO =================================================================================
+
 // todo este código en qué queda ?
 let globalName = "Canchita";
 let globalLocation = "Av. Rolon 326, San Isidro, Buenos Aires";
@@ -220,14 +324,6 @@ export default function () {
 	//todo falta que el edit datos de la cancha le peguen a la db
 
 	return (
-		<FieldDetail
-			imgSrc={imgs}
-			name={globalName}
-			setName={setName}
-			location={globalLocation}
-			setLocation={setLocation}
-			description={description}
-			setDescription={setDescription}
-		/>
+		<p>Hola</p>
 	);
 }

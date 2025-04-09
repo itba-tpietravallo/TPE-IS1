@@ -33,6 +33,7 @@ const imgs: string[] = ["web/public/img1-f11.jpg", "web/public/img2-f11.jpg", "w
     const { env, URL_ORIGIN , id} = useLoaderData<typeof loader>();
     const supabase = createBrowserClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
     const [field, setField] = useState<any>([]);
+    const [reservations, setReservations] = useState<any[]>([]);
       
           useEffect(() => {
               supabase
@@ -45,6 +46,17 @@ const imgs: string[] = ["web/public/img1-f11.jpg", "web/public/img2-f11.jpg", "w
                           console.error("Supabase error:", error);
                       } else {
                           setField(data as any[]);
+                      }
+                  });
+                  supabase
+                  .from("reservations")
+                  .select("*")
+                  .eq("field_id", id)
+                  .then(({ data, error }) => {
+                      if (error) {
+                          console.error("Supabase error:", error);
+                      } else {
+                          setReservations(data as any[]);
                       }
                   });
           }, []);
@@ -60,6 +72,7 @@ const imgs: string[] = ["web/public/img1-f11.jpg", "web/public/img2-f11.jpg", "w
     setDescription={setDescription}
     setLocation={setLocation}
     setName={setName}
+    reservations={reservations}
     />
   );
 }

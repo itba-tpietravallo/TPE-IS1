@@ -72,6 +72,7 @@ export const reservationsTable = pgTable("reservations", {
 	owner_id: uuid()
 		.notNull()
 		.references(() => usersTable.id, { onDelete: "cascade" }),
+	payments_id: uuid().default(sql`NULL`),
 });
 
 export const payments = pgTable("mp_payments", {
