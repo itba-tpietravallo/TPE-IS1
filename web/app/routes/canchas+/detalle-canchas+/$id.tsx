@@ -52,6 +52,7 @@ const imgs: string[] = ["web/public/img1-f11.jpg", "web/public/img2-f11.jpg", "w
           console.log(id);
   return (
     <FieldDetail
+    key={id}
     name={field.name}
     description={field.description}
     imgSrc={field.images}

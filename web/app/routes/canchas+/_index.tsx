@@ -26,15 +26,16 @@ export function loader(args: LoaderFunctionArgs) {
 }
 
 type FieldsPreviewGridProps = {
-    fields: FieldPreviewProps[]; // Array of fields
+    fields: FieldPreviewProps[];
 };
 
 export function FieldsPreviewGrid({fields}: FieldsPreviewGridProps) {
     return (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 w-full p-4">
             {fields.map((field, index) => (
-            
-                <FieldPreview {...field} />
+                
+                <FieldPreview key={index}
+                {...field} />
 
             ))}
         </div>
@@ -84,6 +85,7 @@ export default function(){
         }, []);
 
         const fields = users.map((user, i) => ({
+
             id: user.id,
             name: user.name,
             img: user.images[0],
