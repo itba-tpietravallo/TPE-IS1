@@ -67,7 +67,7 @@ export const reservationsTable = pgTable("reservations", {
 	field_id: uuid()
 		.notNull()
 		.references(() => fieldsTable.id, { onDelete: "cascade" }),
-	start_time: integer().notNull(),
+	start_time: varchar().notNull(),
 	date: varchar({ length: 10 }).notNull(),
 	owner_id: uuid()
 		.notNull()

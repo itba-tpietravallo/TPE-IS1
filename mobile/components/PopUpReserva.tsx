@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -10,6 +10,13 @@ import {
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { ScreenHeight, ScreenWidth } from "@rneui/themed/dist/config";
+import { supabase } from "@/lib/supabase";
+
+type User = {
+  id: string;
+  full_name: string;
+  avatar_url: string;
+};
 
 interface PopUpReservaProps {
   onClose: () => void;
@@ -18,6 +25,8 @@ interface PopUpReservaProps {
   sport: string;
   location: string;
   images: string[];
+  description: string;
+  id_field: string;
 }
 
 function PopUpReserva({
@@ -26,13 +35,51 @@ function PopUpReserva({
   sport,
   location,
   images,
+  description,
+  id_field,
 }: PopUpReservaProps) {
+  const [user, setUser] = useState<User | null>(null);
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      supabase
+        .from("users")
+        .select("*")
+        .eq("id", user?.id)
+        .single()
+        .then(({ data, error }) => {
+          if (error) {
+            console.error("Error fetching user:", error);
+          } else {
+            setUser(data);
+          }
+        });
+    });
+  }, []);
   const [showDate, setShowDate] = useState(false);
   const [showTime, setShowTime] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [selectedTime, setSelectedTime] = useState(new Date());
+
+  const selectedDateTime = useRef(new Date());
 
   const [isModalVisible, setIsModalVisible] = useState(false);
+
+  const handleReservation = async () => {
+    console.log("BBBBB");
+    await supabase
+      .from("reservations")
+      .insert({
+        field_id: id_field,
+        start_time: selectedDateTime.current.toLocaleTimeString(),
+        date: selectedDateTime.current.toLocaleDateString(),
+        owner_id: user?.id,
+        payments_id: null,
+      })
+      .then(() => {
+        console.log("Reservation created successfully!");
+      })
+      .catch((error) => {
+        console.log("Error creating reservation:", error);
+      });
+  };
 
   return (
     <View style={styles.modalView}>
@@ -45,59 +92,80 @@ function PopUpReserva({
           source={require("@/assets/images/close.png")}
         />
       </TouchableOpacity>
-      <View
-        style={{
-          paddingTop: 5,
-          padding: 20,
-          flexDirection: "row",
-          justifyContent: "space-between",
-        }}
-      >
-        <View style={{ flex: 1, paddingRight: 10 }}>
-          <Text
-            style={{
-              fontSize: 32,
-              fontWeight: "bold",
-              justifyContent: "center",
-            }}
-          >
-            {name}
-          </Text>
-          <Text style={{ fontSize: 16, color: "gray", marginBottom: 10 }}>
-            {sport}
-          </Text>
-          <Text style={{ fontSize: 20 }}>{location}</Text>
-        </View>
-        <TouchableOpacity onPress={() => setIsModalVisible(true)}>
-          <Image
-            style={{ width: 120, height: 120, marginTop: 10, marginRight: 10 }}
-            source={{ uri: images[0] }}
-          />
-          <Modal
-            style={{
-              backgroundColor: "white",
-              borderRadius: 20,
-              justifyContent: "center",
-              margin: 20,
-              overflow: "hidden",
-              flex: 1,
-            }}
-            visible={isModalVisible}
-            transparent={true}
-            onRequestClose={() => setIsModalVisible(false)}
-          >
-            <View
+
+      <View style={styles.mainInfo}>
+        <View style={styles.topInfo}>
+          <View style={{ flex: 1, paddingRight: 10, alignItems: "center" }}>
+            <Text
               style={{
-                flex: 1,
+                fontSize: 32,
+                fontWeight: "bold",
                 justifyContent: "center",
-                alignItems: "center",
-                backgroundColor: "white",
-                flexDirection: "column",
-                margin: 10,
               }}
-            ></View>
-          </Modal>
-        </TouchableOpacity>
+            >
+              {name}
+            </Text>
+            <Text style={{ fontSize: 16, color: "gray", marginBottom: 10 }}>
+              {sport}
+            </Text>
+          </View>
+          <TouchableOpacity onPress={() => setIsModalVisible(true)}>
+            <Image
+              style={{
+                width: 120,
+                height: 120,
+                marginTop: 10,
+                marginRight: 10,
+                borderRadius: 15,
+              }}
+              source={{ uri: images[0] }}
+            />
+            <Modal
+              style={{
+                backgroundColor: "white",
+                borderRadius: 20,
+                justifyContent: "center",
+                margin: 20,
+                overflow: "hidden",
+                flex: 1,
+              }}
+              visible={isModalVisible}
+              transparent={true}
+              onRequestClose={() => setIsModalVisible(false)}
+            >
+              <View
+                style={{
+                  flex: 1,
+                  justifyContent: "center",
+                  alignItems: "center",
+                  backgroundColor: "rgba(0,0,0,0.8)",
+                  padding: 20,
+                }}
+              >
+                {images.map((uri, index) => (
+                  <Image
+                    key={index}
+                    style={{
+                      width: ScreenWidth * 0.8,
+                      height: ScreenWidth * 0.8,
+                      borderRadius: 10,
+                      marginBottom: 20,
+                    }}
+                    source={{ uri: uri }}
+                    resizeMode="contain"
+                  />
+                ))}
+              </View>
+            </Modal>
+          </TouchableOpacity>
+        </View>
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <Image
+            style={{ width: 25, height: 25 }}
+            source={require("@/assets/images/cancha.png")}
+          />
+          <Text style={{ fontSize: 16, fontStyle: "italic" }}>{location}</Text>
+        </View>
       </View>
       <Text style={{ padding: 20, paddingBottom: 0 }}>Descripción:</Text>
       <Text
@@ -111,48 +179,38 @@ function PopUpReserva({
       >
         fdaskljfadkljfklasdjfklasdjflkasdjfklasjdfsdmlkasjdmcksaldmcaskdlñfms.dfkñsadjfasdfmalskñldf
       </Text>
-      <View style={{ padding: 20, gap: 30 }}>
-        <TouchableOpacity onPress={() => setShowDate(true)}>
-          <Text>Seleccionar fecha: {selectedDate.toLocaleDateString()}</Text>
-        </TouchableOpacity>
-
-        {showDate && (
+      <View style={styles.selection}>
+        <View>
+          <Text style={styles.select}>Seleccionar fecha:</Text>
           <DateTimePicker
-            value={selectedDate}
+            value={selectedDateTime.current}
             mode="date"
-            display="spinner"
-            onChange={(event, date) => {
-              if (date) {
-                setShowDate(false);
-                setSelectedDate(date);
+            onChange={(e, d) => {
+              if (e.type === "set"){
+                selectedDateTime.current.setFullYear(d!.getFullYear());
+                selectedDateTime.current.setDate(d!.getDate());
               }
             }}
             minimumDate={new Date()}
           />
-        )}
+        </View>
 
-        <TouchableOpacity onPress={() => setShowTime(true)}>
-          <Text>Seleccionar horario: {selectedTime.toLocaleTimeString()}</Text>
-        </TouchableOpacity>
-
-        {showTime && (
+        <View>
+          <Text style={styles.select}>Seleccionar fecha:</Text>
           <DateTimePicker
-            value={selectedTime}
+            value={selectedDateTime.current}
             mode="time"
-            display="spinner"
             minuteInterval={30}
-            onChange={(event, time) => {
-              if (time) {
-                setShowTime(false);
-                setSelectedTime(time);
-              }
+            onChange={(e,d) => {
+              if (e.type === "set")
+                selectedDateTime.current.setTime(d!.getTime());          
             }}
           />
-        )}
+        </View>
       </View>
 
       <View style={{ padding: 20 }}>
-        <Button title="Reservar" onPress={onClose} />
+        <Button title="Reservar" onPress={() => handleReservation()} />
       </View>
     </View>
   );
