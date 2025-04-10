@@ -1,19 +1,21 @@
 #!/bin/bash
+ALL_FILES=$(git diff --cached --name-only --diff-filter=ACMR | sed 's| |\\ |g')
 
-# Prettify
-FILES=$(git diff --cached --name-only --diff-filter=ACMR | sed 's| |\\ |g')
-[ -z "$FILES" ] && exit 0
+if [ -z "$ALL_FILES" ]; then
+  exit 0
+fi
 
-# Prettify web files
-cd web
+# Check if prettier is installed otherwise npm install
+npm list > /dev/null 2>&1 || npm install
+npm list --depth=0 | egrep 'prettier' > /dev/null 2>&1 || npm install --save-dev prettier
+npm list --depth=0 | egrep 'prettier-plugin-tailwindcss'> /dev/null 2>&1 || npm install --save-dev prettier-plugin-tailwindcss
 
-FILES=$(echo "$FILES" | grep -E '^web/' | sed 's|^web/||')
-echo "$FILES" | xargs npx prettier --ignore-unknown --write
-cd ..
+# echo "Prettifying web files..."
+npx prettier $(echo $ALL_FILES | egrep '\<web/') --write --ignore-unknown --config ./web/.prettierrc
 
-# Add back the prefix to the file paths
-FILES=$(echo "$FILES" | sed 's|^|web/|')
-# Add back the modified/prettified files to staging
-echo "$FILES" | xargs git add
+# echo "Prettifying mobile files..."
+npx prettier $(echo "$ALL_FILES" | egrep '\<mobile/') --write --ignore-unknown --config ./mobile/.prettierrc
+
+git add $ALL_FILES
 
 exit 0
