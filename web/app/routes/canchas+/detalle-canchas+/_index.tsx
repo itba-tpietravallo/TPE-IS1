@@ -7,8 +7,8 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { MapPin } from "lucide-react";
-import { ChangeEventHandler, ReactNode, useEffect, useState } from "react";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "~/components/ui/card";
+import { ReactNode, useEffect, useState } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
 
 import {
 	Sheet,
@@ -21,18 +21,26 @@ import {
 	SheetTrigger,
 } from "~/components/ui/sheet";
 
-import {
-	Menubar,
-	MenubarContent,
-	MenubarItem,
-	MenubarMenu,
-	MenubarSeparator,
-	MenubarShortcut,
-	MenubarTrigger,
-} from "~/components/ui/menubar";
-
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "~/components/ui/carousel";
-import { LiveReload, useNavigate } from "@remix-run/react";
+import { useLoaderData, useNavigate } from "@remix-run/react";
+import { createBrowserClient } from "@supabase/ssr";
+import { LoaderFunctionArgs } from "@remix-run/node";
+
+let globalName = "";
+let globalDescription = "";
+
+export function loader(args: LoaderFunctionArgs) {
+	const env = {
+		SUPABASE_URL: process.env.SUPABASE_URL!,
+		SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY!,
+	};
+
+	return {
+		env,
+		URL_ORIGIN: new URL(args.request.url).origin,
+		id: args.params.id,
+	};
+}
 
 type ButtonProps = {
 	path?: string;
@@ -60,21 +68,18 @@ export function MyButton(props: ButtonProps) {
 type SheetProps = {
 	name: string;
 	setName: (e: string) => void;
-	location: string;
-	setLocation: (e: string) => void;
 	description: string;
 	setDescription: (e: string) => void;
 };
 
 export function MySheet(props: SheetProps) {
-	const { name, setName, location, setLocation, description, setDescription } = props;
+	const { env, URL_ORIGIN, id } = useLoaderData<typeof loader>();
+	const supabase = createBrowserClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
+
+	const { name, setName, description, setDescription } = props;
 
 	const handleChangeName = (e: React.ChangeEvent<HTMLInputElement>) => {
 		globalName = e.target.value;
-	};
-
-	const handleChangeLoc = (e: React.ChangeEvent<HTMLInputElement>) => {
-		globalLocation = e.target.value;
 	};
 
 	const handleChangeDescr = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -82,10 +87,45 @@ export function MySheet(props: SheetProps) {
 	};
 
 	const handleSave = () => {
-		setName(globalName);
-		setLocation(globalLocation);
-		setDescription(globalDescription);
+		if (globalName !== "") {
+			setName(globalName);
+		}
+		if (globalDescription !== "") {
+			setDescription(globalDescription);
+		}
 	};
+
+	useEffect(() => {
+		supabase
+			.from("fields")
+			.update({
+				name: name,
+			})
+			.eq("id", id)
+			.then(({ data, error }) => {
+				if (error) {
+					console.error("Error al guardar:", error.message);
+				} else {
+					console.log("Guardado exitosamente:", data);
+				}
+			});
+	}, [name]);
+
+	useEffect(() => {
+		supabase
+			.from("fields")
+			.update({
+				description: description,
+			})
+			.eq("id", id)
+			.then(({ data, error }) => {
+				if (error) {
+					console.error("Error al guardar:", error.message);
+				} else {
+					console.log("Guardado exitosamente:", data);
+				}
+			});
+	}, [description]);
 
 	return (
 		<Sheet>
@@ -108,17 +148,11 @@ export function MySheet(props: SheetProps) {
 					</div>
 					<div className="grid grid-cols-4 items-center gap-4">
 						<Label htmlFor="username" className="text-right">
-							Ubicacion
-						</Label>
-						<Input placeholder={location} id="location" className="col-span-3" onChange={handleChangeLoc} />
-					</div>
-					<div className="grid grid-cols-4 items-center gap-4">
-						<Label htmlFor="username" className="text-right">
 							Descripción
 						</Label>
 						<Input
 							placeholder={description}
-							id="description"
+							id="description" //no se para que sirve esto
 							className="col-span-3"
 							onChange={handleChangeDescr}
 						/>
@@ -133,16 +167,6 @@ export function MySheet(props: SheetProps) {
 				</SheetFooter>
 			</SheetContent>
 		</Sheet>
-	);
-}
-
-export function MyMenubar() {
-	return (
-		<Menubar className="p-8">
-			<MenubarMenu>
-				<MyButton path="../canchas">Volver</MyButton>
-			</MenubarMenu>
-		</Menubar>
 	);
 }
 
@@ -203,14 +227,13 @@ type FieldProps = {
 	name: string;
 	setName: (e: string) => void;
 	location: string;
-	setLocation: (e: string) => void;
 	description: string;
 	setDescription: (e: string) => void;
 	reservations: Reservation[];
 };
 
 export function FieldDetail(props: FieldProps) {
-	const { imgSrc, name, setName, location, setLocation, description, setDescription , reservations} = props;
+	const { imgSrc, name, setName, location, description, setDescription, reservations } = props;
 
 	return (
 		<div className="h-full bg-[#f2f4f3]">
@@ -230,14 +253,7 @@ export function FieldDetail(props: FieldProps) {
 				</Card>
 				<div className="flex h-screen w-[400px] flex-col items-center justify-center space-y-5">
 					<MyCarousel imgSrc={imgSrc} />
-					<MySheet
-						name={name}
-						setName={setName}
-						location={location}
-						setLocation={setLocation}
-						description={description}
-						setDescription={setDescription}
-					/>
+					<MySheet name={name} setName={setName} description={description} setDescription={setDescription} />
 				</div>
 			</div>
 		</div>
@@ -306,24 +322,16 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
 	);
 }
 
-
-
 //!================================================================================= CHEQUEAR ESTO =================================================================================
 
 // todo este código en qué queda ?
-let globalName = "Canchita";
-let globalLocation = "Av. Rolon 326, San Isidro, Buenos Aires";
-let globalDescription =
-	"Lionel Andrés Messi Cuccittini (Rosario, 24 de junio de 1987), conocido como Leo Messi, es un futbolista argentino que juega como delantero o centrocampista. Desde 2023, integra el plantel del Inter Miami de la MLS canadoestadounidense. Es también internacional con la selección de Argentina, de la que es capitán.";
 
 export default function () {
 	const imgs: string[] = ["../img3-f11.jpg", "../img2-f11.jpg", "../img1-f11.jpg"];
 	const [name, setName] = useState(globalName);
-	const [location, setLocation] = useState(globalLocation);
+	const [location, setLocation] = useState(globalName);
 	const [description, setDescription] = useState(globalDescription);
 	//todo falta que el edit datos de la cancha le peguen a la db
 
-	return (
-		<p>Hola</p>
-	);
+	return <p>Hola</p>;
 }

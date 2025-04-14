@@ -2,7 +2,6 @@ import { LoaderFunctionArgs } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 import { createBrowserClient } from "@supabase/ssr";
 import { useEffect, useState } from "react";
-import { Link } from "@remix-run/react";
 import { FieldDetail } from "./_index";
 
 export function loader(args: LoaderFunctionArgs) {
@@ -18,18 +17,9 @@ export function loader(args: LoaderFunctionArgs) {
     };
 }
 
-let globalName = "Canchita";
-let globalLocation = "Av. Rolon 326, San Isidro, Buenos Aires";
-let globalDescription =
-  "Lionel Andrés Messi Cuccittini (Rosario, 24 de junio de 1987), conocido como Leo Messi, es un futbolista argentino que juega como delantero o centrocampista. Desde 2023, integra el plantel del Inter Miami de la MLS canadoestadounidense. Es también internacional con la selección de Argentina, de la que es capitán.";
-
 export default function FieldDetailPage() {
 
 const imgs: string[] = ["web/public/img1-f11.jpg", "web/public/img2-f11.jpg", "web/public/img3-f11.jpg"];
-    const [name, setName] = useState(globalName);
-    const [location, setLocation] = useState(globalLocation);
-    const [description, setDescription] = useState(globalDescription);
-
     const { env, URL_ORIGIN , id} = useLoaderData<typeof loader>();
     const supabase = createBrowserClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
     const [field, setField] = useState<any>([]);
@@ -62,15 +52,23 @@ const imgs: string[] = ["web/public/img1-f11.jpg", "web/public/img2-f11.jpg", "w
           }, []);
 
           console.log(id);
+
+        const [name, setName] = useState(field.name);
+        const [description, setDescription] = useState(field.description);
+
+        useEffect(() => {
+            setName(field.name);
+            setDescription(field.description)
+          }, [field.name, field.description]);
+          
   return (
     <FieldDetail
     key={id}
-    name={field.name}
-    description={field.description}
+    name={name}
+    description={description}
     imgSrc={field.images}
-    location={`${field.street} ${field.street_number}`}
+    location={`${field.street} ${field.street_number}`}  
     setDescription={setDescription}
-    setLocation={setLocation}
     setName={setName}
     reservations={reservations}
     />
