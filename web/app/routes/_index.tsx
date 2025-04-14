@@ -36,10 +36,6 @@ export default function Index() {
 
 	const navigate = useNavigate();
 
-	const handleClick = () => {
-		navigate("./canchas");
-	};
-
 	return (
 		<div>
 			<div className="flex h-screen items-center justify-center bg-gradient-to-r from-[#223332] to-[#223f37] bg-auto">
@@ -65,13 +61,14 @@ export default function Index() {
 							</div>
 							<div className="mt-1 flex flex-col items-center justify-center gap-4 text-center sm:flex-row sm:gap-9">
 								<Button
+									onClick={() => navigate("./soon")}
 									className="w-full bg-black text-[#F2F4F3] hover:bg-[#f18f01]/50 sm:w-auto"
 									size={"xl"}
 								>
 									Encontrá tu equipo
 								</Button>
 								<Button
-									onClick={handleClick}
+									onClick={() => navigate("./canchas")}
 									className="w-full bg-black text-[#F2F4F3] hover:bg-[#f18f01]/50 sm:w-auto"
 									size={"xl"}
 								>
@@ -92,13 +89,13 @@ export default function Index() {
 						Conectamos jugadores y canchas. Encontra un equipo para jugar o publica tu cancha para alquilar.
 					</p>
 					<div className="mt-10 flex flex-wrap gap-8">
-						<button className="w-full rounded-lg bg-[#F2F4F3] p-6 text-left shadow-lg hover:bg-[#f18f01]/50">
+						<button onClick={()=>{navigate("./soon")}} className="w-full rounded-lg bg-[#F2F4F3] p-6 text-left shadow-lg hover:bg-[#f18f01]/50">
 							<h3 className="mb-4 text-2xl font-bold text-[#223332]">Para Deportistas</h3>
 							<p className="text-[#223332]">
 								Crea una cuenta para encontrar deportistas, predios y arbitros disponibles.
 							</p>
 						</button>
-						<button className="w-full rounded-lg bg-[#F2F4F3] p-6 text-left shadow-lg hover:bg-[#f18f01]/50">
+						<button onClick={()=>{navigate("./canchas")}}  className="w-full rounded-lg bg-[#F2F4F3] p-6 text-left shadow-lg hover:bg-[#f18f01]/50">
 							<h3 className="mb-4 text-2xl font-bold text-[#223332]">Para Canchas</h3>
 							<p className="text-[#223332]">
 								Da a conocer tu cancha y permite que otros jugadores la reserven fácilmente.
