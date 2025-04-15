@@ -7,7 +7,7 @@ function PlayerFeed() {
     <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
       <Image source={require("@/assets/images/herramienta.png")} />
       <Text style={{ fontSize: 30, textAlign: "center", marginTop: "20%" }}>
-        Proximamente!
+        Próximamente!
       </Text>
     </View>
   );
