@@ -12,6 +12,7 @@ type Field = {
   lat: number;
   long: number;
   dist_meters: number;
+  description: string;
 };
 
 function CanchasFeed() {
