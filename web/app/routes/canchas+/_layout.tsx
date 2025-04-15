@@ -20,7 +20,7 @@ export default function CanchasLayout({
     const { avatar_url } = useLoaderData<typeof loader>();
     return (
         <div>
-            <nav className="fixed top-0 left-0 right-0 bg-white shadow-md px-6 py-3 flex justify-between items-center z-10">
+            <nav className="fixed top-0 left-0 right-0 bg-[#f2f4f3] shadow-md px-6 py-3 flex justify-between items-center z-10">
                 <ul className="flex gap-4 flex-row items-center">
                     <MyButton path="..">
 						<img src="/matchpoint-logo.png" className="h-[45px] w-[100px]" />
@@ -28,13 +28,13 @@ export default function CanchasLayout({
                     {
                         MenuBarLinks.map((link) => {
                             return <li key={link.name}>
-                                <Link to={link.href}><Button className="bg-[#223332]">{link.name}</Button></Link>
+                                <Link to={link.href}><Button className="bg-[#223332] hover:bg-[#223332] hover:brightness-150">{link.name}</Button></Link>
                             </li>
                         })
                     }
                 </ul>
                 <div>
-                    <Button variant={"outline"} className="h-fit">Perfil <ProfilePictureAvatar str={avatar_url}/></Button>
+                    <Button variant={"outline"} className="h-fit bg-[#f2f4f3] border-[#223332] hover:bg-[#f2f4f3] hover:brightness-90">Perfil <ProfilePictureAvatar str={avatar_url}/></Button>
                 </div>
             </nav>
             <main className="pt-[83px]">

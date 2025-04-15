@@ -238,16 +238,16 @@ export function FieldDetail(props: FieldProps) {
 	return (
 		<div className="h-full bg-[#f2f4f3]">
 			<div className="flex h-full flex-row items-center justify-center space-x-12">
-				<Card className="w-full max-w-3xl p-10 shadow-lg">
+				<Card className="w-full max-w-3xl p-10 shadow-lg bg-[#223332]">
 					<CardHeader className="space-y-5">
-						<CardTitle className="text-5xl font-bold">{name}</CardTitle>
+						<CardTitle className="text-5xl font-bold text-[#f2f4f3]">{name}</CardTitle>
 						<div className="flex flex-row">
-							<MapPin className="h-6 w-6 text-gray-500" />
-							<CardDescription className="text-2xl">{location}</CardDescription>
+							<MapPin className="h-6 w-6 text-gray-400" />
+							<CardDescription className="text-2xl text-gray-400">{location}</CardDescription>
 						</div>
 					</CardHeader>
 					<CardContent className="grid gap-4">
-						<div className="grid gap-4 py-4">{description}</div>
+						<div className="grid gap-4 py-4 text-[#f2f4f3]">{description}</div>
 						<DataTable columns={columns} data={reservations} />
 					</CardContent>
 				</Card>

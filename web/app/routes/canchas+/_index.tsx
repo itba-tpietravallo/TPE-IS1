@@ -47,7 +47,7 @@ export function FieldPreview(props:FieldPreviewProps) {
     return (
     <div className="flex p-2 w-full">
        <Link to={`/canchas/detalle-canchas/${id}`} className="w-full">
-            <Card className="w-full">
+            <Card className="w-full bg-[#f2f4f3] border border-[#f2f4f3] transition-all duration-200 hover:bg-[#f18f01] hover:border-[#f18f01]">
                 <CardTitle className="p-4"> {name} </CardTitle>
                 <CardDescription className="flex items-center gap-2 m-3">
                     <MapPin className="w-4 h-4 text-gray-500" />
@@ -92,7 +92,7 @@ export default function(){
           }));
     
     return (
-        <div>
+        <div className="flex min-h-screen bg-[#223332]">
             <br/>
             <FieldsPreviewGrid fields={fields}/>
         </div>
