@@ -7,6 +7,7 @@ import {
   Image,
   TouchableOpacity,
   Modal,
+  Alert,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { ScreenHeight, ScreenWidth } from "@rneui/themed/dist/config";
@@ -75,6 +76,9 @@ function PopUpReserva({
       })
       .then(() => {
         console.log("Reservation created successfully!");
+        const msg = `Reserva creada para el ${selectedDateTime.current.toLocaleDateString()} a las ${selectedDateTime.current.toLocaleTimeString()}`;
+        Alert.alert("Reserva exitosa", msg);
+        onClose(); // Close the modal after successful reservation
       })
       .catch((error) => {
         console.log("Error creating reservation:", error);
@@ -179,6 +183,48 @@ function PopUpReserva({
       >
         fdaskljfadkljfklasdjfklasdjflkasdjfklasjdfsdmlkasjdmcksaldmcaskdlñfms.dfkñsadjfasdfmalskñldf
       </Text>
+      {/* ---------------------------------- Funciona(ish) en Android --------------------------------*/}
+      {/* <View style={styles.selection}>
+        <View>
+          <TouchableOpacity onPress={() => setShowDate(true)}>
+            <Text style={styles.select}>Seleccionar fecha:</Text>
+          </TouchableOpacity>
+          {showDate && (
+            <DateTimePicker
+              value={selectedDateTime.current}
+              mode="date"
+              onChange={(e, d) => {
+                if (e.type === "set") {
+                  selectedDateTime.current.setFullYear(d!.getFullYear());
+                  selectedDateTime.current.setDate(d!.getDate());
+                  setShowDate(false);
+                }
+              }}
+              minimumDate={new Date()}
+            />
+          )}
+        </View>
+
+        <View>
+          <TouchableOpacity onPress={() => setShowTime(true)}>
+            <Text style={styles.select}>Seleccionar fecha:</Text>
+          </TouchableOpacity>
+          {showTime && (
+            <DateTimePicker
+              value={selectedDateTime.current}
+              mode="time"
+              minuteInterval={30}
+              onChange={(e, d) => {
+                if (e.type === "set") {
+                  selectedDateTime.current.setTime(d!.getTime());
+                  setShowTime(false);
+                }
+              }}
+            />
+          )}
+        </View>
+      </View> */}
+      {/* ---------------------------------- Funciona en IOS??????? --------------------------------*/}
       <View style={styles.selection}>
         <View>
           <Text style={styles.select}>Seleccionar fecha:</Text>
@@ -186,31 +232,36 @@ function PopUpReserva({
             value={selectedDateTime.current}
             mode="date"
             onChange={(e, d) => {
-              if (e.type === "set"){
-                selectedDateTime.current.setFullYear(d!.getFullYear());
-                selectedDateTime.current.setDate(d!.getDate());
+              if (e.type === "set") {
+                selectedDateTime.current.setFullYear(d.getFullYear());
+                selectedDateTime.current.setDate(d.getDate());
               }
             }}
             minimumDate={new Date()}
           />
         </View>
-
         <View>
-          <Text style={styles.select}>Seleccionar fecha:</Text>
+          <Text style={styles.select}>Seleccionar horario:</Text>
           <DateTimePicker
             value={selectedDateTime.current}
             mode="time"
             minuteInterval={30}
-            onChange={(e,d) => {
-              if (e.type === "set")
-                selectedDateTime.current.setTime(d!.getTime());          
+            onChange={(e, d) => {
+              if (e.type === "set") {
+                selectedDateTime.current.setTime(d!.getTime());
+              }
             }}
           />
         </View>
       </View>
+      {/* ---------------------------------- Funciona(ish) en Android --------------------------------*/}
 
       <View style={{ padding: 20 }}>
-        <Button title="Reservar" onPress={() => handleReservation()} />
+        <Button
+          title="Reservar"
+          color={"#f18f04"}
+          onPress={() => handleReservation()}
+        />
       </View>
     </View>
   );
