@@ -164,64 +164,38 @@ function PopUpReserva({ onClose, name, sport, location, images, description }: P
 			>
 				{description}
 			</Text>
-			<View style={styles.selection}>
-				<TouchableOpacity onPress={() => setShowDate(true)}>
-					<Text style={styles.select}>Seleccionar fecha:</Text>
-					<Text style={styles.selected}>{selectedDateTime.current.toLocaleDateString()}</Text>
-				</TouchableOpacity>
 
+			{/* ---------------------------------- Funciona en IOS??????? -------------------------------- */}
+			<View style={styles.selection}>
 				<View>
-					<TouchableOpacity onPress={() => setShowTime(true)}>
-						<Text style={styles.select}>Seleccionar fecha:</Text>
-					</TouchableOpacity>
+					<Text style={styles.select}>Seleccionar fecha:</Text>
 					{showTime && (
 						<DateTimePicker
 							value={selectedDateTime.current}
-							mode="time"
+							mode="date"
 							minuteInterval={30}
 							onChange={(e, d) => {
 								if (e.type === "set") {
-									selectedDateTime.current.setTime(d!.getTime());
+									selectedDateTime.current.setDate(d!.getDate());
 									setShowTime(false);
 								}
 							}}
 						/>
 					)}
 				</View>
-			</View>
-			{/* ---------------------------------- Funciona en IOS??????? -------------------------------- */}
-			<View style={styles.selection}>
+
 				<View>
-					<Text style={styles.select}>Seleccionar fecha:</Text>
+					<Text style={styles.select}>Seleccionar hora:</Text>
 					<DateTimePicker
 						value={selectedDateTime.current}
-						mode="date"
-						display="spinner"
-						onChange={(event, time) => {
-							if (event.type == "set" && time) {
-								selectedDateTime.current = time;
+						mode="time"
+						minuteInterval={30}
+						onChange={(e, d) => {
+							if (e.type === "set") {
+								selectedDateTime.current.setTime(d!.getTime());
 							}
 						}}
-						minimumDate={new Date()}
 					/>
-
-					<TouchableOpacity onPress={() => setShowTime(true)}>
-						<Text style={styles.select}>Seleccionar horario:</Text>
-						<Text style={styles.selected}> {selectedDateTime.current.toLocaleTimeString()}</Text>
-					</TouchableOpacity>
-
-					{showTime && (
-						<DateTimePicker
-							value={selectedDateTime.current}
-							mode="time"
-							minuteInterval={30}
-							onChange={(e, d) => {
-								if (e.type === "set") {
-									selectedDateTime.current.setTime(d!.getTime());
-								}
-							}}
-						/>
-					)}
 				</View>
 			</View>
 			{/* ---------------------------------- Funciona(ish) en Android --------------------------------*/}
