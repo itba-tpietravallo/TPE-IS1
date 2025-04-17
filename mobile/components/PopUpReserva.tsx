@@ -3,6 +3,7 @@ import { View, Text, Button, StyleSheet, Image, TouchableOpacity, Modal, Alert }
 import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import { ScreenHeight, ScreenWidth } from "@rneui/themed/dist/config";
 import { supabase } from "@/lib/supabase";
+import { Session } from "@supabase/supabase-js";
 
 type User = {
 	id: string;
@@ -21,13 +22,13 @@ interface PopUpReservaProps {
 }
 
 function PopUpReserva({ onClose, name, sport, location, images, description }: PopUpReservaProps) {
-	const [user, setUser] = useState<User | null>(null);
+	const [user, setUser] = useState<Session | null>(null);
 	useEffect(() => {
-		supabase.auth.getUser().then(({ data: { user } }) => {
+		supabase.auth.getSession().then(({ data: { session } }) => {
 			supabase
 				.from("users")
 				.select("*")
-				.eq("id", user?.id)
+				.eq("id", session?.user.id)
 				.single()
 				.then(({ data, error }) => {
 					if (error) {

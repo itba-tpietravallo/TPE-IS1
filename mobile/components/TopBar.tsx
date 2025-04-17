@@ -3,6 +3,7 @@ import { StyleSheet, SafeAreaView, Image, View, Text, TouchableOpacity } from "r
 import { router } from "expo-router";
 import { supabase } from "@/lib/supabase";
 import { useEffect, useState } from "react";
+import { Session } from "@supabase/supabase-js";
 
 type User = {
 	id: string;
@@ -11,13 +12,13 @@ type User = {
 };
 
 function TopBar() {
-	const [user, setUser] = useState<User | null>(null);
+	const [user, setUser] = useState<Session | null>(null);
 	useEffect(() => {
-		supabase.auth.getUser().then(({ data: { user } }) => {
+		supabase.auth.getSession().then(({ data: { session } }) => {
 			supabase
 				.from("users")
 				.select("*")
-				.eq("id", user?.id)
+				.eq("id", session?.user.id)
 				.single()
 				.then(({ data, error }) => {
 					if (error) {
@@ -27,7 +28,7 @@ function TopBar() {
 					}
 				});
 		});
-	});
+	}, []);
 	return (
 		<SafeAreaView style={styles.container}>
 			<View style={styles.innerContainer}>

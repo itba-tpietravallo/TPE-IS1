@@ -50,7 +50,7 @@ function CanchasFeed() {
 					setFields(data);
 				}
 			});
-	});
+	}, []);
 
 	return (
 		<View
