@@ -8,7 +8,8 @@ To host and maintain the PostgreSQL DB, [Supabase](https://supabase.com) was cho
 
 ### Error handling on Supabase
 
->[!NOTE] DB/SQL errors produced on Supabase **WILL NOT** throw and will instead return an error object as follows:
+> 
+> [!NOTE] DB/SQL errors produced on Supabase **WILL NOT** throw and will instead return an error object as follows:
 
 ```js
 // Lets assume the productx table does not exist
@@ -48,7 +49,7 @@ This does not affect development in any way for features released up to drizzle-
 ## Environment Variables
 
 To push schema changes, pull, and visualize records using drizzle kit, a `.env` file needs to be present in the `/db` directory, with the following secrets:
-- ‎`DATABASE_URL`
+- `DATABASE_URL`
 
 This variable is a SECRET, and must be treated as such.
 
@@ -58,7 +59,52 @@ For client libraries connecting to Supabase, the following env variables must be
 
 It is okey to expose this values publicly and thus are tracked in Git
 
-# Modifying / visualizing the DB schema
+## Row Level Security (RLS)
+
+All tables are protected by RLS. Using DrizzleORM, RLS can be explicitly enabled on a table by calling `enableRLS()`.
+
+> [!WARNING]
+> Row Level Security means not all operations are allowed, and those that are might depend on the users' authentication level.
+
+Queries made via Supabase are automatically identified internally to one of the following roles:
+
+1. anon 
+2. authenticated
+
+Anon roles correspond to anonymous users, meaning a users that has not logged in. 
+
+An Authenticated call might come from someone who's signed in via the web or mobile applications. 
+
+As an example, let's see how to implement RLS on the `users` table using drizzle.
+
+```ts
+export const usersTable = pgTable("users", {
+	id: uuid()
+		.primaryKey()
+		.notNull()
+		.references((): AnyPgColumn => authUsers.id),
+	full_name: varchar({ length: 255 }).notNull(),
+	avatar_url: text(),
+  // ...
+}, (table) => [
+  // create a new Postgres Policy called "users - select authenticated"
+	pgPolicy("users - select authenticated", {
+		for: "select",
+		using: sql`true`,
+		to: authenticatedRole,
+		as: "restrictive",
+	}),
+]).enableRLS();
+```
+
+In this example, RLS is enabled meaning no users can perform any operations not described by a policy. Then, we add a policy targeting `authenticatedRole` and specifically allow `SELECT`s to be performed. 
+
+Read more on the [Drizzle docs on RLS](https://orm.drizzle.team/docs/rls).
+
+> [!CAUTION]
+> Always enable RLS on public tables to prevent unauthorized read/writes to exposed tables.
+
+## Modifying / visualizing the DB schema
 
 To modify the DB schema change the [`/db/schema.ts`](/db/schema.ts) file and then run the following command:
 

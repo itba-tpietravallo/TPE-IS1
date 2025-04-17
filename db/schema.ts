@@ -10,8 +10,10 @@ import {
 	pgSchema,
 	uuid,
 	AnyPgColumn,
+	pgPolicy,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm/sql";
+import { authenticatedRole } from "drizzle-orm/supabase";
 
 // BEGIN NOTICE: WARNING
 // THE AUTH SCHEMA AND AUTH USERS TABLE ARE A STUB FOR `auth.users` WHICH IS MANAGED BY SUPABASE.
@@ -31,7 +33,18 @@ export const usersTable = pgTable("users", {
 		.references((): AnyPgColumn => authUsers.id),
 	full_name: varchar({ length: 255 }).notNull(),
 	avatar_url: text(),
-});
+}, (table) => [
+	// INSERT, UPDATE, DELETE are disallowed by default.
+	// This table is managed via Supabase triggers on auth.users.
+	// Do not grant users insert/delete privileges on this table.
+	pgPolicy("users - select authenticated", {
+		for: "select",
+		using: sql`true`,
+		withCheck: sql``,
+		to: authenticatedRole, // only allow authenticated users to select from the table
+		as: "restrictive",
+	}),
+]).enableRLS();
 
 export const fieldsTable = pgTable(
 	"fields",
@@ -55,12 +68,33 @@ export const fieldsTable = pgTable(
 		avatar_url: text(),
 		images: text().array(),
 	},
-	(t) => [index("spatial_index").using("gist", t.location)]
-);
+	(table) => [
+		// index("spatial_index").using("gist", table.location),
+
+		// Ownership information is stored in the `owner` column. Validated with ON BEFORE INSERT/UPDATE/DELETE triggers.
+		// owner is verified by a trigger `on_field_created  -> validate_new_field()`
+		pgPolicy("fields - select authenticated", {
+			for: "all",
+			using: sql`true`,
+			withCheck: sql``,
+			to: authenticatedRole,
+			as: "restrictive",
+		}),
+	]
+).enableRLS();
 
 export const sportsTable = pgTable("sports", {
 	name: varchar({ length: 255 }).primaryKey().notNull(),
-});
+}, (table) => [
+	// Only allow authenticated users to select from the table, all other operations are disallowed by default.
+	pgPolicy("sports - select authenticated", {
+		for: "select",
+		using: sql`true`,
+		withCheck: sql``,
+		to: authenticatedRole,
+		as: "restrictive",
+	})
+]).enableRLS();
 
 export const reservationsTable = pgTable("reservations", {
 	id: uuid().primaryKey().defaultRandom().notNull(),
@@ -73,7 +107,15 @@ export const reservationsTable = pgTable("reservations", {
 		.notNull()
 		.references(() => usersTable.id, { onDelete: "cascade" }),
 	payments_id: uuid().default(sql`NULL`),
-});
+}, (table) => [
+	pgPolicy("reservations - select authenticated", {
+		for: "all",
+		using: sql`true`,
+		withCheck: sql``,
+		to: authenticatedRole,
+		as: "restrictive",
+	}),
+]).enableRLS();
 
 export const payments = pgTable("mp_payments", {
 	payment_id: uuid().primaryKey().notNull(),
@@ -88,4 +130,13 @@ export const payments = pgTable("mp_payments", {
 	transaction_amount: integer().notNull(),
 	net_received_amount: integer().notNull(),
 	total_paid_amount: integer().notNull(),
-});
+}, (table) => [
+	// Only allow authenticated users (WHOSE ID MATCHES THE RECORD) to select from the table, all other operations are disallowed by default.
+	pgPolicy("payments - select authenticated", {
+		for: "select",
+		using: sql`(select auth.uid()) = user_id`,
+		withCheck: sql``,
+		to: authenticatedRole,
+		as: "restrictive",
+	})
+]).enableRLS();
