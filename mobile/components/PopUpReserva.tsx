@@ -169,19 +169,17 @@ function PopUpReserva({ onClose, name, sport, location, images, description }: P
 			<View style={styles.selection}>
 				<View>
 					<Text style={styles.select}>Seleccionar fecha:</Text>
-					{showTime && (
-						<DateTimePicker
-							value={selectedDateTime.current}
-							mode="date"
-							minuteInterval={30}
-							onChange={(e, d) => {
-								if (e.type === "set") {
-									selectedDateTime.current.setDate(d!.getDate());
-									setShowTime(false);
-								}
-							}}
-						/>
-					)}
+					<DateTimePicker
+						value={selectedDateTime.current}
+						mode="date"
+						minuteInterval={30}
+						onChange={(e, d) => {
+							if (e.type === "set") {
+								selectedDateTime.current.setDate(d!.getDate());
+								setShowTime(false);
+							}
+						}}
+					/>
 				</View>
 
 				<View>
