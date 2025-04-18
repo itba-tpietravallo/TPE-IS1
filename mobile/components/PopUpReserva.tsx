@@ -4,6 +4,8 @@ import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/dat
 import { ScreenHeight, ScreenWidth } from "@rneui/themed/dist/config";
 import { supabase } from "@/lib/supabase";
 import { Session } from "@supabase/supabase-js";
+import CheckoutButton from "./CheckoutButton";
+import { useGlobalSearchParams, useLocalSearchParams, useRouter } from "expo-router";
 
 type User = {
 	id: string;
@@ -23,6 +25,9 @@ interface PopUpReservaProps {
 
 function PopUpReserva({ onClose, name, sport, location, images, description }: PopUpReservaProps) {
 	const [user, setUser] = useState<Session | null>(null);
+	const selectedDateTime = useRef(new Date());
+	const [isModalVisible, setIsModalVisible] = useState(false);
+
 	useEffect(() => {
 		supabase.auth.getSession().then(({ data: { session } }) => {
 			supabase
@@ -39,15 +44,8 @@ function PopUpReserva({ onClose, name, sport, location, images, description }: P
 				});
 		});
 	}, []);
-	const [showDate, setShowDate] = useState(false);
-	const [showTime, setShowTime] = useState(false);
-
-	const selectedDateTime = useRef(new Date());
-
-	const [isModalVisible, setIsModalVisible] = useState(false);
 
 	const handleReservation = async () => {
-		console.log("BBBBB");
 		await supabase
 			.from("reservations")
 			.insert({
@@ -57,7 +55,6 @@ function PopUpReserva({ onClose, name, sport, location, images, description }: P
 				payments_id: null,
 			})
 			.then(() => {
-				console.log("Reservation created successfully!");
 				const msg = `Reserva creada para el ${selectedDateTime.current.toLocaleDateString()} a las ${selectedDateTime.current.toLocaleTimeString()}`;
 				Alert.alert("Reserva exitosa", msg);
 				onClose(); // Close the modal after successful reservation
@@ -177,7 +174,6 @@ function PopUpReserva({ onClose, name, sport, location, images, description }: P
 						onChange={(e, d) => {
 							if (e.type === "set") {
 								selectedDateTime.current.setDate(d!.getDate());
-								setShowTime(false);
 							}
 						}}
 					/>
@@ -197,15 +193,12 @@ function PopUpReserva({ onClose, name, sport, location, images, description }: P
 					/>
 				</View>
 			</View>
-			{/* ---------------------------------- Funciona(ish) en Android --------------------------------*/}
 
-			{/* <View style={{ padding: 20 }}>
-        <Button
-          title="Reservar"
-          color={"#f18f04"}
-          onPress={() => handleReservation()}
-        />
-      </View> */}
+			{/* ---------------------------------- Funciona(ish) en Android --------------------------------*/}
+			{/* ... */}
+			{/* ---------------------------------- ------------------------ --------------------------------*/}
+
+			<CheckoutButton />
 		</View>
 	);
 }
