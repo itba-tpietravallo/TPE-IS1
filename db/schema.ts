@@ -40,9 +40,8 @@ export const usersTable = pgTable("users", {
 	pgPolicy("users - select authenticated", {
 		for: "select",
 		using: sql`true`,
-		withCheck: sql``,
 		to: authenticatedRole, // only allow authenticated users to select from the table
-		as: "restrictive",
+		as: "permissive",
 	}),
 ]).enableRLS();
 
@@ -76,9 +75,8 @@ export const fieldsTable = pgTable(
 		pgPolicy("fields - select authenticated", {
 			for: "all",
 			using: sql`true`,
-			withCheck: sql``,
 			to: authenticatedRole,
-			as: "restrictive",
+			as: "permissive",
 		}),
 	]
 ).enableRLS();
@@ -90,9 +88,8 @@ export const sportsTable = pgTable("sports", {
 	pgPolicy("sports - select authenticated", {
 		for: "select",
 		using: sql`true`,
-		withCheck: sql``,
 		to: authenticatedRole,
-		as: "restrictive",
+		as: "permissive",
 	})
 ]).enableRLS();
 
@@ -111,9 +108,8 @@ export const reservationsTable = pgTable("reservations", {
 	pgPolicy("reservations - select authenticated", {
 		for: "all",
 		using: sql`true`,
-		withCheck: sql``,
 		to: authenticatedRole,
-		as: "restrictive",
+		as: "permissive",
 	}),
 ]).enableRLS();
 
@@ -135,8 +131,7 @@ export const payments = pgTable("mp_payments", {
 	pgPolicy("payments - select authenticated", {
 		for: "select",
 		using: sql`(select auth.uid()) = user_id`,
-		withCheck: sql``,
 		to: authenticatedRole,
-		as: "restrictive",
+		as: "permissive",
 	})
 ]).enableRLS();
