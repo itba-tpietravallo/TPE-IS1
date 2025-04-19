@@ -1,9 +1,9 @@
 import { ScreenHeight } from "@rneui/themed/dist/config";
 import React, { useState } from "react";
-import { router } from "expo-router";
 
 import { StyleSheet, Text, View, ImageBackground, Image, TouchableOpacity, Modal } from "react-native";
 import PopUpReserva from "./PopUpReserva";
+import { router } from "expo-router";
 
 interface props {
 	name: string;

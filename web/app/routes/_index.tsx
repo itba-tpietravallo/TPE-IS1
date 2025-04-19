@@ -1,10 +1,22 @@
 import type { MetaFunction } from "@remix-run/node";
 import { Button } from "../components/ui/button";
 import { useState, useEffect } from "react";
-import { useNavigate } from "@remix-run/react";
+import { Link, useNavigate } from "@remix-run/react";
 
 export const meta: MetaFunction = () => {
-	return [{ title: "New MatchPoint App" }, { name: "description", content: "Welcome to MatchPoint!" }];
+	return [
+		{ title: "MatchPoint" },
+		{
+			name: "description",
+			content: "Conectamos jugadores y canchas. Encontra un equipo para jugar o publica tu cancha para alquilar.",
+		},
+		{
+			name: "keywords",
+			content: "MatchPoint, canchas, deportes, futbol, hockey, tenis, arbitros, jugadores",
+		},
+		{ name: "author", content: "MatchPoint" },
+		{ name: "viewport", content: "width=device-width, initial-scale=1" },
+	];
 };
 
 export function ButtonDemo() {
@@ -89,13 +101,23 @@ export default function Index() {
 						Conectamos jugadores y canchas. Encontra un equipo para jugar o publica tu cancha para alquilar.
 					</p>
 					<div className="mt-10 flex flex-wrap gap-8">
-						<button onClick={()=>{navigate("./soon")}} className="w-full rounded-lg bg-[#F2F4F3] p-6 text-left shadow-lg hover:bg-[#f18f01]/50">
+						<button
+							onClick={() => {
+								navigate("./soon");
+							}}
+							className="w-full rounded-lg bg-[#F2F4F3] p-6 text-left shadow-lg hover:bg-[#f18f01]/50"
+						>
 							<h3 className="mb-4 text-2xl font-bold text-[#223332]">Para Deportistas</h3>
 							<p className="text-[#223332]">
 								Crea una cuenta para encontrar deportistas, predios y arbitros disponibles.
 							</p>
 						</button>
-						<button onClick={()=>{navigate("./canchas")}}  className="w-full rounded-lg bg-[#F2F4F3] p-6 text-left shadow-lg hover:bg-[#f18f01]/50">
+						<button
+							onClick={() => {
+								navigate("./canchas");
+							}}
+							className="w-full rounded-lg bg-[#F2F4F3] p-6 text-left shadow-lg hover:bg-[#f18f01]/50"
+						>
 							<h3 className="mb-4 text-2xl font-bold text-[#223332]">Para Canchas</h3>
 							<p className="text-[#223332]">
 								Da a conocer tu cancha y permite que otros jugadores la reserven fácilmente.
@@ -133,7 +155,7 @@ export default function Index() {
 				</div>
 
 				{/* Columna Derecha: Texto */}
-				<div className="flex w-1/2 flex-col space-y-6 pr-16">
+				<footer className="flex w-1/2 flex-col space-y-6 pr-16">
 					<h2 className="mb-6 text-8xl font-bold text-[#f18f01]">Quienes somos...</h2>
 					<p className="max-w-3xl text-left text-lg font-semibold text-[#f2f4f3]">
 						Desde autoridades del deporte como árbitros o jueces de mesa, hasta canchas donde jugar y
@@ -145,7 +167,16 @@ export default function Index() {
 						Hacete parte de nuestra comunidad y disfrutá de la experiencia.
 						<span className="font-extrabold text-[#f18f01]"> MatchPoint. </span>
 					</p>
-				</div>
+					<hr />
+					<div className="flex flex-row items-start justify-start gap-4">
+						<Link className="text-white underline" to={"/privacy"} hrefLang="en">
+							Privacy Policy
+						</Link>
+						<Link className="text-white underline" to={"/tos"} hrefLang="en">
+							Terms of Service
+						</Link>
+					</div>
+				</footer>
 			</div>
 		</div>
 	);
