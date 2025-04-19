@@ -4,7 +4,19 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "@remix-run/react";
 
 export const meta: MetaFunction = () => {
-	return [{ title: "New MatchPoint App" }, { name: "description", content: "Welcome to MatchPoint!" }];
+	return [
+		{ title: "MatchPoint" },
+		{
+			name: "description",
+			content: "Conectamos jugadores y canchas. Encontra un equipo para jugar o publica tu cancha para alquilar.",
+		},
+		{
+			name: "keywords",
+			content: "MatchPoint, canchas, deportes, futbol, hockey, tenis, arbitros, jugadores",
+		},
+		{ name: "author", content: "MatchPoint" },
+		{ name: "viewport", content: "width=device-width, initial-scale=1" },
+	];
 };
 
 export function ButtonDemo() {
