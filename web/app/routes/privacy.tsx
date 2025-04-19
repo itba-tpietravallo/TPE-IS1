@@ -15,7 +15,17 @@ export default function PrivacyPolicy() {
 
 				<ul className="mt-4 list-inside list-disc space-y-2">
 					<li>We collect only the data we need to provide the service.</li>
-					<li>This may include your full name, email, profile picture.</li>
+					<li>This may include your full name, email, and profile picture.</li>
+					<li>
+						When signing in with Google, we may access your Google account's basic profile information, such
+						as your full name and email address. This information is used solely to personalize your
+						experience and manage your account.
+					</li>
+					<li>
+						We do not access, use, store, or share any private Google user data, such as Google Drive files,
+						calendar events, or Gmail content. Only non-private information (your name and email address) is
+						stored securely for identification purposes.
+					</li>
 					<li>
 						Payment details are handled by third-party processors. We do not store your credit card
 						information.
