@@ -80,9 +80,9 @@ export default function CanchasLayout({ children }: { children: React.ReactNode 
 						<NavigationMenuListMobile MenuBarLinks={MenuBarLinks} />
 					</NavigationMenu>
 				</ul>
-				<div>
+				<Link to={"/canchas/perfil"}>
 					<ProfilePictureCard str={avatar_url} name={full_name} />
-				</div>
+				</Link>
 			</div>
 			<main className="relative min-h-full w-full">
 				<Outlet />
