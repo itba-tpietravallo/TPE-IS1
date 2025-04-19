@@ -48,7 +48,6 @@ export default function Index() {
 				if (res.error) {
 					console.error(res.error);
 				} else {
-					console.log(res.data);
 					setFields(res.data);
 				}
 			});

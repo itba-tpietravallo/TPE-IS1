@@ -19,7 +19,13 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 	// This is here to display the TOS/PP Links in English for Google's OAuth verification process.
 	// Otherwise, the links will be in Spanish.
 	const useSpanish = request.headers.get("Accept-Language")?.includes("es");
-	return { ...(await authenticateUser(request)), useSpanish };
+	const auth = await authenticateUser(request);
+
+	if (auth instanceof Response) {
+		return auth;
+	}
+
+	return { ...auth, useSpanish };
 };
 
 type MenuBarLinks = (

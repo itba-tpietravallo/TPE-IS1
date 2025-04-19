@@ -14,13 +14,15 @@ export function loader(args: LoaderFunctionArgs) {
 
 	return {
 		env,
-		URL_ORIGIN: new URL(args.request.url).origin,
+		url: new URL(args.request.url),
 	};
 }
 
 export function LoginCard() {
-	const { URL_ORIGIN, env } = useLoaderData<typeof loader>();
+	const { url, env } = useLoaderData<typeof loader>();
 	const supabase = createSupabaseClient(env);
+	const rurl =
+		url.origin.toString() + "/login/callback" + `?path=` + encodeURIComponent(url.searchParams.get("path") ?? "");
 
 	return (
 		<Card className="flex flex-col items-center justify-center p-4">
@@ -31,7 +33,7 @@ export function LoginCard() {
 						supabaseClient={supabase}
 						appearance={{ theme: ThemeSupa }}
 						providers={["google", "facebook"]}
-						redirectTo={new URL(URL_ORIGIN).toString() + "login/callback"}
+						redirectTo={rurl}
 					/>
 				</Suspense>
 			</div>
