@@ -10,8 +10,20 @@ type User = {
 	avatar_url: string;
 };
 
+type Reservation = {
+	id: string;
+	start_time: string;
+	date: string;
+	field: {
+		name: string;
+		location: string;
+	};
+};
+
 export default function Index() {
-	const [user, setUser] = useState<Session | null>(null);
+	const [user, setUser] = useState<Session>();
+	const [reservations, setReservations] = useState<Reservation[]>([]);
+
 	useEffect(() => {
 		supabase.auth.getSession().then(({ data: { session } }) => {
 			supabase
@@ -27,7 +39,34 @@ export default function Index() {
 					}
 				});
 		});
+		if (user?.user.id) {
+			// supabase
+			// 	.from("users")
+			// 	.select("*")
+			// 	.eq("id", userId)
+			// 	.single()
+			// 	.then(({ data, error }) => {
+			// 		if (error) {
+			// 			console.error("Error fetching user:", error);
+			// 		} else {
+			// 			setUser(data);
+			// 		}
+			// 	});
+			supabase
+				.from("reservations")
+				.select("*, field(*)")
+				.eq("owner_id", userId)
+				.order("date", { ascending: false })
+				.then(({ data, error }) => {
+					if (error) {
+						console.error("Error fetching reservations:", error);
+					} else {
+						setReservations(data || []);
+					}
+				});
+		}
 	}, []);
+
 	return (
 		<View
 			style={{
@@ -59,6 +98,41 @@ export default function Index() {
 						<Text style={{ fontSize: 30, fontWeight: "bold", paddingTop: 20 }}>{user?.full_name}</Text>
 					</View>
 				</View>
+			</View>
+
+			<View style={{ padding: 20, alignContent: "center" }}>
+				<Text
+					style={{
+						fontSize: 30,
+						fontWeight: "bold",
+						color: "gray",
+						paddingBottom: 20,
+						textAlign: "left",
+					}}
+				>
+					Mis reservas:
+				</Text>
+				{reservations.length > 0 ? (
+					reservations.map((reservation) => (
+						<View
+							key={reservation.id}
+							style={{
+								marginBottom: 10,
+								borderWidth: 1,
+								borderColor: "#ccc",
+								padding: 10,
+								borderRadius: 5,
+							}}
+						>
+							<Text style={{ fontWeight: "bold" }}>Cancha: {reservation.field?.name}</Text>
+							<Text>Ubicación: {reservation.field?.location}</Text>
+							<Text>Fecha: {reservation.date}</Text>
+							<Text>Hora: {reservation.start_time}</Text>
+						</View>
+					))
+				) : (
+					<Text>No tienes reservas.</Text>
+				)}
 			</View>
 			<Button
 				buttonStyle={styles.buttonContainer}
