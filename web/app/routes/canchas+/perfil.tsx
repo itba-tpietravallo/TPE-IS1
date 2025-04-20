@@ -1,5 +1,5 @@
 import { LoaderFunctionArgs } from "@remix-run/node";
-import { useLoaderData } from "@remix-run/react";
+import { NavigateFunction, useLoaderData, useNavigate } from "@remix-run/react";
 import { createBrowserClient } from "@supabase/ssr";
 import { useEffect, useState } from "react";
 import { ProfilePictureAvatar } from "~/components/profile-picture";
@@ -34,9 +34,30 @@ export async function loader({ request }: LoaderFunctionArgs) {
 	return { ...(await authenticateUser(request)), env };
 }
 
+async function handleMercadoPago(e: React.MouseEvent<HTMLAnchorElement, MouseEvent>, nav: NavigateFunction) {
+	const url = await fetch(new URL("/api/v1/payments/oauth", "https://matchpointapp.com.ar").toString(), {
+		method: "POST",
+		body: JSON.stringify({
+			processor: "mercado-pago",
+		}),
+	});
+
+	if (url.status < 200 || url.status >= 300) {
+		console.error("Error al obtener la URL de Mercado Pago", url);
+		e.target.innerText = "Error del servidor, intente mas tarde";
+		e.target.style.backgroundColor = "rgb(255, 0, 0, 0.5)";
+		e.target.style.borderColor = "rgb(255, 0, 0, 1)";
+		return;
+	}
+
+	const u = (await url.json()).oauth_url;
+	window.location.assign(u);
+}
+
 export default function Index() {
 	const { user, avatar_url, email, phone, full_name, env } = useLoaderData<typeof loader>();
 	const [fields, setFields] = useState<Field[]>([]);
+	const nav = useNavigate();
 
 	useEffect(() => {
 		const supabase = createBrowserClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
@@ -71,9 +92,9 @@ export default function Index() {
 						</CardHeader>
 						<CardContent>
 							<hr className="mb-2" />
-							<CardDescription>
+							<CardDescription className="flex flex-col gap-4">
 								<h2 className="text-xl text-muted-foreground">Informacion de tu cuenta</h2>
-								<ul className="flex flex-col gap-2">
+								<ul className="flex h-auto flex-col gap-2">
 									<li className="flex flex-row items-center gap-2">
 										<span className="text-lg font-bold">Email:</span>
 										<span className="text-lg">{email}</span>
@@ -89,6 +110,12 @@ export default function Index() {
 										</span>
 									</li>
 								</ul>
+								<a
+									onClick={(e) => handleMercadoPago(e, nav)}
+									className="h-fit w-fit cursor-pointer rounded border border-blue-600 bg-blue-300 p-2 px-4 text-lg leading-none text-black shadow-sm"
+								>
+									Vincular a Mercado Pago
+								</a>
 							</CardDescription>
 						</CardContent>
 					</Card>
