@@ -90,7 +90,7 @@ export default function CanchasLayout({ children }: { children: React.ReactNode 
 					<ProfilePictureCard str={avatar_url} name={full_name} />
 				</Link>
 			</div>
-			<main className="relative h-full w-full">
+			<main className="relative h-full min-h-fit w-full">
 				<Outlet />
 			</main>
 		</div>
