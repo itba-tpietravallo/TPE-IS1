@@ -1,11 +1,11 @@
 import { LoaderFunctionArgs } from "@remix-run/node";
-import { NavigateFunction, useLoaderData, useNavigate } from "@remix-run/react";
+import { Link, useLoaderData } from "@remix-run/react";
 import { createBrowserClient } from "@supabase/ssr";
 import { useEffect, useState } from "react";
 import { ProfilePictureAvatar } from "~/components/profile-picture";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader } from "~/components/ui/card";
 import { authenticateUser } from "~/lib/auth.server";
-import { FieldPreview, FieldsPreviewGrid } from "./_index";
+import { FieldsPreviewGrid } from "./_index";
 
 type Field = {
 	avatar_url: string;
@@ -34,30 +34,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
 	return { ...(await authenticateUser(request)), env };
 }
 
-async function handleMercadoPago(e: React.MouseEvent<HTMLAnchorElement, MouseEvent>, nav: NavigateFunction) {
-	const url = await fetch(new URL("/api/v1/payments/oauth", "https://matchpointapp.com.ar").toString(), {
-		method: "POST",
-		body: JSON.stringify({
-			processor: "mercado-pago",
-		}),
-	});
-
-	if (url.status < 200 || url.status >= 300) {
-		console.error("Error al obtener la URL de Mercado Pago", url);
-		e.target.innerText = "Error del servidor, intente mas tarde";
-		e.target.style.backgroundColor = "rgb(255, 0, 0, 0.5)";
-		e.target.style.borderColor = "rgb(255, 0, 0, 1)";
-		return;
-	}
-
-	const u = (await url.json()).oauth_url;
-	window.location.assign(u);
-}
-
 export default function Index() {
 	const { user, avatar_url, email, phone, full_name, env } = useLoaderData<typeof loader>();
 	const [fields, setFields] = useState<Field[]>([]);
-	const nav = useNavigate();
 
 	useEffect(() => {
 		const supabase = createBrowserClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
@@ -110,12 +89,12 @@ export default function Index() {
 										</span>
 									</li>
 								</ul>
-								<a
-									onClick={(e) => handleMercadoPago(e, nav)}
+								<Link
+									to={"https://matchpointapp.com.ar/api/v1/payments/oauth/mercadopago"}
 									className="h-fit w-fit cursor-pointer rounded border border-blue-600 bg-blue-300 p-2 px-4 text-lg leading-none text-black shadow-sm"
 								>
 									Vincular a Mercado Pago
-								</a>
+								</Link>
 							</CardDescription>
 						</CardContent>
 					</Card>

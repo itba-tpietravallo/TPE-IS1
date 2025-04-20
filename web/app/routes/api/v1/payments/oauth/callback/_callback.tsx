@@ -4,6 +4,8 @@ import { MercadoPagoConfig, OAuth } from "mercadopago";
 
 export async function loader({ request }: LoaderFunctionArgs) {
 	const url = new URL(request.url);
+	// Mercado Pago sends code with the format ?code=TG-68XXXXX4deeff00010XXXXX-XX96307XXX
+	// If more processorts were added, we could regex this to infer the processor
 	const code = url.searchParams.get("code");
 
 	const mercadoPagoConfig = new MercadoPagoConfig({ accessToken: process.env.MERCADO_PAGO_ACCESS_TOKEN! });
