@@ -163,5 +163,12 @@ export const mpOAuthAuthorizationTable = pgTable("mp_oauth_authorization", {
 		to: authenticatedRole,
 		as: "permissive",
 	}),
+	pgPolicy("oauth_authorization - update authenticated", {
+		for: "update",
+		using: sql`(select auth.uid()) = user_id`,
+		withCheck: sql`true`,
+		to: authenticatedRole,
+		as: "permissive",
+	})
 	// Insert, update are checked by triggers on the table.
 ]).enableRLS();
