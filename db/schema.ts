@@ -113,7 +113,7 @@ export const reservationsTable = pgTable("reservations", {
 	}),
 ]).enableRLS();
 
-export const payments = pgTable("mp_payments", {
+export const paymentsTable = pgTable("mp_payments", {
 	payment_id: uuid().primaryKey().notNull(),
 	user_id: uuid()
 		.notNull()
@@ -134,4 +134,34 @@ export const payments = pgTable("mp_payments", {
 		to: authenticatedRole,
 		as: "permissive",
 	})
+]).enableRLS();
+
+export const mpOAuthAuthorizationTable = pgTable("mp_oauth_authorization", {
+	user_id: uuid()
+		.primaryKey()
+		.notNull()
+		.references(() => usersTable.id, { onDelete: "cascade" }),
+	mercado_pago_user_id: varchar({ length: 255 }).notNull(),
+	processor: varchar({ length: 255 }).notNull(),
+	access_token: text().notNull(),
+	refresh_token: text().notNull(),
+	expires_in: integer().notNull(),
+	scope: text().notNull(),
+	public_key: text().notNull(),
+	live_mode: integer().notNull(),
+}, (table) => [
+	// Only allow authenticated users (WHOSE ID MATCHES THE RECORD) to select from the table, all other operations are disallowed by default.
+	pgPolicy("oauth_authorization - select authenticated", {
+		for: "select",
+		using: sql`(select auth.uid()) = user_id`,
+		to: authenticatedRole,
+		as: "permissive",
+	}),
+	pgPolicy("oauth_authorization - insert authenticated", {
+		for: "insert",
+		withCheck: sql`true`,
+		to: authenticatedRole,
+		as: "permissive",
+	}),
+	// Insert, update are checked by triggers on the table.
 ]).enableRLS();
