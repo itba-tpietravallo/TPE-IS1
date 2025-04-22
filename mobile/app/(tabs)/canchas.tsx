@@ -123,12 +123,13 @@ function CanchasFeed() {
 						if (selectedSport === "") return true;
 						if (selectedSport === "Voley") return field.sports.includes("voley");
 						if (selectedSport === "Fútbol") return field.sports.includes("Futbol");
+						if (selectedSport === "Hockey sobre césped") return field.sports.includes("Hockey");
 						return field.sports.includes(selectedSport);
 					})
 					.map((field) => (
 						<FieldPost
 							name={field.name}
-							sport={field.sports[0]}
+							sport={field.sports}
 							location={`${field.street} ${field.street_number}, ${field.neighborhood}`}
 							key={field.id}
 							images={field.images}

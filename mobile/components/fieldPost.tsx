@@ -7,7 +7,7 @@ import { router } from "expo-router";
 
 interface props {
 	name: string;
-	sport: string;
+	sport: string[];
 	location: string;
 	images: string[];
 	description: string;
@@ -32,7 +32,7 @@ function FieldPost(props: props) {
 				>
 					<View style={styles.topContent}>
 						<Text style={styles.title}>{props.name}</Text>
-						<Text style={styles.sport}>{props.sport}</Text>
+						<Text style={styles.sport}>{props.sport.join(", ")}</Text>
 					</View>
 					<View style={styles.bottomContent}>
 						<Image style={styles.icon} source={require("@/assets/images/cancha.png")} />

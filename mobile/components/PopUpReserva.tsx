@@ -17,7 +17,7 @@ interface PopUpReservaProps {
 	onClose: () => void;
 
 	name: string;
-	sport: string;
+	sport: string[];
 	location: string;
 	images: string[];
 	description: string;
@@ -82,7 +82,7 @@ function PopUpReserva({ onClose, name, sport, location, images, description }: P
 						>
 							{name}
 						</Text>
-						<Text style={{ fontSize: 16, color: "gray", marginBottom: 10 }}>{sport}</Text>
+						<Text style={{ fontSize: 16, color: "gray", marginBottom: 10 }}>{sport.join(", ")} </Text>
 					</View>
 					<TouchableOpacity onPress={() => setIsModalVisible(true)}>
 						<Image
