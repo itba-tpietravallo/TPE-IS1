@@ -18,13 +18,17 @@ function FieldPost(props: props) {
 	const handleCloseModal = () => {
 		setIsModalVisible(false);
 	};
+
+	const backgroundImageSource =
+		props.images && props.images.length > 0 ? { uri: props.images[0] } : require("@/assets/images/no-imagen.jpeg");
+
 	return (
 		<View style={{ flex: 1 }}>
 			<TouchableOpacity onPress={() => setIsModalVisible(true)}>
 				<ImageBackground
 					style={styles.container}
 					imageStyle={{ borderRadius: 15, opacity: 0.9 }}
-					source={{ uri: props.images[0] }}
+					source={backgroundImageSource}
 				>
 					<View style={styles.topContent}>
 						<Text style={styles.title}>{props.name}</Text>
