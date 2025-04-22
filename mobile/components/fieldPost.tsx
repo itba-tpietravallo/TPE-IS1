@@ -7,6 +7,7 @@ import { router } from "expo-router";
 
 interface props {
 	name: string;
+	fieldId: string;
 	sport: string[];
 	location: string;
 	images: string[];
@@ -50,6 +51,7 @@ function FieldPost(props: props) {
 					<PopUpReserva
 						onClose={handleCloseModal}
 						name={name}
+						fieldId={props.fieldId}
 						location={location}
 						sport={sport}
 						images={props.images}

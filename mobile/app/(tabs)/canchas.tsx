@@ -129,6 +129,7 @@ function CanchasFeed() {
 					.map((field) => (
 						<FieldPost
 							name={field.name}
+							fieldId={field.id}
 							sport={field.sports}
 							location={`${field.street} ${field.street_number}, ${field.neighborhood}`}
 							key={field.id}

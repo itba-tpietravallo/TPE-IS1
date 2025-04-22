@@ -17,13 +17,14 @@ interface PopUpReservaProps {
 	onClose: () => void;
 
 	name: string;
+	fieldId: string;
 	sport: string[];
 	location: string;
 	images: string[];
 	description: string;
 }
 
-function PopUpReserva({ onClose, name, sport, location, images, description }: PopUpReservaProps) {
+function PopUpReserva({ onClose, name, fieldId, sport, location, images, description }: PopUpReservaProps) {
 	const [user, setUser] = useState<Session | null>(null);
 	const selectedDateTime = useRef(new Date());
 	const [isModalVisible, setIsModalVisible] = useState(false);
@@ -198,7 +199,7 @@ function PopUpReserva({ onClose, name, sport, location, images, description }: P
 			{/* ... */}
 			{/* ---------------------------------- ------------------------ --------------------------------*/}
 
-			<CheckoutButton />
+			<CheckoutButton fieldId={fieldId} />
 		</View>
 	);
 }
