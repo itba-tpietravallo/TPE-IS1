@@ -55,7 +55,7 @@ export default function Index() {
 			supabase
 				.from("reservations")
 				.select("*, field(*)")
-				.eq("owner_id", userId)
+				.eq("owner_id", user?.user.id)
 				.order("date", { ascending: false })
 				.then(({ data, error }) => {
 					if (error) {
