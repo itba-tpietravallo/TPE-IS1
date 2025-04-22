@@ -36,35 +36,23 @@ export default function Index() {
 						console.error("Error fetching user:", error);
 					} else {
 						setUser(data);
+						if (user?.user.id) {
+							supabase
+								.from("reservations")
+								.select("*")
+								.eq("owner_id", user?.user.id)
+								.order("date", { ascending: false })
+								.then(({ data, error }) => {
+									if (error) {
+										console.error("Error fetching reservations:", error);
+									} else {
+										setReservations(data || []);
+									}
+								});
+						}
 					}
 				});
 		});
-		if (user?.user.id) {
-			// supabase
-			// 	.from("users")
-			// 	.select("*")
-			// 	.eq("id", userId)
-			// 	.single()
-			// 	.then(({ data, error }) => {
-			// 		if (error) {
-			// 			console.error("Error fetching user:", error);
-			// 		} else {
-			// 			setUser(data);
-			// 		}
-			// 	});
-			supabase
-				.from("reservations")
-				.select("*, field(*)")
-				.eq("owner_id", user?.user.id)
-				.order("date", { ascending: false })
-				.then(({ data, error }) => {
-					if (error) {
-						console.error("Error fetching reservations:", error);
-					} else {
-						setReservations(data || []);
-					}
-				});
-		}
 	}, []);
 
 	return (
