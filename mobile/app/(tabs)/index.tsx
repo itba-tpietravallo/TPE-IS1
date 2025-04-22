@@ -2,13 +2,13 @@ import CanchasFeed from "./canchas";
 import { Text } from "react-native";
 import TeamDetail from "./teamDetail";
 
-//export default function Index(){
-//  return <CanchasFeed/>
-//}
+export default function Index(){
+  return <CanchasFeed/>
+}
 
 
 //Esto es para ver la data de un equipo (cuando esten los equipos en la db saco esto)
-
+/*
 export default function Index() {
   return <TeamDetail name={name} sport={sport} description={description} players={players} />;
 }
@@ -54,3 +54,4 @@ const players = [
     photo: "https://cdn-icons-png.flaticon.com/512/1144/1144760.png",
   },
 ];
+*/
