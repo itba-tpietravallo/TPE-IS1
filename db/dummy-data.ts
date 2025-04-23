@@ -20,6 +20,7 @@ await (async function main() {
 				"https://xqliokcqwbwivehrgaft.supabase.co/storage/v1/object/public/venues/da593797-983f-4647-a4cf-c05e2c796b30/connor-coyne-OgqWLzWRSaI-unsplash.jpg",
 				"https://xqliokcqwbwivehrgaft.supabase.co/storage/v1/object/public/venues/da593797-983f-4647-a4cf-c05e2c796b30/fancy-crave-qowyMze7jqg-unsplash.jpg",
 			],
+			price: 1111,
 			city: "Buenos Aires",
 			street_number: "1234",
 			street: "Av. Corrientes",
@@ -31,6 +32,7 @@ await (async function main() {
 			name: "Club de Amigos",
 			location: { x: -34.5729272, y: -58.4120894 },
 			owner: user_id,
+			price: 5000,
 			avatar_url: "https://www.github.com/itba-tpietravallo.png", // ITBA Logo
 			images: [
 				"https://xqliokcqwbwivehrgaft.supabase.co/storage/v1/object/public/venues/da593797-983f-4647-a4cf-c05e2c796b30/izuddin-helmi-adnan-K5ChxJaheKI-unsplash.jpg",
@@ -47,6 +49,7 @@ await (async function main() {
 			name: "Estadio Monumental",
 			location: { x: -34.5455258, y: -58.4522481 },
 			owner: user_id,
+			price: 10000,
 			avatar_url: "https://www.github.com/itba-tpietravallo.png", // ITBA Logo
 			images: [
 				"https://xqliokcqwbwivehrgaft.supabase.co/storage/v1/object/public/venues/da593797-983f-4647-a4cf-c05e2c796b30/river.jpg",
@@ -60,7 +63,7 @@ await (async function main() {
 		},
 	];
 
-    const insert = await db.insert(fieldsTable).values(dummyData);
+	const insert = await db.insert(fieldsTable).values(dummyData);
 
 	client.end();
 })();
