@@ -23,7 +23,7 @@ jobs:
             - name: Cache node modules
               uses: actions/cache@v3
               with:
-                  path: node_modules
+                  path: web/node_modules
                   key: node_modules-${{ runner.os }}-deploy-${{hashFiles('package-lock.lock')}}
                   restore-keys: node_modules-${{ runner.os }}-deploy-
 
