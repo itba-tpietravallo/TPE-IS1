@@ -93,11 +93,14 @@ async function getMercadoPagoRedirectURL(
 			city,
 			avatar_url,
 			images,
-			mp_oauth_authorization (
-				access_token
+			users!owner (
+				mp_oauth_authorization!user_id (
+					access_token
+				)
 			)
 		`,
 		)
+		.limit(1)
 		.single();
 
 	if (error) {
@@ -107,7 +110,7 @@ async function getMercadoPagoRedirectURL(
 		});
 	}
 
-	if (!data?.mp_oauth_authorization?.at(0)?.access_token) {
+	if (!data?.users?.at(0)?.mp_oauth_authorization?.at(0)?.access_token) {
 		return new Response("Missing Mercado Pago access token", {
 			status: 500,
 			statusText: "Missing Mercado Pago access token",
@@ -115,7 +118,7 @@ async function getMercadoPagoRedirectURL(
 	}
 
 	const mercadoPagoConfig = new MercadoPagoConfig({
-		accessToken: data?.mp_oauth_authorization?.at(0)?.access_token,
+		accessToken: data?.users?.at(0)?.mp_oauth_authorization?.at(0)?.access_token,
 		options: {},
 	});
 
