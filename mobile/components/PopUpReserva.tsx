@@ -22,9 +22,10 @@ interface PopUpReservaProps {
 	location: string;
 	images: string[];
 	description: string;
+	price: number;
 }
 
-function PopUpReserva({ onClose, name, fieldId, sport, location, images, description }: PopUpReservaProps) {
+function PopUpReserva({ onClose, name, fieldId, sport, location, images, description, price }: PopUpReservaProps) {
 	const [user, setUser] = useState<Session | null>(null);
 	const selectedDateTime = useRef(new Date());
 	const [isModalVisible, setIsModalVisible] = useState(false);
@@ -163,6 +164,7 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 			>
 				{description}
 			</Text>
+			<Text style={{ padding: 20, fontSize: 18 }}>Precio: ${price}</Text>
 
 			{/* ---------------------------------- Funciona en IOS??????? -------------------------------- */}
 			<View style={styles.selection}>

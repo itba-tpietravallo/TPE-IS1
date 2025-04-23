@@ -1,16 +1,16 @@
-import TeamsFeed from "./teamsFeed";
+// import TeamsFeed from "./teamsFeed";
 
-export default function Index() {
-	return <TeamsFeed />;
-}
+// export default function Index() {
+// 	return <TeamsFeed />;
+// }
 
-/*import CanchasFeed from "./canchas";
+import CanchasFeed from "./canchas";
 import { Text } from "react-native";
 import TeamDetail from "./teamDetail";
 
-export default function Index(){
-  return <CanchasFeed/>
-}*/
+export default function Index() {
+	return <CanchasFeed />;
+}
 
 //Esto es para ver la data de un equipo (cuando esten los equipos en la db saco esto)
 // export default function Index() {

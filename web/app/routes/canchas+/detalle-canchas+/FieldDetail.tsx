@@ -194,8 +194,7 @@ export function MyCarousel(props: CarouselProps) {
 
 export type Reservation = {
 	id: string;
-	start_time: string;
-	date: string;
+	date_time: string;
 	owner_id: string;
 };
 
@@ -273,18 +272,30 @@ export function FieldDetail(props: FieldProps) {
 							<h2 className="mb-4 border-gray-500 text-left text-xl font-semibold text-[#f2f4f3]">
 								Reservas:
 							</h2>
-							<div className="w-full overflow-x-auto rounded-lg border border-white p-6 shadow-md">
+							<div className="rounded-lg border border-white p-6 shadow-md">
 								<div className="grid grid-cols-3 gap-4 border-gray-500 px-6 py-4 text-[#f2f4f3]">
 									<div className="text-lg font-semibold">Fecha</div>
 									<div className="text-lg font-semibold">Horario</div>
 									<div className="text-lg font-semibold">Nombre</div>
 								</div>
-								<div className="grid grid-cols-3 items-center gap-4 border-t border-gray-500 px-6 py-3">
+								<div>
 									{reservations.length > 0 ? (
 										reservations.map((reservations) => (
-											<div>
-												<div> {reservations.date}</div>
-												<div> {reservations.start_time}</div>
+											<div className="gap- grid grid-cols-3 border-t border-gray-500 px-6 py-4 text-[#f2f4f3]">
+												<div>
+													{new Date(reservations.date_time).toLocaleDateString("es-ES", {
+														year: "numeric",
+														month: "2-digit",
+														day: "2-digit",
+													})}{" "}
+												</div>
+												<div>
+													{" "}
+													{new Date(reservations.date_time).toLocaleTimeString("es-ES", {
+														hour: "2-digit",
+														minute: "2-digit",
+													})}{" "}
+												</div>
 												<div>
 													{" "}
 													{users.find((user) => user.id === reservations.owner_id)?.full_name}
@@ -292,9 +303,7 @@ export function FieldDetail(props: FieldProps) {
 											</div>
 										))
 									) : (
-										//quiero que esté centrado
-
-										<div className="flex h-full w-full items-center justify-center text-lg italic text-white">
+										<div className="flex h-full w-full items-center justify-center border-t border-gray-500 text-lg italic text-white">
 											No hay reservas
 										</div>
 									)}
