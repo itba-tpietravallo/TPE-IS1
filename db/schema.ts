@@ -11,6 +11,7 @@ import {
 	uuid,
 	AnyPgColumn,
 	pgPolicy,
+	timestamp,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm/sql";
 import { authenticatedRole } from "drizzle-orm/supabase";
@@ -26,24 +27,29 @@ const authUsers = authSchema.table("users", {
 });
 // END NOTICE: WARNING
 
-export const usersTable = pgTable("users", {
-	id: uuid()
-		.primaryKey()
-		.notNull()
-		.references((): AnyPgColumn => authUsers.id),
-	full_name: varchar({ length: 255 }).notNull(),
-	avatar_url: text(),
-}, (table) => [
-	// INSERT, UPDATE, DELETE are disallowed by default.
-	// This table is managed via Supabase triggers on auth.users.
-	// Do not grant users insert/delete privileges on this table.
-	pgPolicy("users - select authenticated", {
-		for: "select",
-		using: sql`true`,
-		to: authenticatedRole, // only allow authenticated users to select from the table
-		as: "permissive",
-	}),
-]).enableRLS();
+export const usersTable = pgTable(
+	"users",
+	{
+		id: uuid()
+			.primaryKey()
+			.notNull()
+			.references((): AnyPgColumn => authUsers.id),
+		full_name: varchar({ length: 255 }).notNull(),
+		avatar_url: text(),
+	},
+	(table) => [
+		// INSERT, UPDATE, DELETE are disallowed by default.
+		// This table is managed via Supabase triggers on auth.users.
+		// Do not grant users insert/delete privileges on this table.
+		pgPolicy("users - select authenticated", {
+			for: "select",
+			using: sql`true`,
+			withCheck: sql``,
+			to: authenticatedRole, // only allow authenticated users to select from the table
+			as: "permissive",
+		}),
+	]
+).enableRLS();
 
 export const fieldsTable = pgTable(
 	"fields",
@@ -81,60 +87,74 @@ export const fieldsTable = pgTable(
 	]
 ).enableRLS();
 
-export const sportsTable = pgTable("sports", {
-	name: varchar({ length: 255 }).primaryKey().notNull(),
-}, (table) => [
-	// Only allow authenticated users to select from the table, all other operations are disallowed by default.
-	pgPolicy("sports - select authenticated", {
-		for: "select",
-		using: sql`true`,
-		to: authenticatedRole,
-		as: "permissive",
-	})
-]).enableRLS();
+export const sportsTable = pgTable(
+	"sports",
+	{
+		name: varchar({ length: 255 }).primaryKey().notNull(),
+	},
+	(table) => [
+		// Only allow authenticated users to select from the table, all other operations are disallowed by default.
+		pgPolicy("sports - select authenticated", {
+			for: "select",
+			using: sql`true`,
+			withCheck: sql``,
+			to: authenticatedRole,
+			as: "permissive",
+		}),
+	]
+).enableRLS();
 
-export const reservationsTable = pgTable("reservations", {
-	id: uuid().primaryKey().defaultRandom().notNull(),
-	field_id: uuid()
-		.notNull()
-		.references(() => fieldsTable.id, { onDelete: "cascade" }),
-	start_time: varchar().notNull(),
-	date: varchar({ length: 10 }).notNull(),
-	owner_id: uuid()
-		.notNull()
-		.references(() => usersTable.id, { onDelete: "cascade" }),
-	payments_id: uuid().default(sql`NULL`),
-}, (table) => [
-	pgPolicy("reservations - select authenticated", {
-		for: "all",
-		using: sql`true`,
-		to: authenticatedRole,
-		as: "permissive",
-	}),
-]).enableRLS();
+export const reservationsTable = pgTable(
+	"reservations",
+	{
+		id: uuid().primaryKey().defaultRandom().notNull(),
+		field_id: uuid()
+			.notNull()
+			.references(() => fieldsTable.id, { onDelete: "cascade" }),
+		date_time: timestamp({ withTimezone: true }).notNull(),
+		owner_id: uuid()
+			.notNull()
+			.references(() => usersTable.id, { onDelete: "cascade" }),
+		payments_id: uuid().default(sql`NULL`),
+	},
+	(table) => [
+		pgPolicy("reservations - select authenticated", {
+			for: "all",
+			using: sql`true`,
+			withCheck: sql``,
+			to: authenticatedRole,
+			as: "permissive",
+		}),
+	]
+).enableRLS();
 
-export const paymentsTable = pgTable("mp_payments", {
-	payment_id: uuid().primaryKey().notNull(),
-	user_id: uuid()
-		.notNull()
-		.references(() => usersTable.id, { onDelete: "cascade" }),
-	reservation_id: uuid()
-		.notNull()
-		.references(() => reservationsTable.id, { onDelete: "cascade" }),
-	last_updated: integer().notNull(),
-	status: varchar({ length: 255 }).notNull(),
-	transaction_amount: integer().notNull(),
-	net_received_amount: integer().notNull(),
-	total_paid_amount: integer().notNull(),
-}, (table) => [
-	// Only allow authenticated users (WHOSE ID MATCHES THE RECORD) to select from the table, all other operations are disallowed by default.
-	pgPolicy("payments - select authenticated", {
-		for: "select",
-		using: sql`(select auth.uid()) = user_id`,
-		to: authenticatedRole,
-		as: "permissive",
-	})
-]).enableRLS();
+export const payments = pgTable(
+	"mp_payments",
+	{
+		payment_id: uuid().primaryKey().notNull(),
+		user_id: uuid()
+			.notNull()
+			.references(() => usersTable.id, { onDelete: "cascade" }),
+		reservation_id: uuid()
+			.notNull()
+			.references(() => reservationsTable.id, { onDelete: "cascade" }),
+		last_updated: integer().notNull(),
+		status: varchar({ length: 255 }).notNull(),
+		transaction_amount: integer().notNull(),
+		net_received_amount: integer().notNull(),
+		total_paid_amount: integer().notNull(),
+	},
+	(table) => [
+		// Only allow authenticated users (WHOSE ID MATCHES THE RECORD) to select from the table, all other operations are disallowed by default.
+		pgPolicy("payments - select authenticated", {
+			for: "select",
+			using: sql`(select auth.uid()) = user_id`,
+			withCheck: sql``,
+			to: authenticatedRole,
+			as: "permissive",
+		}),
+	]
+).enableRLS();
 
 export const mpOAuthAuthorizationTable = pgTable("mp_oauth_authorization", {
 	user_id: uuid()
