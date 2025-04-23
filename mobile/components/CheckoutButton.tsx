@@ -28,7 +28,7 @@ const ButtonStyles = {
 		text: "Pago rechazado",
 	},
 	default: {
-		backgroundColor: "#3CAAFA",
+		backgroundColor: "#f18f04",
 		text: "Reservar",
 	},
 };
