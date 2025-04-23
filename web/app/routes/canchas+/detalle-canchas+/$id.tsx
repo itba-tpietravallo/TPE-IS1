@@ -2,7 +2,7 @@ import { LoaderFunctionArgs } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 import { createBrowserClient } from "@supabase/ssr";
 import { useEffect, useState } from "react";
-import { FieldDetail } from "./_index";
+import { FieldDetail } from "./FieldDetail";
 
 export function loader(args: LoaderFunctionArgs) {
     const env = {

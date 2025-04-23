@@ -321,17 +321,3 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
 		</div>
 	);
 }
-
-//!================================================================================= CHEQUEAR ESTO =================================================================================
-
-// todo este código en qué queda ?
-
-export default function () {
-	const imgs: string[] = ["../img3-f11.jpg", "../img2-f11.jpg", "../img1-f11.jpg"];
-	const [name, setName] = useState(globalName);
-	const [location, setLocation] = useState(globalName);
-	const [description, setDescription] = useState(globalDescription);
-	//todo falta que el edit datos de la cancha le peguen a la db
-
-	return <p>Hola</p>;
-}
