@@ -270,26 +270,34 @@ export function FieldDetail(props: FieldProps) {
 					<CardContent className="grid gap-4">
 						<div className="grid gap-4 py-4 text-[#f2f4f3]">{description}</div>
 						<div className="w-full overflow-x-auto">
-							<div>
-								<h2 className="border-gray-500 text-left text-xl font-semibold text-[#f2f4f3]">
-									Reservas:
-								</h2>
+							<h2 className="mb-4 border-gray-500 text-left text-xl font-semibold text-[#f2f4f3]">
+								Reservas:
+							</h2>
+							<div className="w-full overflow-x-auto rounded-lg border border-white p-6 shadow-md">
 								<div className="grid grid-cols-3 gap-4 border-gray-500 px-6 py-4 text-[#f2f4f3]">
 									<div className="text-lg font-semibold">Fecha</div>
 									<div className="text-lg font-semibold">Horario</div>
 									<div className="text-lg font-semibold">Nombre</div>
 								</div>
-								<div>
-									{reservations.map((reservations) => (
-										<div className="grid grid-cols-3 items-center gap-4 border-t border-gray-500 px-6 py-3 text-[#f2f4f3]">
-											<div> {reservations.date}</div>
-											<div> {reservations.start_time}</div>
+								<div className="grid grid-cols-3 items-center gap-4 border-t border-gray-500 px-6 py-3">
+									{reservations.length > 0 ? (
+										reservations.map((reservations) => (
 											<div>
-												{" "}
-												{users.find((user) => user.id === reservations.owner_id)?.full_name}
+												<div> {reservations.date}</div>
+												<div> {reservations.start_time}</div>
+												<div>
+													{" "}
+													{users.find((user) => user.id === reservations.owner_id)?.full_name}
+												</div>
 											</div>
+										))
+									) : (
+										//quiero que esté centrado
+
+										<div className="flex h-full w-full items-center justify-center text-lg italic text-white">
+											No hay reservas
 										</div>
-									))}
+									)}
 								</div>
 							</div>
 						</div>
