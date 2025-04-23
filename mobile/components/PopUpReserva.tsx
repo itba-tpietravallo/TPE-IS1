@@ -27,8 +27,9 @@ interface PopUpReservaProps {
 
 function PopUpReserva({ onClose, name, fieldId, sport, location, images, description, price }: PopUpReservaProps) {
 	const [user, setUser] = useState<Session | null>(null);
-	const selectedDateTime = useRef(new Date());
 	const [isModalVisible, setIsModalVisible] = useState(false);
+	const [selectedDateTime, setSelectedDateTime] = useState<Date>(new Date());
+	const [unavailable, setUnavailability] = useState<boolean | null>(null);
 
 	useEffect(() => {
 		supabase.auth.getSession().then(({ data: { session } }) => {
@@ -51,19 +52,30 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 		await supabase
 			.from("reservations")
 			.insert({
-				start_time: selectedDateTime.current.toLocaleTimeString(),
-				date: selectedDateTime.current.toLocaleDateString(),
-				owner_id: user?.id,
+				start_time: selectedDateTime.toLocaleTimeString(),
+				date: selectedDateTime.toLocaleDateString(),
+				owner_id: user?.user.id,
 				payments_id: null,
 			})
 			.then(() => {
-				const msg = `Reserva creada para el ${selectedDateTime.current.toLocaleDateString()} a las ${selectedDateTime.current.toLocaleTimeString()}`;
+				const msg = `Reserva creada para el ${selectedDateTime.toLocaleDateString()} a las ${selectedDateTime.toLocaleTimeString()}`;
 				Alert.alert("Reserva exitosa", msg);
 				onClose(); // Close the modal after successful reservation
 			})
 			.catch((error) => {
 				console.log("Error creating reservation:", error);
 			});
+	};
+
+	const handleDateTimeChange = async (event: any, date?: Date) => {
+		if (date) {
+			setSelectedDateTime(date);
+
+			const taken = await isSlotUnavailable(fieldId, date);
+
+			setUnavailability(taken);
+			console.log(new Date().getTime());
+		}
 	};
 
 	return (
@@ -178,40 +190,57 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 			<View style={styles.selection}>
 				<View>
 					<Text style={styles.select}>Seleccionar fecha:</Text>
-					<DateTimePicker
-						value={selectedDateTime.current}
-						mode="date"
-						minuteInterval={30}
-						onChange={(e, d) => {
-							if (e.type === "set") {
-								selectedDateTime.current.setDate(d!.getDate());
-							}
-						}}
-					/>
+					<DateTimePicker value={selectedDateTime} mode="date" onChange={handleDateTimeChange} />
 				</View>
 
 				<View>
 					<Text style={styles.select}>Seleccionar hora:</Text>
 					<DateTimePicker
-						value={selectedDateTime.current}
+						value={selectedDateTime}
 						mode="time"
 						minuteInterval={30}
-						onChange={(e, d) => {
-							if (e.type === "set") {
-								selectedDateTime.current.setTime(d!.getTime());
-							}
-						}}
+						onChange={handleDateTimeChange}
 					/>
 				</View>
 			</View>
+
+			{unavailable && (
+				<Text style={{ marginLeft: 20, marginBottom: 10, marginTop: 8, color: "red" }}>
+					Fecha y horario no disponibles.
+				</Text>
+			)}
+
+			{!unavailable && (
+				<Text style={{ marginLeft: 20, marginBottom: 10, marginTop: 8, color: "green" }}>
+					Fecha y horario disponibles.
+				</Text>
+			)}
 
 			{/* ---------------------------------- Funciona(ish) en Android --------------------------------*/}
 			{/* ... */}
 			{/* ---------------------------------- ------------------------ --------------------------------*/}
 
-			<CheckoutButton fieldId={fieldId} />
+			<CheckoutButton fieldId={fieldId} disabled={unavailable ?? false} />
 		</View>
 	);
+}
+
+async function isSlotUnavailable(fieldId: string, selectedDateTime: Date): Promise<boolean> {
+	const { data, error } = await supabase.from("reservations").select("date_time").eq("field_id", fieldId);
+
+	if (error) {
+		console.error("Error checking availability:", error);
+		return false;
+	}
+
+	const isTaken = data.some((reservation) => {
+		const reservationDate = new Date(reservation.date_time);
+		reservationDate.setUTCHours(reservationDate.getUTCHours() + reservationDate.getTimezoneOffset() / 60);
+
+		return reservationDate.getTime() === selectedDateTime.getTime();
+	});
+
+	return isTaken;
 }
 
 const styles = StyleSheet.create({

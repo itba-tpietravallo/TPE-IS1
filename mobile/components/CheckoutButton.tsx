@@ -33,7 +33,7 @@ const ButtonStyles = {
 	},
 };
 
-export default function CheckoutButton({ fieldId }: { fieldId: string }) {
+export default function CheckoutButton({ fieldId, disabled = true }: { fieldId: string; disabled?: boolean }) {
 	const [pending, setPending] = useState(false);
 	const [status, setStatus] = useState<"error" | "failure" | "pending" | "success" | "default">("default");
 	const [error, setError] = useState<string | null>(null);
@@ -114,7 +114,13 @@ export default function CheckoutButton({ fieldId }: { fieldId: string }) {
 
 	return (
 		<TouchableOpacity
-			style={{ width: "100%", padding: "5%", backgroundColor: ButtonStyles[status].backgroundColor }}
+			disabled={disabled || pending}
+			style={{
+				width: "100%",
+				padding: "5%",
+				backgroundColor: disabled ? "#cccccc" : ButtonStyles[status].backgroundColor,
+				opacity: disabled ? 0.6 : 1,
+			}}
 			onPress={() => handlePress()}
 		>
 			<View style={{ flexDirection: "row", justifyContent: "center", alignItems: "center" }}>
