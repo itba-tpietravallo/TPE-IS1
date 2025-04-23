@@ -1,30 +1,42 @@
 name: Vercel Production Deployment
 env:
-  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+    VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 on:
-  push:
-    paths:
-      - 'web/**'
-    branches:
-      - main
+    push:
+        paths:
+            - "web/**"
+        branches:
+            - main
 jobs:
-  Deploy-Production:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./web
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          sparse-checkout: 'web'
-      - name: Install Vercel CLI
-        run: npm install --global vercel@latest
-      - name: Pull Vercel Environment Information
-        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-      - name: Build Project Artifacts
-        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-      - name: Deploy Project Artifacts to Vercel
-        run: |
-            msg=`vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}`
-            echo "::notice title={[Production] Deployed on Vercel}::$msg"
+    Deploy-Production:
+        runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: ./web
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v4
+              with:
+                  sparse-checkout: "web"
+
+            - name: Cache node modules
+              uses: actions/cache@v3
+              with:
+                  path: node_modules
+                  key: node_modules-${{ runner.os }}-deploy-${{hashFiles('package-lock.lock')}}
+                  restore-keys: node_modules-${{ runner.os }}-deploy-
+
+            - name: Install Vercel CLI
+              run: npm install --global vercel@latest
+
+            - name: Pull Vercel Environment Information
+              run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+
+            - name: Build Project Artifacts
+              run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+            - name: Deploy Project Artifacts to Vercel
+              run: |
+                  msg=`vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}`
+                  echo "::notice title={[Production] Deployed on Vercel}::$msg"
