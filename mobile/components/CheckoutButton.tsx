@@ -9,7 +9,7 @@ import { fetch } from "expo/fetch";
 import { Button, Image, Text } from "@rneui/themed";
 import { supabase } from "@/lib/supabase";
 import { IconSymbol } from "./ui/IconSymbol";
-import { usePathname } from "expo-router";
+import { Link, usePathname } from "expo-router";
 
 const ButtonStyles = {
 	error: {
@@ -82,9 +82,18 @@ export default function CheckoutButton({ fieldId }: { fieldId: string }) {
 		Linking.addEventListener("url", (event) => {
 			const { url } = event;
 
-			Linking.parse(url).queryParams?.hasOwnProperty("failure") && setStatus("failure");
-			Linking.parse(url).queryParams?.hasOwnProperty("success") && setStatus("success");
-			Linking.parse(url).queryParams?.hasOwnProperty("pending") && setStatus("pending");
+			const queryParams = Linking.parse(url).queryParams || {};
+			if (queryParams.hasOwnProperty("failure")) {
+				setStatus("failure");
+			} else if (queryParams.hasOwnProperty("success")) {
+				setStatus("success");
+			} else if (queryParams.hasOwnProperty("pending")) {
+				// @todo handle pending, check whether payment was successful via api
+				setStatus("pending");
+			} else {
+				setStatus("pending");
+				setPending(false);
+			}
 
 			if ((url !== null && url.includes("matchpoint://")) || url.includes("exp://")) {
 				Platform.OS === "ios" && WebBrowser.dismissBrowser();
