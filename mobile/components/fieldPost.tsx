@@ -7,7 +7,8 @@ import { router } from "expo-router";
 
 interface props {
 	name: string;
-	sport: string;
+	fieldId: string;
+	sport: string[];
 	location: string;
 	images: string[];
 	description: string;
@@ -18,17 +19,21 @@ function FieldPost(props: props) {
 	const handleCloseModal = () => {
 		setIsModalVisible(false);
 	};
+
+	const backgroundImageSource =
+		props.images && props.images.length > 0 ? { uri: props.images[0] } : require("@/assets/images/no-imagen.jpeg");
+
 	return (
 		<View style={{ flex: 1 }}>
 			<TouchableOpacity onPress={() => setIsModalVisible(true)}>
 				<ImageBackground
 					style={styles.container}
 					imageStyle={{ borderRadius: 15, opacity: 0.9 }}
-					source={{ uri: props.images[0] }}
+					source={backgroundImageSource}
 				>
 					<View style={styles.topContent}>
 						<Text style={styles.title}>{props.name}</Text>
-						<Text style={styles.sport}>{props.sport}</Text>
+						<Text style={styles.sport}>{props.sport.join(", ")}</Text>
 					</View>
 					<View style={styles.bottomContent}>
 						<Image style={styles.icon} source={require("@/assets/images/cancha.png")} />
@@ -46,6 +51,7 @@ function FieldPost(props: props) {
 					<PopUpReserva
 						onClose={handleCloseModal}
 						name={name}
+						fieldId={props.fieldId}
 						location={location}
 						sport={sport}
 						images={props.images}

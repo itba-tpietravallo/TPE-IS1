@@ -1,42 +1,59 @@
 import { useEffect, useState } from "react";
-import { Platform } from "react-native";
+import { Animated, Easing, Platform, TouchableOpacity, View } from "react-native";
 
 import { openBrowserAsync } from "expo-web-browser";
 import * as WebBrowser from "expo-web-browser";
 import * as Linking from "expo-linking";
 import { fetch } from "expo/fetch";
 
-import { Button } from "@rneui/themed";
+import { Button, Image, Text } from "@rneui/themed";
 import { supabase } from "@/lib/supabase";
+import { IconSymbol } from "./ui/IconSymbol";
 
-export default function CheckoutButton() {
-	const [ready, setReady] = useState(false);
-	const [url, setUrl] = useState<string>("");
+const ButtonStyles = {
+	error: {
+		backgroundColor: "#DC6464",
+	},
+	success: {
+		backgroundColor: "#67FF67",
+		text: "Pago exitoso",
+	},
+	pending: {
+		backgroundColor: "#FFA500",
+		text: "Esperando pago",
+	},
+	failure: {
+		backgroundColor: "#DC6464",
+		text: "Pago rechazado",
+	},
+	default: {
+		backgroundColor: "#3CAAFA",
+		text: "Reservar",
+	},
+};
 
-	useEffect(() => {
-		Linking.addEventListener("url", (event) => {
-			const { url } = event;
-			if ((url !== null && url.includes("matchpoint://")) || url.includes("exp://")) {
-				Platform.OS === "ios" && WebBrowser.dismissBrowser();
-			}
-		});
-	}, []);
+export default function CheckoutButton({ fieldId }: { fieldId: string }) {
+	const [pending, setPending] = useState(false);
+	const [status, setStatus] = useState<"error" | "failure" | "pending" | "success" | "default">("default");
+	const [error, setError] = useState<string | null>(null);
 
-	useEffect(() => {
-		supabase.auth.getSession().then((res) => {
+	async function handlePress() {
+		setPending(true);
+
+		await supabase.auth.getSession().then(async (res) => {
 			if (res.error || res.data == null) {
 				throw new Error(res.error?.message || "Authentication error");
 			}
 
-			fetch("http://localhost:5173/api/v1/payments", {
+			await fetch("https://matchpointapp.com.ar/api/v1/payments", {
 				method: "POST",
 				body: JSON.stringify({
 					userId: res.data.session?.user.id,
-					fieldId: "3ae59ad0-57d4-4cbc-bd39-99a29ba7d12e",
+					fieldId,
 					processor: "mercado-pago-redirect",
-					pending_url: Linking.createURL("/payment/pending"),
-					success_url: Linking.createURL("/(tabs)/(payment)/success"),
-					failure_url: Linking.createURL("/payment/failure"),
+					pending_url: Linking.createURL("?pending"),
+					success_url: Linking.createURL("?success"),
+					failure_url: Linking.createURL("?failure"),
 					// Failure redirect example:
 					// exp://10.7.218.143:8081?collection_id=null&collection_status=null&payment_id=null&status=null&external_reference=field:3ae59ad0-57d4-4cbc-bd39-99a29ba7d12e-user:85a36c63-97f6-4c8d-b967-94c8d452a8b1&payment_type=null&merchant_order_id=null&preference_id=449538966-3da6a0e8-89e8-438f-b5ea-4737c408158f&site_id=MLA&processing_mode=aggregator&merchant_account_id=null
 				}),
@@ -48,17 +65,73 @@ export default function CheckoutButton() {
 					refresh_token: `${res.data.session!.refresh_token}`,
 				},
 			}).then(async (res) => {
-				console.log(res);
 				if (res.status >= 200 && res.status < 300) {
 					const data = await res.text();
-					setUrl(data);
-					setReady(true);
+					await openBrowserAsync(data);
 				} else {
-					console.log("Error fetching payment URL", await res.text());
+					setError(await res.text());
+					setStatus("error");
 				}
 			});
 		});
+	}
+
+	useEffect(() => {
+		Linking.addEventListener("url", (event) => {
+			const { url } = event;
+
+			Linking.parse(url).queryParams?.hasOwnProperty("failure") && setStatus("failure");
+			Linking.parse(url).queryParams?.hasOwnProperty("success") && setStatus("success");
+			Linking.parse(url).queryParams?.hasOwnProperty("pending") && setStatus("pending");
+
+			if ((url !== null && url.includes("matchpoint://")) || url.includes("exp://")) {
+				Platform.OS === "ios" && WebBrowser.dismissBrowser();
+			}
+		});
 	}, []);
 
-	return <Button disabled={!ready} title="Pagar" onPress={() => openBrowserAsync(url)} />;
+	const spinValue = new Animated.Value(0);
+
+	Animated.loop(
+		Animated.timing(spinValue, {
+			toValue: 360,
+			duration: 1000 * 1,
+			easing: Easing.linear,
+			useNativeDriver: true,
+		}),
+	).start();
+
+	return (
+		<TouchableOpacity
+			style={{ width: "100%", padding: "5%", backgroundColor: ButtonStyles[status].backgroundColor }}
+			onPress={() => handlePress()}
+		>
+			<View style={{ flexDirection: "row", justifyContent: "center", alignItems: "center" }}>
+				<Text style={{ fontWeight: "600", fontSize: 16, color: "white", textAlign: "center" }}>
+					{status === "error" ? `Error: ${error}` : ButtonStyles[status].text}
+				</Text>
+
+				{pending && status == "default" && (
+					<Animated.View
+						style={{
+							marginLeft: 10,
+							transform: [
+								{
+									rotate: spinValue.interpolate({
+										inputRange: [0, 360],
+										outputRange: ["0deg", "360deg"],
+									}),
+								},
+							],
+						}}
+					>
+						<Image
+							source={require("@/assets/images/loader-circle.png")}
+							style={{ width: 20, height: 20, padding: 0, margin: 0, resizeMode: "contain" }}
+						/>
+					</Animated.View>
+				)}
+			</View>
+		</TouchableOpacity>
+	);
 }

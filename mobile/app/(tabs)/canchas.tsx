@@ -1,5 +1,5 @@
 import FieldPost from "@/components/fieldPost";
-import { ScrollView, Text, View, SafeAreaView, StyleSheet } from "react-native";
+import { ScrollView, Text, View, SafeAreaView, StyleSheet, TouchableOpacity, Button } from "react-native";
 import { supabase } from "@/lib/supabase";
 import React, { useEffect, useState } from "react";
 
@@ -20,8 +20,14 @@ type Field = {
 	description: string;
 };
 
+type Sport = {
+	name: string;
+};
+
 function CanchasFeed() {
 	const [fields, setFields] = useState<Field[]>([]);
+	const [sports, setSports] = useState<Sport[]>([]);
+	const [selectedSport, setSelectedSport] = useState<string>("");
 
 	// useEffect(() => {
 	//   supabase
@@ -50,7 +56,25 @@ function CanchasFeed() {
 					setFields(data);
 				}
 			});
+		supabase
+			.from("sports")
+			.select("*")
+			.then(({ data, error }) => {
+				if (error) {
+					console.error("Error fetching sports:", error);
+				} else {
+					setSports(data);
+				}
+			});
 	}, []);
+
+	const handleSportPress = (sportName: string) => {
+		if (selectedSport === sportName) {
+			setSelectedSport("");
+			return;
+		}
+		setSelectedSport(sportName);
+	};
 
 	return (
 		<View
@@ -61,22 +85,59 @@ function CanchasFeed() {
 				backgroundColor: "#f2f4f3",
 			}}
 		>
+			<View style={styles.sportsContainer}>
+				<ScrollView
+					horizontal={true}
+					showsHorizontalScrollIndicator={false}
+					contentContainerStyle={{
+						flexDirection: "row",
+						alignContent: "center",
+						justifyContent: "center",
+						alignItems: "center",
+						paddingRight: 10,
+					}}
+				>
+					{sports.map((sport) => (
+						<View key={sport.name} style={{ padding: 10 }}>
+							<TouchableOpacity
+								key={sport.name}
+								style={[
+									styles.sportButton,
+									selectedSport === sport.name ? styles.selectedSportButton : {},
+								]}
+								onPress={() => handleSportPress(sport.name)}
+							>
+								<Text>{sport.name}</Text>
+							</TouchableOpacity>
+						</View>
+					))}
+				</ScrollView>
+			</View>
 			<ScrollView
 				horizontal={false}
 				contentContainerStyle={{ flexDirection: "column", paddingBottom: 100 }}
 				showsHorizontalScrollIndicator={false}
 				showsVerticalScrollIndicator={false}
 			>
-				{fields.map((field) => (
-					<FieldPost
-						name={field.name}
-						sport={field.sports[0]}
-						location={`${field.street} ${field.street_number}, ${field.neighborhood}`}
-						key={field.id}
-						images={field.images}
-						description={field.description}
-					/>
-				))}
+				{fields
+					.filter((field) => {
+						if (selectedSport === "") return true;
+						if (selectedSport === "Voley") return field.sports.includes("voley");
+						if (selectedSport === "Fútbol") return field.sports.includes("Futbol");
+						if (selectedSport === "Hockey sobre césped") return field.sports.includes("Hockey");
+						return field.sports.includes(selectedSport);
+					})
+					.map((field) => (
+						<FieldPost
+							name={field.name}
+							fieldId={field.id}
+							sport={field.sports}
+							location={`${field.street} ${field.street_number}, ${field.neighborhood}`}
+							key={field.id}
+							images={field.images}
+							description={field.description}
+						/>
+					))}
 			</ScrollView>
 		</View>
 	);
@@ -96,6 +157,30 @@ const styles = StyleSheet.create({
 		padding: 10,
 		borderRadius: 15,
 		backgroundColor: "#CC0000",
+	},
+	sportsContainer: {
+		// Puedes ajustar esta altura según lo que necesites
+		height: 40,
+		marginTop: 0,
+		flexDirection: "row",
+		alignContent: "center",
+		justifyContent: "center",
+		alignItems: "center",
+	},
+	sportButton: {
+		backgroundColor: "#f8f9f9",
+		borderWidth: 1,
+		borderColor: "#223332",
+		borderRadius: 20,
+		paddingHorizontal: 12,
+		height: 25,
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "center",
+	},
+	selectedSportButton: {
+		backgroundColor: "#f18f04", // Cambia el color cuando está seleccionado
+		borderColor: "#223332",
 	},
 });
 

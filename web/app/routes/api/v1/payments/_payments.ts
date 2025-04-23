@@ -80,8 +80,42 @@ async function getMercadoPagoRedirectURL(
 		});
 	}
 
+	// GET FIELD MP OAUTH_ACCESS_TOKEN
+	const { data, error } = await supabaseClient
+		.from("fields")
+		.select(
+			`
+			id,
+			owner,
+			name,
+			description,
+			neighborhood,
+			city,
+			avatar_url,
+			images,
+			mp_oauth_authorization (
+				access_token
+			)
+		`,
+		)
+		.single();
+
+	if (error) {
+		return new Response(`Error fetching field data: ${error.message}`, {
+			status: 500,
+			statusText: `Error fetching field data: ${error.message}`,
+		});
+	}
+
+	if (!data?.mp_oauth_authorization?.at(0)?.access_token) {
+		return new Response("Missing Mercado Pago access token", {
+			status: 500,
+			statusText: "Missing Mercado Pago access token",
+		});
+	}
+
 	const mercadoPagoConfig = new MercadoPagoConfig({
-		accessToken: process.env.MERCADO_PAGO_ACCESS_TOKEN!,
+		accessToken: data?.mp_oauth_authorization?.at(0)?.access_token,
 		options: {},
 	});
 
@@ -90,9 +124,9 @@ async function getMercadoPagoRedirectURL(
 			items: [
 				{
 					id: fieldId,
-					title: "title",
-					description: "description",
-					unit_price: 100,
+					title: data.name,
+					description: data.description,
+					unit_price: data.price || 100,
 					quantity: 1,
 					currency_id: "ARS",
 					category_id: "others",
@@ -111,7 +145,7 @@ async function getMercadoPagoRedirectURL(
 			},
 			binary_mode: true,
 			notification_url: "https://matchpointapp.com.ar/api/v1/payments/notifications",
-			external_reference: `field:${fieldId}-user:${user.id}`,
+			external_reference: `field:${fieldId}::user:${user.id}`,
 		},
 	});
 

@@ -1,11 +1,11 @@
 import { LoaderFunctionArgs } from "@remix-run/node";
-import { useLoaderData } from "@remix-run/react";
+import { Link, useLoaderData } from "@remix-run/react";
 import { createBrowserClient } from "@supabase/ssr";
 import { useEffect, useState } from "react";
 import { ProfilePictureAvatar } from "~/components/profile-picture";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader } from "~/components/ui/card";
 import { authenticateUser } from "~/lib/auth.server";
-import { FieldPreview, FieldsPreviewGrid } from "./_index";
+import { FieldsPreviewGrid } from "./_index";
 
 type Field = {
 	avatar_url: string;
@@ -71,9 +71,9 @@ export default function Index() {
 						</CardHeader>
 						<CardContent>
 							<hr className="mb-2" />
-							<CardDescription>
+							<CardDescription className="flex flex-col gap-4">
 								<h2 className="text-xl text-muted-foreground">Informacion de tu cuenta</h2>
-								<ul className="flex flex-col gap-2">
+								<ul className="flex h-auto flex-col gap-2">
 									<li className="flex flex-row items-center gap-2">
 										<span className="text-lg font-bold">Email:</span>
 										<span className="text-lg">{email}</span>
@@ -89,6 +89,12 @@ export default function Index() {
 										</span>
 									</li>
 								</ul>
+								<Link
+									to={"https://matchpointapp.com.ar/api/v1/payments/oauth/mercadopago"}
+									className="h-fit w-fit cursor-pointer rounded border border-blue-600 bg-blue-300 p-2 px-4 text-lg leading-none text-black shadow-sm"
+								>
+									Vincular a Mercado Pago
+								</Link>
 							</CardDescription>
 						</CardContent>
 					</Card>
