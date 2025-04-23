@@ -202,8 +202,8 @@ export const teamsTable = pgTable(
 	"teams",
 	{
 		team_id: uuid().primaryKey().defaultRandom().notNull(),
-		name: varchar({ length: 255 }).notNull(),
-		sports: text().array().notNull(),
+		name: text().notNull(),
+		sport: text().notNull(),
 		description: text(),
 		images: text().array(),
 	},
