@@ -9,6 +9,7 @@ import { fetch } from "expo/fetch";
 import { Button, Image, Text } from "@rneui/themed";
 import { supabase } from "@/lib/supabase";
 import { IconSymbol } from "./ui/IconSymbol";
+import { usePathname } from "expo-router";
 
 const ButtonStyles = {
 	error: {
@@ -36,6 +37,7 @@ export default function CheckoutButton({ fieldId }: { fieldId: string }) {
 	const [pending, setPending] = useState(false);
 	const [status, setStatus] = useState<"error" | "failure" | "pending" | "success" | "default">("default");
 	const [error, setError] = useState<string | null>(null);
+	const path = usePathname();
 
 	async function handlePress() {
 		setPending(true);
@@ -51,9 +53,9 @@ export default function CheckoutButton({ fieldId }: { fieldId: string }) {
 					userId: res.data.session?.user.id,
 					fieldId,
 					processor: "mercado-pago-redirect",
-					pending_url: Linking.createURL("?pending"),
-					success_url: Linking.createURL("?success"),
-					failure_url: Linking.createURL("?failure"),
+					pending_url: Linking.createURL(`${path}?pending`),
+					success_url: Linking.createURL(`${path}?success`),
+					failure_url: Linking.createURL(`${path}?failure`),
 					// Failure redirect example:
 					// exp://10.7.218.143:8081?collection_id=null&collection_status=null&payment_id=null&status=null&external_reference=field:3ae59ad0-57d4-4cbc-bd39-99a29ba7d12e-user:85a36c63-97f6-4c8d-b967-94c8d452a8b1&payment_type=null&merchant_order_id=null&preference_id=449538966-3da6a0e8-89e8-438f-b5ea-4737c408158f&site_id=MLA&processing_mode=aggregator&merchant_account_id=null
 				}),
