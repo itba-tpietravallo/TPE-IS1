@@ -112,6 +112,9 @@ function CanchasFeed() {
 							</TouchableOpacity>
 						</View>
 					))}
+					<TouchableOpacity style={{ padding: 10 }} onPress={() => handleSportPress("")}>
+						<Text>X</Text>
+					</TouchableOpacity>
 				</ScrollView>
 			</View>
 			<ScrollView

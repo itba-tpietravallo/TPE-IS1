@@ -130,19 +130,27 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 									padding: 20,
 								}}
 							>
-								{images.map((uri, index) => (
-									<Image
-										key={index}
-										style={{
-											width: ScreenWidth * 0.8,
-											height: ScreenWidth * 0.8,
-											borderRadius: 10,
-											marginBottom: 20,
-										}}
-										source={{ uri: uri }}
-										resizeMode="contain"
-									/>
-								))}
+								<View>
+									<TouchableOpacity style={{ alignItems: "flex-end" }} onPress={onClose}>
+										<Image
+											style={{ width: 20, height: 20, marginTop: 10 }}
+											source={require("@/assets/images/close_white.png")}
+										/>
+									</TouchableOpacity>
+									{images.map((uri, index) => (
+										<Image
+											key={index}
+											style={{
+												width: ScreenWidth * 0.8,
+												height: ScreenWidth * 0.8,
+												borderRadius: 10,
+												marginBottom: 20,
+											}}
+											source={{ uri: uri }}
+											resizeMode="contain"
+										/>
+									))}
+								</View>
 							</View>
 						</Modal>
 					</TouchableOpacity>
