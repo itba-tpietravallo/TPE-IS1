@@ -10,9 +10,32 @@ import { Button, Image, Text } from "@rneui/themed";
 import { supabase } from "@/lib/supabase";
 import { IconSymbol } from "./ui/IconSymbol";
 
+const ButtonStyles = {
+	error: {
+		backgroundColor: "#DC6464",
+	},
+	success: {
+		backgroundColor: "#67FF67",
+		text: "Pago exitoso",
+	},
+	pending: {
+		backgroundColor: "#FFA500",
+		text: "Esperando pago",
+	},
+	failure: {
+		backgroundColor: "#DC6464",
+		text: "Pago rechazado",
+	},
+	default: {
+		backgroundColor: "#3CAAFA",
+		text: "Reservar",
+	},
+};
+
 export default function CheckoutButton({ fieldId }: { fieldId: string }) {
 	const [pending, setPending] = useState(false);
-	const [error, setError] = useState<string>("");
+	const [status, setStatus] = useState<"error" | "failure" | "pending" | "success" | "default">("default");
+	const [error, setError] = useState<string | null>(null);
 
 	async function handlePress() {
 		setPending(true);
@@ -28,9 +51,9 @@ export default function CheckoutButton({ fieldId }: { fieldId: string }) {
 					userId: res.data.session?.user.id,
 					fieldId,
 					processor: "mercado-pago-redirect",
-					pending_url: Linking.createURL("/pending"),
-					success_url: Linking.createURL("/success"),
-					failure_url: Linking.createURL("/failure"),
+					pending_url: Linking.createURL("?pending"),
+					success_url: Linking.createURL("?success"),
+					failure_url: Linking.createURL("?failure"),
 					// Failure redirect example:
 					// exp://10.7.218.143:8081?collection_id=null&collection_status=null&payment_id=null&status=null&external_reference=field:3ae59ad0-57d4-4cbc-bd39-99a29ba7d12e-user:85a36c63-97f6-4c8d-b967-94c8d452a8b1&payment_type=null&merchant_order_id=null&preference_id=449538966-3da6a0e8-89e8-438f-b5ea-4737c408158f&site_id=MLA&processing_mode=aggregator&merchant_account_id=null
 				}),
@@ -47,6 +70,7 @@ export default function CheckoutButton({ fieldId }: { fieldId: string }) {
 					await openBrowserAsync(data);
 				} else {
 					setError(await res.text());
+					setStatus("error");
 				}
 			});
 		});
@@ -55,6 +79,11 @@ export default function CheckoutButton({ fieldId }: { fieldId: string }) {
 	useEffect(() => {
 		Linking.addEventListener("url", (event) => {
 			const { url } = event;
+
+			Linking.parse(url).queryParams?.hasOwnProperty("failure") && setStatus("failure");
+			Linking.parse(url).queryParams?.hasOwnProperty("success") && setStatus("success");
+			Linking.parse(url).queryParams?.hasOwnProperty("pending") && setStatus("pending");
+
 			if ((url !== null && url.includes("matchpoint://")) || url.includes("exp://")) {
 				Platform.OS === "ios" && WebBrowser.dismissBrowser();
 			}
@@ -74,15 +103,15 @@ export default function CheckoutButton({ fieldId }: { fieldId: string }) {
 
 	return (
 		<TouchableOpacity
-			style={{ width: "100%", padding: "5%", backgroundColor: error ? "#DC6464" : "#3CAAFA" }}
+			style={{ width: "100%", padding: "5%", backgroundColor: ButtonStyles[status].backgroundColor }}
 			onPress={() => handlePress()}
 		>
 			<View style={{ flexDirection: "row", justifyContent: "center", alignItems: "center" }}>
 				<Text style={{ fontWeight: "600", fontSize: 16, color: "white", textAlign: "center" }}>
-					{error ? `Error: ${error}` : "Reservar"}
+					{status === "error" ? `Error: ${error}` : ButtonStyles[status].text}
 				</Text>
 
-				{pending && (
+				{pending && status == "default" && (
 					<Animated.View
 						style={{
 							marginLeft: 10,
