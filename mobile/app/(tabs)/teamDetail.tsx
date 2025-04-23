@@ -1,3 +1,4 @@
+import TeamPost from "@/components/teamPost";
 import React from "react";
 import {
   View,
@@ -30,35 +31,16 @@ type PropsTeam = {
 export default function TeamDetail(props: PropsTeam) {
   const { name, sport, description, players } = props;
 
+  const handlePostTeam = () => {
+      console.log("Me uni al equipo")
+  };
+
   return (
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <Text style={styles.title}>{name}</Text>
-
-        {/* Deporte */}
-        <Text style={styles.subtitle}>{sport}</Text>
-
-        {/* Descripcion */}
-        <Text style={styles.label}>{description}</Text>
-
-        {/* Miembros del Equipo */}
-        <View>
-          {players.map((member) => {
-            return (
-              <View key={member.id} style={styles.row}>
-                <Image source={{ uri: member.photo }} style={styles.avatar} />
-                <View style={styles.info}>
-                  <Text style={styles.name}>{member.name}</Text>
-                </View>
-                <Text style={styles.number}>{member.number}</Text>
-              </View>
-            );
-          })}
-        </View>
-      </ScrollView>
+      <TeamPost name={name} sport={sport} description={description} players={players} />
     </KeyboardAvoidingView>
   );
 }
@@ -151,8 +133,9 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   button: {
+    color: "black",
     flex: 1,
-    padding: 10,
+    padding: 5,
     borderRadius: 5,
     alignItems: "center",
     justifyContent: "center",
@@ -163,6 +146,11 @@ const styles = StyleSheet.create({
   },
   publishButton: {
     backgroundColor: "black",
+    padding: 17,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 10,
+    marginHorizontal: 100,
   },
   publishingButton: {
     backgroundColor: "#f18f01", // Cambia a naranja cuando se presiona
