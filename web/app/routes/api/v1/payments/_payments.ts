@@ -116,9 +116,9 @@ async function getMercadoPagoRedirectURL(
 		// @ts-ignore Not an array either
 		!data?.users.mp_oauth_authorization.access_token
 	) {
-		return new Response("Missing Mercado Pago access token", {
-			status: 500,
-			statusText: "Missing Mercado Pago access token",
+		return new Response(`Cancha no autorizada.`, {
+			status: 406,
+			statusText: `Cancha no autorizada.`,
 		});
 	}
 
@@ -155,6 +155,8 @@ async function getMercadoPagoRedirectURL(
 			binary_mode: true,
 			notification_url: "https://matchpointapp.com.ar/api/v1/payments/notifications",
 			external_reference: `field:${fieldId}::user:${user.id}`,
+			marketplace: "8221763286725670",
+			marketplace_fee: 123,
 		},
 	});
 
