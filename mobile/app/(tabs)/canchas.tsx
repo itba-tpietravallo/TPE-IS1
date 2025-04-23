@@ -69,6 +69,10 @@ function CanchasFeed() {
 	}, []);
 
 	const handleSportPress = (sportName: string) => {
+		if (selectedSport === sportName) {
+			setSelectedSport("");
+			return;
+		}
 		setSelectedSport(sportName);
 	};
 
@@ -107,9 +111,6 @@ function CanchasFeed() {
 							</TouchableOpacity>
 						</View>
 					))}
-					<TouchableOpacity style={{ padding: 10 }} onPress={() => handleSportPress("")}>
-						<Text>X</Text>
-					</TouchableOpacity>
 				</ScrollView>
 			</View>
 			<ScrollView
