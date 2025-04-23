@@ -25,6 +25,7 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { useLoaderData, useNavigate } from "@remix-run/react";
 import { createBrowserClient } from "@supabase/ssr";
 import { LoaderFunctionArgs } from "@remix-run/node";
+import { set } from "react-hook-form";
 
 let globalName = "";
 let globalDescription = "";
@@ -193,9 +194,9 @@ export function MyCarousel(props: CarouselProps) {
 
 export type Reservation = {
 	id: string;
+	start_time: string;
 	date: string;
-	hour: string;
-	name: string;
+	owner_id: string;
 };
 
 export const columns: ColumnDef<Reservation, unknown>[] = [
@@ -232,13 +233,33 @@ type FieldProps = {
 	reservations: Reservation[];
 };
 
+type Users = {
+	id: string;
+	full_name: string;
+};
 export function FieldDetail(props: FieldProps) {
 	const { imgSrc, name, setName, location, description, setDescription, reservations } = props;
+	const { env, URL_ORIGIN, id } = useLoaderData<typeof loader>();
+	const supabase = createBrowserClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
+	const [users, setUsers] = useState<Users[]>([]);
+
+	useEffect(() => {
+		supabase
+			.from("users")
+			.select("*")
+			.then(({ data, error }) => {
+				if (error) {
+					console.error("Error al guardar:", error.message);
+				} else {
+					setUsers(data as Users[]);
+				}
+			});
+	}, [name]);
 
 	return (
 		<div className="h-full bg-[#f2f4f3]">
 			<div className="flex h-full flex-row items-center justify-center space-x-12">
-				<Card className="w-full max-w-3xl p-10 shadow-lg bg-[#223332]">
+				<Card className="w-full max-w-3xl bg-[#223332] p-10 shadow-lg">
 					<CardHeader className="space-y-5">
 						<CardTitle className="text-5xl font-bold text-[#f2f4f3]">{name}</CardTitle>
 						<div className="flex flex-row">
@@ -248,7 +269,30 @@ export function FieldDetail(props: FieldProps) {
 					</CardHeader>
 					<CardContent className="grid gap-4">
 						<div className="grid gap-4 py-4 text-[#f2f4f3]">{description}</div>
-						<DataTable columns={columns} data={reservations} />
+						<div className="w-full overflow-x-auto">
+							<div>
+								<h2 className="border-gray-500 text-left text-xl font-semibold text-[#f2f4f3]">
+									Reservas:
+								</h2>
+								<div className="grid grid-cols-3 gap-4 border-gray-500 px-6 py-4 text-[#f2f4f3]">
+									<div className="text-lg font-semibold">Fecha</div>
+									<div className="text-lg font-semibold">Horario</div>
+									<div className="text-lg font-semibold">Nombre</div>
+								</div>
+								<div>
+									{reservations.map((reservations) => (
+										<div className="grid grid-cols-3 items-center gap-4 border-t border-gray-500 px-6 py-3 text-[#f2f4f3]">
+											<div> {reservations.date}</div>
+											<div> {reservations.start_time}</div>
+											<div>
+												{" "}
+												{users.find((user) => user.id === reservations.owner_id)?.full_name}
+											</div>
+										</div>
+									))}
+								</div>
+							</div>
+						</div>
 					</CardContent>
 				</Card>
 				<div className="flex h-screen w-[400px] flex-col items-center justify-center space-y-5">

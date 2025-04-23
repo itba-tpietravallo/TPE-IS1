@@ -23,7 +23,7 @@ function ReservationInfo({ onClose, field_name, date, time, location }: infoProp
 				padding: 10,
 			}}
 		>
-			<TouchableOpacity style={{ padding: 10, alignItems: "flex-end" }} onPress={onClose}>
+			<TouchableOpacity style={{ alignItems: "flex-end" }} onPress={onClose}>
 				<Image style={{ width: 20, height: 20, marginTop: 10 }} source={require("@/assets/images/close.png")} />
 			</TouchableOpacity>
 
@@ -37,7 +37,7 @@ function ReservationInfo({ onClose, field_name, date, time, location }: infoProp
 						justifyContent: "center",
 					}}
 				>
-					<Text style={{ fontWeight: "bold", fontSize: 24 }}>{field_name}</Text>
+					<Text style={{ fontWeight: "bold", fontSize: 24, paddingBottom: 20 }}>{field_name}</Text>
 				</View>
 				<View style={{ flexDirection: "row", paddingBottom: 10, alignContent: "center", alignItems: "center" }}>
 					<Text style={{ color: "gray" }}>Fecha: </Text>
@@ -78,7 +78,7 @@ function ReservationInfo({ onClose, field_name, date, time, location }: infoProp
 					justifyContent: "center",
 				}}
 				title="Cancelar reserva"
-				onPress={onClose}
+				onPress={() => console.log("Reserva cancelada")}
 			/>
 		</View>
 	);
