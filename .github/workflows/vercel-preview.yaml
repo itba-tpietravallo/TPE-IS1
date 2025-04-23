@@ -24,7 +24,7 @@ jobs:
               uses: actions/cache@v3
               with:
                   path: web/node_modules
-                  key: node_modules-${{ runner.os }}-preview-${{hashFiles('package-lock.lock')}}
+                  key: node_modules-${{ runner.os }}-preview-${{hashFiles('web/package-lock.lock')}}
                   restore-keys: node_modules-${{ runner.os }}-preview-
             - name: Install Vercel CLI
               run: npm install --global vercel@latest
