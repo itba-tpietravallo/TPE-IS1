@@ -110,7 +110,14 @@ async function getMercadoPagoRedirectURL(
 		});
 	}
 
-	if (!data?.users[0].mp_oauth_authorization[0].access_token) {
+	if (
+		!data ||
+		!data.users ||
+		!data.users[0] ||
+		!data.users[0].mp_oauth_authorization ||
+		!data.users[0].mp_oauth_authorization[0] ||
+		!data?.users[0].mp_oauth_authorization[0].access_token
+	) {
 		return new Response("Missing Mercado Pago access token", {
 			status: 500,
 			statusText: "Missing Mercado Pago access token",
