@@ -18,6 +18,7 @@ type Field = {
 	street: string;
 	neighborhood: string;
 	description: string;
+	price: number;
 };
 
 type Sport = {
@@ -136,6 +137,7 @@ function CanchasFeed() {
 							key={field.id}
 							images={field.images}
 							description={field.description}
+							price={field.price}
 						/>
 					))}
 			</ScrollView>
