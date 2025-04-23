@@ -5,12 +5,25 @@ interface infoProps {
 	date: string;
 	time: string;
 	location: string;
+	id: string;
 }
 import { useEffect, useRef, useState } from "react";
 import { Alert, Text, View, TouchableOpacity, Image } from "react-native";
 import { Button } from "@rneui/themed";
+import { supabase } from "@/lib/supabase";
 
-function ReservationInfo({ onClose, field_name, date, time, location }: infoProps) {
+function ReservationInfo({ onClose, field_name, date, time, location, id }: infoProps) {
+	const handleCancelation = async () => {
+		await supabase
+			.from("reservations")
+			.delete()
+			.eq("id", id)
+			.then(() => {
+				Alert.alert("Cancelación exitosa", "Reserva cancelada con éxito");
+				onClose();
+			});
+	};
+
 	return (
 		<View
 			style={{
@@ -78,7 +91,7 @@ function ReservationInfo({ onClose, field_name, date, time, location }: infoProp
 					justifyContent: "center",
 				}}
 				title="Cancelar reserva"
-				onPress={() => console.log("Reserva cancelada")}
+				onPress={handleCancelation}
 			/>
 		</View>
 	);

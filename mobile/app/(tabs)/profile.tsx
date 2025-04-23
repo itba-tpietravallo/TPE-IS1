@@ -166,6 +166,7 @@ export default function Index() {
 							minute: "2-digit",
 						})}
 						location={`${selectedReservation?.field?.street || ""} ${selectedReservation?.field?.street_number || ""}, ${selectedReservation?.field?.neighborhood || ""}, ${selectedReservation?.field?.city || ""}`}
+						id={selectedReservation?.id || ""}
 					/>
 				</View>
 			</Modal>
