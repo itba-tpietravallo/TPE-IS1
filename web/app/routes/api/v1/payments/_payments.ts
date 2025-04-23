@@ -89,9 +89,7 @@ async function getMercadoPagoRedirectURL(
 			owner,
 			name,
 			description,
-			neighborhood,
-			city,
-			avatar_url,
+			price,
 			images,
 			users!owner (
 				mp_oauth_authorization!user_id (
@@ -125,7 +123,8 @@ async function getMercadoPagoRedirectURL(
 	}
 
 	const mercadoPagoConfig = new MercadoPagoConfig({
-		accessToken: data?.users[0].mp_oauth_authorization[0].access_token,
+		// @ts-ignore Not an array
+		accessToken: data.users.mp_oauth_authorization.access_token,
 		options: {},
 	});
 
@@ -136,7 +135,7 @@ async function getMercadoPagoRedirectURL(
 					id: fieldId,
 					title: data.name,
 					description: data.description,
-					unit_price: data.price || 100,
+					unit_price: data.price,
 					quantity: 1,
 					currency_id: "ARS",
 					category_id: "others",

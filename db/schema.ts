@@ -48,7 +48,7 @@ export const usersTable = pgTable(
 			to: authenticatedRole, // only allow authenticated users to select from the table
 			as: "permissive",
 		}),
-	]
+	],
 ).enableRLS();
 
 export const fieldsTable = pgTable(
@@ -59,6 +59,7 @@ export const fieldsTable = pgTable(
 			.notNull()
 			.references(() => usersTable.id),
 		name: varchar({ length: 255 }).notNull(),
+		price: integer().notNull(),
 		location: geometry("location", {
 			type: "Point",
 			mode: "xy",
@@ -84,7 +85,7 @@ export const fieldsTable = pgTable(
 			to: authenticatedRole,
 			as: "permissive",
 		}),
-	]
+	],
 ).enableRLS();
 
 export const sportsTable = pgTable(
@@ -101,7 +102,7 @@ export const sportsTable = pgTable(
 			to: authenticatedRole,
 			as: "permissive",
 		}),
-	]
+	],
 ).enableRLS();
 
 export const reservationsTable = pgTable(
@@ -125,7 +126,7 @@ export const reservationsTable = pgTable(
 			to: authenticatedRole,
 			as: "permissive",
 		}),
-	]
+	],
 ).enableRLS();
 
 export const payments = pgTable(
@@ -153,66 +154,74 @@ export const payments = pgTable(
 			to: authenticatedRole,
 			as: "permissive",
 		}),
-	]
+	],
 ).enableRLS();
 
-export const mpOAuthAuthorizationTable = pgTable("mp_oauth_authorization", {
-	user_id: uuid()
-		.primaryKey()
-		.notNull()
-		.references(() => usersTable.id, { onDelete: "cascade" }),
-	mercado_pago_user_id: varchar({ length: 255 }).notNull(),
-	processor: varchar({ length: 255 }).notNull(),
-	access_token: text().notNull(),
-	refresh_token: text().notNull(),
-	expires_in: integer().notNull(),
-	scope: text().notNull(),
-	public_key: text().notNull(),
-	live_mode: integer().notNull(),
-}, (table) => [
-	// Only allow authenticated users (WHOSE ID MATCHES THE RECORD) to select from the table, all other operations are disallowed by default.
-	pgPolicy("oauth_authorization - select authenticated", {
-		for: "select",
-		using: sql`(select auth.uid()) = user_id`,
-		to: authenticatedRole,
-		as: "permissive",
-	}),
-	pgPolicy("oauth_authorization - insert authenticated", {
-		for: "insert",
-		withCheck: sql`true`,
-		to: authenticatedRole,
-		as: "permissive",
-	}),
-	pgPolicy("oauth_authorization - update authenticated", {
-		for: "update",
-		using: sql`(select auth.uid()) = user_id`,
-		withCheck: sql`true`,
-		to: authenticatedRole,
-		as: "permissive",
-	})
-	// Insert, update are checked by triggers on the table.
-]).enableRLS();
+export const mpOAuthAuthorizationTable = pgTable(
+	"mp_oauth_authorization",
+	{
+		user_id: uuid()
+			.primaryKey()
+			.notNull()
+			.references(() => usersTable.id, { onDelete: "cascade" }),
+		mercado_pago_user_id: varchar({ length: 255 }).notNull(),
+		processor: varchar({ length: 255 }).notNull(),
+		access_token: text().notNull(),
+		refresh_token: text().notNull(),
+		expires_in: integer().notNull(),
+		scope: text().notNull(),
+		public_key: text().notNull(),
+		live_mode: integer().notNull(),
+	},
+	(table) => [
+		// Only allow authenticated users (WHOSE ID MATCHES THE RECORD) to select from the table, all other operations are disallowed by default.
+		pgPolicy("oauth_authorization - select authenticated", {
+			for: "select",
+			using: sql`(select auth.uid()) = user_id`,
+			to: authenticatedRole,
+			as: "permissive",
+		}),
+		pgPolicy("oauth_authorization - insert authenticated", {
+			for: "insert",
+			withCheck: sql`true`,
+			to: authenticatedRole,
+			as: "permissive",
+		}),
+		pgPolicy("oauth_authorization - update authenticated", {
+			for: "update",
+			using: sql`(select auth.uid()) = user_id`,
+			withCheck: sql`true`,
+			to: authenticatedRole,
+			as: "permissive",
+		}),
+		// Insert, update are checked by triggers on the table.
+	],
+).enableRLS();
 
-export const teamsTable = pgTable("teams", {
-	team_id: uuid().primaryKey().defaultRandom().notNull(),
-	name: varchar({ length: 255 }).notNull(),
-	sports: text().array().notNull(),
-	description: text(),
-	images: text().array(),
-}, (table) => [
-	// INSERT, UPDATE, DELETE are disallowed by default.
-	// This table is managed via Supabase triggers on auth.users.
-	// Do not grant users insert/delete pr`ivileges on this table.
-	pgPolicy("teams - select authenticated", {
-		for: "select",
-		using: sql`true`,
-		to: authenticatedRole, // only allow authenticated users to select from the table
-		as: "permissive",
-	}),
-	pgPolicy("teams - insert authenticated", {
-		for: "insert",
-		withCheck: sql`true`,
-		to: authenticatedRole, // only allow authenticated users to select from the table
-		as: "permissive",
-	}),
-]).enableRLS();
+export const teamsTable = pgTable(
+	"teams",
+	{
+		team_id: uuid().primaryKey().defaultRandom().notNull(),
+		name: varchar({ length: 255 }).notNull(),
+		sports: text().array().notNull(),
+		description: text(),
+		images: text().array(),
+	},
+	(table) => [
+		// INSERT, UPDATE, DELETE are disallowed by default.
+		// This table is managed via Supabase triggers on auth.users.
+		// Do not grant users insert/delete pr`ivileges on this table.
+		pgPolicy("teams - select authenticated", {
+			for: "select",
+			using: sql`true`,
+			to: authenticatedRole, // only allow authenticated users to select from the table
+			as: "permissive",
+		}),
+		pgPolicy("teams - insert authenticated", {
+			for: "insert",
+			withCheck: sql`true`,
+			to: authenticatedRole, // only allow authenticated users to select from the table
+			as: "permissive",
+		}),
+	],
+).enableRLS();
