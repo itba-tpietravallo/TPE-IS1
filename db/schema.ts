@@ -192,3 +192,27 @@ export const mpOAuthAuthorizationTable = pgTable("mp_oauth_authorization", {
 	})
 	// Insert, update are checked by triggers on the table.
 ]).enableRLS();
+
+export const teamsTable = pgTable("teams", {
+	team_id: uuid().primaryKey().defaultRandom().notNull(),
+	name: varchar({ length: 255 }).notNull(),
+	sports: text().array().notNull(),
+	description: text(),
+	images: text().array(),
+}, (table) => [
+	// INSERT, UPDATE, DELETE are disallowed by default.
+	// This table is managed via Supabase triggers on auth.users.
+	// Do not grant users insert/delete pr`ivileges on this table.
+	pgPolicy("teams - select authenticated", {
+		for: "select",
+		using: sql`true`,
+		to: authenticatedRole, // only allow authenticated users to select from the table
+		as: "permissive",
+	}),
+	pgPolicy("teams - insert authenticated", {
+		for: "insert",
+		withCheck: sql`true`,
+		to: authenticatedRole, // only allow authenticated users to select from the table
+		as: "permissive",
+	}),
+]).enableRLS();
