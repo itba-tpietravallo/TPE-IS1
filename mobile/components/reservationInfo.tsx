@@ -2,7 +2,7 @@ interface infoProps {
 	onClose: () => void;
 
 	field_name: string;
-	date: string[];
+	date: string;
 	time: string;
 	location: string;
 }

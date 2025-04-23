@@ -11,18 +11,25 @@ type User = {
 	avatar_url: string;
 };
 
+// type Reservation = {
+// 	id: string;
+// 	start_time: string;
+// 	date: string;
+// 	field: {
+// 		name: string;
+// 		//location: string;
+// 		street_number: string;
+// 		street: string;
+// 		neighborhood: string;
+// 		city: string;
+// 	};
+// };
+
 type Reservation = {
 	id: string;
-	start_time: string;
-	date: string;
-	field: {
-		name: string;
-		//location: string;
-		street_number: string;
-		street: string;
-		neighborhood: string;
-		city: string;
-	};
+	field_id: string;
+	date_time: string;
+	owner_id: string;
 };
 
 export default function Index() {
@@ -48,7 +55,7 @@ export default function Index() {
 								`*, field: fields (name, street_number, street, neighborhood, city)`, // , location: fields(location)`",
 							)
 							.eq("owner_id", data.id)
-							.order("date", { ascending: true })
+							.order("date_time", { ascending: true })
 							.then(({ data, error }) => {
 								if (error) {
 									console.error("Error fetching reservations:", error);
@@ -72,6 +79,9 @@ export default function Index() {
 		setIsModalVisible(false);
 		setSelectedReservation(null);
 	};
+
+	const selectedDate = new Date(selectedReservation?.date_time || "");
+	const selectedTime = new Date(selectedReservation?.date_time || "");
 
 	return (
 		<View style={styles.containter}>
@@ -120,7 +130,13 @@ export default function Index() {
 									borderBottomColor: "#ccc",
 								}}
 							>
-								<Text>{reservation.date}</Text>
+								<Text>
+									{new Date(reservation.date_time).toLocaleDateString("es-ES", {
+										year: "numeric",
+										month: "2-digit",
+										day: "2-digit",
+									})}{" "}
+								</Text>
 								<Text style={{ fontWeight: "bold" }}>{reservation.field.name}</Text>
 								<TouchableOpacity onPress={() => handleOpenModal(reservation)}>
 									<Image
@@ -140,8 +156,15 @@ export default function Index() {
 					<ReservationInfo
 						onClose={handleCloseModal}
 						field_name={selectedReservation?.field?.name || ""}
-						date={[selectedReservation?.date || ""]}
-						time={selectedReservation?.start_time || ""}
+						date={selectedDate.toLocaleDateString("es-ES", {
+							year: "numeric",
+							month: "2-digit",
+							day: "2-digit",
+						})}
+						time={selectedTime.toLocaleTimeString("es-ES", {
+							hour: "2-digit",
+							minute: "2-digit",
+						})}
 						location={`${selectedReservation?.field?.street || ""} ${selectedReservation?.field?.street_number || ""}, ${selectedReservation?.field?.neighborhood || ""}, ${selectedReservation?.field?.city || ""}`}
 					/>
 				</View>
