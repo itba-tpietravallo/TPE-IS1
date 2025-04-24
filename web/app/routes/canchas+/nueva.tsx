@@ -41,6 +41,7 @@ export function NewField() {
 	const { user, URL_ORIGIN, env } = useLoaderData<typeof loader>();
 
 	const supabase = createBrowserClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
+	const [formError, setFormError] = useState(false);
 
 	const form = useForm({
 		defaultValues: { section: "" },
@@ -50,7 +51,7 @@ export function NewField() {
 		try {
 			const files = data.image || [];
 			const uploadedImageUrls: string[] = [];
-
+		
 			for (const file of files) {
 				const filePath = `fields/${Date.now()}-${file.name}`;
 
@@ -69,6 +70,23 @@ export function NewField() {
 				}
 			}
 
+			const apiKey = "AIzaSyBw6wwGh_tfBhOikkUtc8uibxX1GPbr1ew" ;
+			const direction = `${data.street} ${data.street_number}, ${data.city}`;
+			const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(direction)}&key=${apiKey}`;
+			const locationData = await fetch(url)
+				.then((res) => res.json() as unknown as { results: { geometry: any }[], status: string } )
+				.catch(() => null);
+
+			
+			if (!locationData || locationData.status != "OK") {
+				setFormError(true);
+				throw new Error(`The coordinates could not be retrieved from address ${direction}.`);
+			}
+
+
+			const { lat, lng } = locationData.results[0].geometry.location;
+
+			console.log(lat, lng );
 			const sportsArray = Array.isArray(data.sports)
 				? data.sports.map((s: any) => (typeof s === "string" ? s : s.value || s.label))
 				: [];
@@ -84,6 +102,8 @@ export function NewField() {
 					city: data.city,
 					sports: sportsArray,
 					images: uploadedImageUrls,
+					price: Number(data.price),
+					location: `POINT(${lat} ${lng})`,
 					description: data.description,
 					avatar_url: user.avatar_url,
 				},
@@ -139,6 +159,15 @@ export function NewField() {
 					<hr className="my-4 border-t border-gray-300" />
 					<ImageSection form={form} />
 					<hr className="my-4 border-t border-gray-300" />
+					<BasicBox
+						section="price"
+						label="Precio"
+						placeholder=""
+						description=""
+						box_specifications="w-6/6 h-10 text-lg px-4"
+						label_specifications="text-base font-sans text-[#223332]"
+						form={form}
+					/>
 					<DescriptionSection
 						placeholder="Información adicional sobre la cancha y servicios. Por ejemplo, cantidad de jugadores, días y horarios de apertura."
 						box_specifications="w-[800px] h-[200px] text-lg px-4"
@@ -146,10 +175,13 @@ export function NewField() {
 					/>
 					<div className="flex w-full items-center justify-center">
 						<Button
-							className="mb-11 mt-5 h-10 w-2/12 bg-[#223332] text-base hover:bg-[#f18f01]/80"
+							data-color={formError}
+							disabled = {formError}
+
+							className="mb-11 mt-5 h-10 w-full bg-[#223332] data-[color=true]:bg-[#c92626] text-base hover:bg-[#f18f01]/80"
 							type="submit"
 						>
-							Publicar
+							{formError ? "Se encontró un error, porfavor vuelva a intentar" : "Publicar"}
 						</Button>
 					</div>
 				</form>
