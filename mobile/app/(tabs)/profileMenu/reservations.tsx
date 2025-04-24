@@ -1,0 +1,164 @@
+import { supabase } from "@/lib/supabase";
+import { StyleSheet, Text, TouchableOpacity, View, Modal } from "react-native";
+import { Image } from "@rneui/themed";
+import { Session } from "@supabase/supabase-js";
+import { useEffect, useState } from "react";
+import ReservationInfo from "@/components/reservationInfo";
+import Icon from "react-native-vector-icons/FontAwesome6";
+import { router } from "expo-router";
+
+export default function Index() {
+	const [user, setUser] = useState<Session>();
+	const [reservations, setReservations] = useState<Reservation[]>([]);
+
+	useEffect(() => {
+		supabase.auth.getSession().then(({ data: { session } }) => {
+			supabase
+				.from("users")
+				.select("*")
+				.eq("id", session?.user.id)
+				.single()
+				.then(({ data, error }) => {
+					if (error) {
+						console.error("Error fetching user:", error);
+					} else {
+						setUser(data);
+						console.log("id:", data.id);
+						supabase
+							.from("reservations")
+							.select(
+								`*, field: fields (name, street_number, street, neighborhood, city)`, // , location: fields(location)`",
+							)
+							.eq("owner_id", data.id)
+							.order("date_time", { ascending: true })
+							.then(({ data, error }) => {
+								if (error) {
+									console.error("Error fetching reservations:", error);
+								} else {
+									setReservations(data || []);
+								}
+							});
+					}
+				});
+		});
+	}, []);
+
+	type Reservation = {
+		id: string;
+		field_id: string;
+		date_time: string;
+		owner_id: string;
+	};
+
+	const [isModalVisible, setIsModalVisible] = useState(false);
+	const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
+
+	const handleOpenModal = (reservation: Reservation) => {
+		setSelectedReservation(reservation);
+		setIsModalVisible(true);
+	};
+
+	const handleCloseModal = () => {
+		setIsModalVisible(false);
+		setSelectedReservation(null);
+	};
+
+	const selectedDate = new Date(selectedReservation?.date_time || "");
+	const selectedTime = new Date(selectedReservation?.date_time || "");
+
+	return (
+		<View
+			style={{
+				flex: 1,
+				alignItems: "stretch",
+				backgroundColor: "#f2f4f3",
+				padding: 6,
+			}}
+		>
+			<TouchableOpacity
+				style={{ flexDirection: "row", alignItems: "flex-start", paddingVertical: 15, paddingHorizontal: 10 }}
+				onPress={() => router.push("/(tabs)/profile")}
+			>
+				<Icon name="arrow-left" size={14} color="#262626" style={{ marginRight: 8 }} />
+				<Text style={{ fontSize: 14, color: "#262626" }}>Atrás</Text>
+			</TouchableOpacity>
+			<Text
+				style={{
+					fontSize: 30,
+					fontWeight: "bold",
+					color: "#f18f01",
+					textAlign: "left",
+					padding: 10,
+				}}
+			>
+				Mis reservas
+			</Text>
+			<View style={{ padding: 20, borderWidth: 1, borderColor: "#ccc", borderRadius: 5, margin: 10 }}>
+				{reservations.length > 0 ? (
+					reservations.map((reservation, i) => (
+						<View
+							key={reservation.id}
+							style={{
+								flexDirection: "row",
+								justifyContent: "space-between",
+								padding: 10,
+								borderBottomWidth: 1,
+								borderBottomColor: "#ccc",
+							}}
+						>
+							<Text>
+								{new Date(reservation.date_time).toLocaleDateString("es-ES", {
+									year: "numeric",
+									month: "2-digit",
+									day: "2-digit",
+								})}{" "}
+							</Text>
+							<Text style={{ fontWeight: "bold" }}>{reservation.field.name}</Text>
+							<TouchableOpacity onPress={() => handleOpenModal(reservation)}>
+								<Image style={{ width: 20, height: 20 }} source={require("@/assets/images/info.png")} />
+							</TouchableOpacity>
+						</View>
+					))
+				) : (
+					<Text style={{ color: "gray" }}>No tienes reservas.</Text>
+				)}
+			</View>
+			<Modal style={styles.modal} visible={isModalVisible} transparent={true} onRequestClose={handleCloseModal}>
+				<View style={styles.centeredView}>
+					<ReservationInfo
+						onClose={handleCloseModal}
+						field_name={selectedReservation?.field?.name || ""}
+						date={selectedDate.toLocaleDateString("es-ES", {
+							year: "numeric",
+							month: "2-digit",
+							day: "2-digit",
+						})}
+						time={selectedTime.toLocaleTimeString("es-ES", {
+							hour: "2-digit",
+							minute: "2-digit",
+						})}
+						location={`${selectedReservation?.field?.street || ""} ${selectedReservation?.field?.street_number || ""}, ${selectedReservation?.field?.neighborhood || ""}, ${selectedReservation?.field?.city || ""}`}
+						id={selectedReservation?.id || ""}
+					/>
+				</View>
+			</Modal>
+		</View>
+	);
+}
+
+const styles = StyleSheet.create({
+	centeredView: {
+		flex: 1,
+		justifyContent: "center",
+		alignItems: "center",
+		backgroundColor: "rgba(0, 0, 0, 0.5)",
+	},
+	modal: {
+		justifyContent: "center",
+		alignItems: "center",
+		borderRadius: 20,
+		overflow: "hidden",
+		width: "90%",
+		maxWidth: 400,
+	},
+});
