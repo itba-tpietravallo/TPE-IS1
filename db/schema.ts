@@ -12,6 +12,7 @@ import {
 	AnyPgColumn,
 	pgPolicy,
 	timestamp,
+	bigint,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm/sql";
 import { authenticatedRole } from "drizzle-orm/supabase";
@@ -116,7 +117,7 @@ export const reservationsTable = pgTable(
 		owner_id: uuid()
 			.notNull()
 			.references(() => usersTable.id, { onDelete: "cascade" }),
-		payments_id: uuid().default(sql`NULL`),
+		payments_id: bigint({ mode: "number" }).default(sql`NULL`),
 	},
 	(table) => [
 		pgPolicy("reservations - select authenticated", {
@@ -129,17 +130,17 @@ export const reservationsTable = pgTable(
 	],
 ).enableRLS();
 
-export const payments = pgTable(
+export const mpPaymentsTable = pgTable(
 	"mp_payments",
 	{
-		payment_id: uuid().primaryKey().notNull(),
+		payment_id: bigint({ mode: "number" }).primaryKey().notNull(),
 		user_id: uuid()
 			.notNull()
 			.references(() => usersTable.id, { onDelete: "cascade" }),
 		reservation_id: uuid()
 			.notNull()
 			.references(() => reservationsTable.id, { onDelete: "cascade" }),
-		last_updated: integer().notNull(),
+		last_updated: timestamp({ withTimezone: true }).notNull(),
 		status: varchar({ length: 255 }).notNull(),
 		transaction_amount: integer().notNull(),
 		net_received_amount: integer().notNull(),

@@ -1,9 +1,12 @@
 import { ActionFunctionArgs } from "@remix-run/node";
 import { SupabaseClient, User } from "@supabase/supabase-js";
 
-import { MercadoPagoConfig, Payment, Preference } from "mercadopago";
-import { PaymentCreateData } from "mercadopago/dist/clients/payment/create/types";
-import { createSupabaseServerClient } from "~/lib/supabase.server";
+import { MercadoPagoConfig, Preference } from "mercadopago";
+import {
+	__DANGEROUS_createSupabaseServerClient_BYPASS_RLS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED,
+	createSupabaseServerClient,
+} from "~/lib/supabase.server";
+import { reservationsTable, mpPaymentsTable } from "@/../../../db/schema";
 
 type PaymentRequest = {
 	userId: string;
@@ -12,7 +15,14 @@ type PaymentRequest = {
 	pending_url: string;
 	success_url: string;
 	failure_url: string;
+	date_time: string;
 };
+
+function uuidv4() {
+	return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, (c) =>
+		(+c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (+c / 4)))).toString(16),
+	);
+}
 
 export async function action({
 	params,
@@ -55,7 +65,12 @@ export async function action({
 
 	switch (processor) {
 		case "mercado-pago-redirect": {
-			return await getMercadoPagoRedirectURL(data.user, reqBody, supabaseClient);
+			return await getMercadoPagoRedirectURL(
+				data.user,
+				reqBody,
+				__DANGEROUS_createSupabaseServerClient_BYPASS_RLS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED(request)
+					.supabaseClient,
+			);
 		}
 
 		default:
@@ -71,9 +86,9 @@ async function getMercadoPagoRedirectURL(
 	reqBody: PaymentRequest,
 	supabaseClient: SupabaseClient,
 ): Promise<Response> {
-	const { success_url, failure_url, pending_url, fieldId } = reqBody;
+	const { success_url, failure_url, pending_url, fieldId, date_time } = reqBody;
 
-	if (!success_url || !pending_url || !failure_url || !fieldId) {
+	if (!success_url || !pending_url || !failure_url || !fieldId || !date_time) {
 		return new Response("Missing required fields", {
 			status: 400,
 			statusText: "Missing required fields",
@@ -98,6 +113,7 @@ async function getMercadoPagoRedirectURL(
 			)
 		`,
 		)
+		.eq("id", fieldId)
 		.limit(1)
 		.single();
 
@@ -128,7 +144,9 @@ async function getMercadoPagoRedirectURL(
 		options: {},
 	});
 
-	const preference = await new Preference(mercadoPagoConfig).create({
+	const RESERVATION_ID = uuidv4();
+
+	const BODY = {
 		body: {
 			items: [
 				{
@@ -153,12 +171,14 @@ async function getMercadoPagoRedirectURL(
 				email: user.email,
 			},
 			binary_mode: true,
-			notification_url: "https://matchpointapp.com.ar/api/v1/payments/notifications",
+			notification_url: `https://matchpointapp.com.ar/api/v1/payments/notifications?user_id=${user.id}&reservation_id=${RESERVATION_ID}&amount=${data.price}&merchant_fee=${0}`,
 			external_reference: `field:${fieldId}::user:${user.id}`,
 			marketplace: "8221763286725670",
-			marketplace_fee: 123,
+			marketplace_fee: 0,
 		},
-	});
+	};
+	console.log("BODY", JSON.stringify(BODY));
+	const preference = await new Preference(mercadoPagoConfig).create(BODY);
 
 	if (
 		!preference ||
@@ -169,6 +189,21 @@ async function getMercadoPagoRedirectURL(
 		return new Response(`Error connecting to Mercado Pago preference.`, {
 			status: 500,
 			statusText: `Error connecting to Mercado Pago preference.`,
+		});
+	}
+
+	const resp = await supabaseClient.from("reservations").insert({
+		id: RESERVATION_ID,
+		date_time: new Date(date_time),
+		owner_id: user?.id,
+		payments_id: null,
+		field_id: fieldId,
+	} as typeof reservationsTable.$inferInsert);
+
+	if (resp.error) {
+		return new Response(`Error creating reservation: ${resp.error.message}. ${date_time}`, {
+			status: 500,
+			statusText: `Error creating reservation: ${resp.error.message}. ${date_time}`,
 		});
 	}
 

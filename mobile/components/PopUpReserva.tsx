@@ -51,9 +51,8 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 		await supabase
 			.from("reservations")
 			.insert({
-				start_time: selectedDateTime.current.toLocaleTimeString(),
-				date: selectedDateTime.current.toLocaleDateString(),
-				owner_id: user?.id,
+				date: selectedDateTime.current.toISOString(),
+				owner_id: user?.user.id,
 				payments_id: null,
 			})
 			.then(() => {
@@ -201,7 +200,7 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 			{/* ... */}
 			{/* ---------------------------------- ------------------------ --------------------------------*/}
 
-			<CheckoutButton fieldId={fieldId} />
+			<CheckoutButton fieldId={fieldId} date_time={selectedDateTime.current.toISOString()} />
 		</View>
 	);
 }
