@@ -50,7 +50,7 @@ export default function Index() {
 
 	return (
 		<div>
-			<div className="flex h-screen items-center justify-center bg-gradient-to-r from-[#223332] to-[#223f37] bg-auto">
+			<div className="flex h-screen items-center justify-center bg-gradient-to-r from-[#223332] to-[#223f37] bg-auto w-full bg-cover" style={{ backgroundImage: "url('/matchpoint-bg.png')" }}>
 				<div className="flex flex-col items-center gap-16">
 					<header className="flex flex-col items-center gap-5">
 						<div className="items-center justify-center space-y-10">

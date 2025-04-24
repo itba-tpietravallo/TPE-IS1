@@ -45,8 +45,8 @@ export function FieldPreview(props: FieldPreviewProps & { className?: string }) 
 	return (
 		<div className={clsx("flex h-full min-h-full w-full grow p-2", props?.className)}>
 			<Link to={`/canchas/detalle-canchas/${id}`} className="min-h-full w-full">
-				<Card className="min-h-full w-full border border-[#f2f4f3] bg-[#f2f4f3] transition-all duration-200 hover:border-[#f18f01] hover:bg-[#f18f01]">
-					<CardTitle className="p-4">{name}</CardTitle>
+				<Card className="min-h-full w-full border border-[#f2f4f3] bg-[#223332] shadow-xl transition-all duration-200 hover:border-[#f18f01] hover:bg-[#f18f01]">
+					<CardTitle className="p-4 text-[#f2f4f3]">{name}</CardTitle>
 					<CardDescription className="m-3 flex items-center gap-2">
 						<MapPin className="h-4 w-4 text-gray-500" />
 						{location}
@@ -86,7 +86,7 @@ export default function () {
 	}));
 
 	return (
-		<div className="h-full bg-[#223332]">
+		<div className="h-full bg-[#f2f4f3] bg-auto w-full bg-cover" style={{ backgroundImage: "url('/matchpoint-bg2.png')" }} >
 			<FieldsPreviewGrid fields={fields} />
 		</div>
 	);
