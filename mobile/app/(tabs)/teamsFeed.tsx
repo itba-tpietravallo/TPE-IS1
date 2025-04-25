@@ -77,17 +77,17 @@ function TeamsFeed() {
 	// }, []);
 
 	useEffect(() => {
-			supabase
-				.from("teams")
-				.select("*")
-				.then(({ data, error }) => {
-					if (error) {
-						console.error("Error fetching fields:", error);
-					} else {
-						setTeams(data);
-					}
-				});
-		}, []);
+		supabase
+			.from("teams")
+			.select("*")
+			.then(({ data, error }) => {
+				if (error) {
+					console.error("Error fetching fields:", error);
+				} else {
+					setTeams(data);
+				}
+			});
+	}, []);
 
 	const handleSportPress = (sportName: string) => {
 		setSelectedSport(sportName);

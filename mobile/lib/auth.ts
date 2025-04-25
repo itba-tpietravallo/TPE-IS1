@@ -8,55 +8,52 @@ import { supabase } from "./supabase";
 WebBrowser.maybeCompleteAuthSession(); // required for web only
 
 const redirectTo = makeRedirectUri({
-    'scheme': 'matchpoint://',
+	scheme: "matchpoint://",
 });
 
 export const createSessionFromUrl = async (url: string) => {
-    const { params, errorCode } = QueryParams.getQueryParams(url);
+	const { params, errorCode } = QueryParams.getQueryParams(url);
 
-    if (errorCode) throw new Error(errorCode);
+	if (errorCode) throw new Error(errorCode);
 
-    const { access_token, refresh_token } = params;
-    if (!access_token) return;
+	const { access_token, refresh_token } = params;
+	if (!access_token) return;
 
-    const { data, error } = await supabase.auth.setSession({
-        access_token,
-        refresh_token,
-    });
+	const { data, error } = await supabase.auth.setSession({
+		access_token,
+		refresh_token,
+	});
 
-    if (error) throw error;
-    return data.session;
+	if (error) throw error;
+	return data.session;
 };
 
 export const performOAuth = async (provider: "google" | "facebook") => {
-    const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: provider,
-        options: {
-            redirectTo,
-            skipBrowserRedirect: true,
-        },
-    });
+	const { data, error } = await supabase.auth.signInWithOAuth({
+		provider: provider,
+		options: {
+			redirectTo,
+			skipBrowserRedirect: true,
+		},
+	});
 
-    if (error) throw error;
-    
-    const res = await WebBrowser.openAuthSessionAsync(
-        data?.url ?? "",
-        redirectTo
-    );
-    
-    if (res.type === "success") {
-        const { url } = res;
-        await createSessionFromUrl(url);
-    }
+	if (error) throw error;
+
+	const res = await WebBrowser.openAuthSessionAsync(data?.url ?? "", redirectTo);
+
+	if (res.type === "success") {
+		const { url } = res;
+		await createSessionFromUrl(url);
+	}
 };
 
 export const sendMagicLink = async () => {
-    const { error } = await supabase.auth.signInWithOtp({
-        email: "valid.email@supabase.io",
-        options: {
-            emailRedirectTo: redirectTo,
-        },
-    });
-    if (error) throw error;
-    // Email sent.
+	const { error } = await supabase.auth.signInWithOtp({
+		email: "valid.email@supabase.io",
+		options: {
+			emailRedirectTo: redirectTo,
+		},
+	});
+	if (error) throw error;
+	// Email sent.
 };

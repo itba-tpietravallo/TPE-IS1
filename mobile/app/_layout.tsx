@@ -13,43 +13,43 @@ import NavigationBar from "@/components/NavigationBar";
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const [session, setSession] = useState<Session | null>(null);
+	const [session, setSession] = useState<Session | null>(null);
 
-  // This loads instantly, but is set up so it can await fonts or other critical resources.
-  const [loaded, setLoaded] = useState(true);
-  useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
+	// This loads instantly, but is set up so it can await fonts or other critical resources.
+	const [loaded, setLoaded] = useState(true);
+	useEffect(() => {
+		if (loaded) {
+			SplashScreen.hideAsync();
+		}
+	}, [loaded]);
 
-  if (!loaded) {
-    return null;
-  }
+	if (!loaded) {
+		return null;
+	}
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-    });
+	useEffect(() => {
+		supabase.auth.getSession().then(({ data: { session } }) => {
+			setSession(session);
+		});
 
-    supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-  }, []);
+		supabase.auth.onAuthStateChange((_event, session) => {
+			setSession(session);
+		});
+	}, []);
 
-  return (
-    // <ThemeProvider > */}
-    session && session.user ? (
-      <>
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="+not-found" />
-        </Stack>
-        <StatusBar style="auto" />
-      </>
-    ) : (
-      <Auth />
-    )
-    // </ThemeProvider>
-  );
+	return (
+		// <ThemeProvider > */}
+		session && session.user ? (
+			<>
+				<Stack>
+					<Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+					<Stack.Screen name="+not-found" />
+				</Stack>
+				<StatusBar style="auto" />
+			</>
+		) : (
+			<Auth />
+		)
+		// </ThemeProvider>
+	);
 }

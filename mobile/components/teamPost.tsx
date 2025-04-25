@@ -6,18 +6,18 @@ import PopUpReserva from "./PopUpReserva";
 import { router } from "expo-router";
 
 type Player = {
-    id: string
-    name: string
-    number: number
-    photo: string
-  }
-  
-  type PropsTeam = {
-    name: string;
-    sport: string;
-    description: string;
-    players: Player[];
-  };
+	id: string;
+	name: string;
+	number: number;
+	photo: string;
+};
+
+type PropsTeam = {
+	name: string;
+	sport: string;
+	description: string;
+	players: Player[];
+};
 
 function TeamPost(props: PropsTeam) {
 	const { name, sport, description, players } = props;
@@ -51,13 +51,13 @@ function TeamPost(props: PropsTeam) {
 				onRequestClose={() => setIsModalVisible(false)}
 			>
 				<View style={styles.centeredView}>
-                <PopUpTeam
+					<PopUpTeam
 						onClose={handleCloseModal}
 						name={name}
 						sport={sport}
 						description={description}
-                        players={players}
-				/>
+						players={players}
+					/>
 				</View>
 			</Modal>
 		</View>
