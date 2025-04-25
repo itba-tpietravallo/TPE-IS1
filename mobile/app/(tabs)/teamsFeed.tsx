@@ -46,6 +46,7 @@ const players = [
 import React, { useEffect, useState } from "react";
 import { ScrollView, Text, View, StyleSheet, TouchableOpacity } from "react-native";
 import TeamPost from "../../components/teamPost"; // Importamos el módulo de Feli
+import { supabase } from "@/lib/supabase";
 
 type Team = {
 	id: string;
@@ -60,20 +61,33 @@ function TeamsFeed() {
 	const [selectedSport, setSelectedSport] = useState<string>("");
 
 	// Placeholder para los equipos ACA ES DONDE EN REALIDAD VA A HABER UNA LLAMADA A LA BDD O API (igual que en canchas.tsx)
+	// useEffect(() => {
+	// 	const placeholderTeams = [
+	// 		{ id: "1", name: "Equipo A", sport: "Fútbol", members: 5, description: "Equipo de fútbol local" },
+	// 		{
+	// 			id: "2",
+	// 			name: "Equipo B",
+	// 			sport: "Básquetbol",
+	// 			members: 8,
+	// 			description: "Equipo de básquet competitivo",
+	// 		},
+	// 		{ id: "3", name: "Equipo C", sport: "Tenis", members: 2, description: "Dúo de tenis profesional" },
+	// 	];
+	// 	setTeams(placeholderTeams);
+	// }, []);
+
 	useEffect(() => {
-		const placeholderTeams = [
-			{ id: "1", name: "Equipo A", sport: "Fútbol", members: 5, description: "Equipo de fútbol local" },
-			{
-				id: "2",
-				name: "Equipo B",
-				sport: "Básquetbol",
-				members: 8,
-				description: "Equipo de básquet competitivo",
-			},
-			{ id: "3", name: "Equipo C", sport: "Tenis", members: 2, description: "Dúo de tenis profesional" },
-		];
-		setTeams(placeholderTeams);
-	}, []);
+			supabase
+				.from("teams")
+				.select("*")
+				.then(({ data, error }) => {
+					if (error) {
+						console.error("Error fetching fields:", error);
+					} else {
+						setTeams(data);
+					}
+				});
+		}, []);
 
 	const handleSportPress = (sportName: string) => {
 		setSelectedSport(sportName);

@@ -1,11 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { View, Text, Button, StyleSheet, Image, TouchableOpacity, Modal, Alert, ScrollView } from "react-native";
-import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import { ScreenHeight, ScreenWidth } from "@rneui/themed/dist/config";
-import { supabase } from "@/lib/supabase";
-import { Session } from "@supabase/supabase-js";
-import CheckoutButton from "./CheckoutButton";
-import { useGlobalSearchParams, useLocalSearchParams, useRouter } from "expo-router";
 
 // type User = {
 // 	id: string;
@@ -29,29 +24,12 @@ type Player = {
   };
 
 function PopUpTeam(props: PropsPopUpTeam) {
-    
     const {onClose, name, sport, description, players} = props;
 
-	//const [user, setUser] = useState<Session | null>(null);
-	//const selectedDateTime = useRef(new Date());
-	const [isModalVisible, setIsModalVisible] = useState(false);
-
-	// useEffect(() => {
-	// 	supabase.auth.getSession().then(({ data: { session } }) => {
-	// 		supabase
-	// 			.from("users")
-	// 			.select("*")
-	// 			.eq("id", session?.user.id)
-	// 			.single()
-	// 			.then(({ data, error }) => {
-	// 				if (error) {
-	// 					console.error("Error fetching user:", error);
-	// 				} else {
-	// 					setUser(data);
-	// 				}
-	// 			});
-	// 	});
-	// }, []);
+	const handlePostTeam = () => {
+		console.log("Me uni al equipo")
+		//insert en la base de datos un nuevo team player
+	};
 
 	return (
 		<View style={styles.modalView}>
@@ -61,8 +39,6 @@ function PopUpTeam(props: PropsPopUpTeam) {
 				<Image style={{ width: 20, height: 20, marginTop: 10 }} source={require("@/assets/images/close.png")} />
 			</TouchableOpacity>
 
-
-            {/* PopUp */}
 			<View style={styles.mainInfo}>
 
                 {/* Nombre del equipo y deporte */}
@@ -83,56 +59,48 @@ function PopUpTeam(props: PropsPopUpTeam) {
 				
 				</View>
 
-                
                 {/* Miembros del Equipo */}
-                <View style={{ width: "100%" }}>
-                {players.map((member) => {
-                    return (
-                    <View key={member.id} style={styles.row}>
-                        <Image source={{ uri: member.photo }} style={styles.avatar} />
-                        <View style={styles.info}>
-                            <Text style={styles.name}>{member.name}</Text>
-                        </View>
-                        <Text style={styles.number}>{member.number}</Text>
-                    </View>
-                    );
-                })}
-            </View>
+				<ScrollView style={styles.scrollArea}>
+					<View style={{ width: "100%" }}>
+					{players.map((member) => {
+						return (
+						<View key={member.id} style={styles.row}>
+							<Image source={{ uri: member.photo }} style={styles.avatar} />
+							<View style={styles.info}>
+								<Text style={styles.name}>{member.name}</Text>
+							</View>
+							<Text style={styles.number}>{member.number}</Text>
+						</View>
+						);
+					})}
+					</View>
+				</ScrollView>
 
-            {/* Unirse a un equipo */}
-            {/* <TouchableOpacity
-                        style={[
-                        styles.publishButton
-                        ]}
-                        onPress={handlePostTeam}
-                    >
-                        <Text style={styles.buttonText}>Join Team</Text>
-            </TouchableOpacity> */}
-
-   
+				{/* Descripcion del equipo */}
+				<Text style={styles.description}>
+					{description}
+				</Text>
 
             </View>    
 
-			<Text style={styles.description}>Descripción:</Text>
-			<Text
-				style={{
-					fontSize: 16,
-					color: "gray",
-					flexWrap: "wrap",
-					padding: 20,
-					paddingTop: 0,
-				}}
-			>
-				{description}
-			</Text>
+			{/* Unirse a un equipo */}
+			<TouchableOpacity
+                    style={[
+                      styles.joinTeamButton
+                    ]}
+                    onPress={handlePostTeam}
+                  >
+                    <Text style={styles.buttonText}>Join Team</Text>
+        	</TouchableOpacity>
+
 		</View>
 	);
 }
 
 const styles = StyleSheet.create({
     description: {
-        padding: 20, 
-        paddingBottom: 0, 
+        paddingTop: 20,
+        paddingBottom: 10, 
         fontSize: 18
     },
 	modalView: {
@@ -145,7 +113,12 @@ const styles = StyleSheet.create({
     scrollContainer: {
         flexGrow: 1,
         paddingBottom: 20,
-      },
+    },
+	scrollArea: {
+		height: 320, // ← Largo fijo del ScrollView
+		backgroundColor: '#f0f0f0',
+		marginBottom: 10,
+	},
 	mainInfo: {
 		marginLeft: 10,
 	},
@@ -204,6 +177,20 @@ const styles = StyleSheet.create({
         fontWeight: "bold",
         padding: 20,
     },
+	joinTeamButton: {
+		backgroundColor: "#f18f04",
+		width: "100%",
+		padding: 17,
+		alignItems: "center",
+		justifyContent: "center",
+		marginTop: 10,
+	
+	  },
+	  buttonText: {
+		color: "#fff",
+		fontSize: 16,
+		fontWeight: "bold",
+	  },
 });
 
 export default PopUpTeam;
