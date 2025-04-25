@@ -168,6 +168,7 @@ export function NewField() {
 						label_specifications="text-base font-sans text-[#223332]"
 						form={form}
 					/>
+					<hr className="my-4 border-t border-gray-300" />
 					<DescriptionSection
 						placeholder="Información adicional sobre la cancha y servicios. Por ejemplo, cantidad de jugadores, días y horarios de apertura."
 						box_specifications="w-[800px] h-[200px] text-lg px-4"

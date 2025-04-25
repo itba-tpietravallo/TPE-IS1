@@ -67,6 +67,7 @@ const imgs: string[] = ["web/public/img1-f11.jpg", "web/public/img2-f11.jpg", "w
     name={name}
     description={description}
     imgSrc={field.images}
+    price={field.price}
     location={`${field.street} ${field.street_number}`}  
     setDescription={setDescription}
     setName={setName}
