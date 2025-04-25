@@ -46,17 +46,17 @@ export function FieldPreview(props: FieldPreviewProps & { className?: string }) 
 	return (
 		<div className={clsx("flex h-full min-h-full w-full grow p-2", props?.className)}>
 			<Link to={`/canchas/detalle-canchas/${id}`} className="min-h-full w-full">
-				<Card className="min-h-full w-full border border-[#f2f4f3] bg-[#f2f4f3] transition-all duration-200 hover:border-[#f18f01] hover:bg-[#f18f01]">
+				<Card className="group min-h-full w-full border border-[#22332a] bg-[#223332]/80 backdrop-blur-md transition-all duration-200 hover:bg-[#223332]">
 					<div className="flex flex-col">
-						<CardTitle className="p-4">{name}</CardTitle>
-						<hr className="mx-4 w-[85%] border-t border-gray-300" />
+						<CardTitle className="p-4 text-[#f2f4f3] group-hover:text-[#f18f01]">{name}</CardTitle>
+						<hr className="mx-4 w-[85%] border-t border-gray-200" />
 						<CardDescription className="flex flex-col gap-2 p-4">
-							<div className="flex items-center gap-2">
-								<MapPin className="h-4 w-4 text-gray-500" />
+							<div className="flex items-center gap-2 text-gray-300">
+								<MapPin className="h-4 w-4" />
 								{location}
 							</div>
-							<div className="flex items-center gap-2">
-								<DollarSign className="h-4 w-4 text-gray-500" />
+							<div className="flex items-center gap-2 text-gray-300">
+								<DollarSign className="h-4 w-4" />
 								{price}
 							</div>
 						</CardDescription>

@@ -21,6 +21,7 @@ import { createBrowserClient, createServerClient } from "@supabase/ssr";
 import { useLoaderData } from "@remix-run/react";
 import { authenticateUser } from "~/lib/auth.server";
 import { User } from "@supabase/supabase-js";
+import { DollarSign } from "lucide-react";
 
 export async function loader(args: LoaderFunctionArgs) {
 	const env = {
@@ -157,15 +158,7 @@ export function NewField() {
 					<hr className="my-4 border-t border-gray-300" />
 					<ImageSection form={form} />
 					<hr className="my-4 border-t border-gray-300" />
-					<BasicBox
-						section="price"
-						label="Precio"
-						placeholder=""
-						description=""
-						box_specifications="w-6/6 h-10 text-lg px-4"
-						label_specifications="text-base font-sans text-[#223332]"
-						form={form}
-					/>
+					<PriceSection form={form} />
 					<hr className="my-4 border-t border-gray-300" />
 					<DescriptionSection
 						placeholder="Información adicional sobre la cancha y servicios. Por ejemplo, cantidad de jugadores, días y horarios de apertura."
@@ -291,6 +284,31 @@ function SelectFormSection({ form, options }: { form: UseFormReturn<any, any, un
 							/>
 						</div>
 					</div>
+				</FormItem>
+			)}
+		/>
+	);
+}
+
+function PriceSection({ form }: { form: UseFormReturn<any, any, undefined> }) {
+	return (
+		<FormField
+			control={form.control}
+			name="price"
+			render={({ field }) => (
+				<FormItem>
+					<FormLabel className={clsx("font-sans text-base text-[#223332]", "text-[#223332]")}>
+						Precio
+					</FormLabel>
+					<FormControl>
+						<div className="relative w-full">
+							<span className="absolute left-3 top-1/2 -translate-y-1/2 text-black">
+								<DollarSign className="h-4 w-4" />
+							</span>
+							<Input className="w-6/6 h-10 pl-8 pr-4 text-lg" {...field} />
+						</div>
+					</FormControl>
+					<FormMessage />
 				</FormItem>
 			)}
 		/>
