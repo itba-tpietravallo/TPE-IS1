@@ -2,7 +2,7 @@ import { __DANGEROUS_createSupabaseServerClient_BYPASS_RLS_DO_NOT_USE_OR_YOU_WIL
 import { ActionFunctionArgs } from "@remix-run/node";
 import { SupabaseClient } from "@supabase/supabase-js";
 
-import { MercadoPagoConfig, MerchantOrder, Payment } from "mercadopago";
+import { MercadoPagoConfig, MerchantOrder, Payment, PaymentRefund } from "mercadopago";
 
 import createHmac from "create-hmac";
 
@@ -15,7 +15,7 @@ type NotificationType = {
 	date_created: string; // Supabase NEEDS ISO String (assert)
 	id: number;
 	live_mode: true;
-	type: "payment";
+	type: "payment" | "merchant_order";
 	user_id: string; // number
 };
 
@@ -26,7 +26,7 @@ export async function action({ request }: ActionFunctionArgs) {
 	const merchant_fee = urlParams.get("merchant_fee")!;
 	const reservation_id = urlParams.get("reservation_id")!;
 
-	const dataID = urlParams.get("data.id") || "";
+	const dataID = urlParams.get("data.id");
 
 	const xSignature = request.headers.get("x-signature") || "";
 	const xRequestId = request.headers.get("x-request-id") || "";
@@ -60,20 +60,21 @@ export async function action({ request }: ActionFunctionArgs) {
 
 	const sha = hmac.digest("hex");
 	if (sha === hash) {
-		// const { supabaseClient } =
-		// 	__DANGEROUS_createSupabaseServerClient_BYPASS_RLS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED(request);
-		// const resp = await processMercadoPagoNotification(
-		// 	await request.json(),
-		// 	supabaseClient,
-		// 	user_id,
-		// 	reservation_id,
-		// 	Number(amount || 0),
-		// 	Number(merchant_fee || 0),
-		// );
+		const { supabaseClient } =
+			__DANGEROUS_createSupabaseServerClient_BYPASS_RLS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED(request);
+		const resp = await processMercadoPagoNotification(
+			await request.json(),
+			supabaseClient,
+			user_id,
+			reservation_id,
+			Number(amount || 0),
+			Number(merchant_fee || 0),
+			urlParams.get("id")!, // notification id OR merchant order id
+		);
 
-		// if (resp) {
-		// 	return resp;
-		// }
+		if (resp) {
+			return resp;
+		}
 
 		return new Response("HMAC verification passed", {
 			status: 200,
@@ -95,10 +96,45 @@ async function processMercadoPagoNotification(
 	reservation_id: string,
 	amount: number,
 	merchant_fee: number,
+	dataID: string,
 ): Promise<Response | void> {
-	const mercadoPagoConfig = new MercadoPagoConfig({ accessToken: process.env.MERCADO_PAGO_ACCESS_TOKEN! });
+	const res = await supabaseClient
+		.from("reservations")
+		.select(
+			`
+			id,
+			fields (
+				users!owner (
+					full_name,
+					mp_oauth_authorization (
+						access_token
+					)
+				)
+			)
+		`,
+		)
+		.eq("id", reservation_id)
+		.limit(1)
+		.single();
 
-	switch (data.action) {
+	if (
+		!res ||
+		!res.data ||
+		!res.data.fields ||
+		!res.data.fields.users ||
+		!res.data?.fields.users.mp_oauth_authorization.access_token
+	) {
+		return new Response("Reservation not found", {
+			status: 404,
+			statusText: "Reservation not found",
+		});
+	}
+
+	const mercadoPagoConfig = new MercadoPagoConfig({
+		accessToken: res.data?.fields.users.mp_oauth_authorization.access_token,
+	});
+
+	switch (data.type || data.topic) {
 		case "payment": {
 			const { error } = await supabaseClient.from("mp_payments").insert({
 				payment_id: Number(data.data.id),
@@ -121,30 +157,56 @@ async function processMercadoPagoNotification(
 			break;
 		}
 		case "merchant_order": {
-			// const MO = await new MerchantOrder(mercadoPagoConfig).get({
-			// 	merchantOrderId: data.data.id,
-			// });
+			console.log("Merchant order notification:", JSON.stringify(data));
 
-			// if (MO.status === "closed") {
-			// 	try {
-			// 		await new Payment(mercadoPagoConfig).cancel({
-			// 			id: data.data.id,
-			// 		})
-			// 		.then(res => {
-			// 			console.log("Payment canceled:", res);
-			// 		})
-			// 		.catch(e => {
-			// 			throw e;
-			// 		});
-			// 	} catch (err) {
-			// 		console.error("Error canceling payment:", err);
-			// 	}
-			// } else {
-			// 	console.log("Merchant order is not closed:", MO);
-			// }
+			const MO = await new MerchantOrder(mercadoPagoConfig)
+				.get({
+					merchantOrderId: dataID,
+				})
+				.catch((err) => {
+					console.error("Error fetching merchant order:", dataID, err);
+					throw new Response("Error fetching merchant order", {
+						status: 500,
+						statusText: "Error fetching merchant order",
+					});
+				});
+
+			if (MO && MO.status === "closed") {
+				for (let i = 0; i < MO.payments?.length! || 0; i++) {
+					const payment = MO.payments![i]!;
+					try {
+						if (payment.status == "approved") {
+							await new PaymentRefund(mercadoPagoConfig)
+								.create({
+									payment_id: payment.id!,
+								})
+								.then((res) => {
+									console.log("Payment canceled:", res);
+								});
+						} else {
+							await new Payment(mercadoPagoConfig)
+								.cancel({
+									id: payment.id!,
+								})
+								.then((res) => {
+									console.log("Payment canceled:", res);
+								});
+						}
+					} catch (err) {
+						console.warn("Error canceling payment:", err);
+					}
+				}
+			} else {
+				console.log("Merchant order is not closed:", MO);
+			}
 
 			break;
 		}
+		default: {
+			console.log("Unknown action:", JSON.stringify(data));
+			break;
+		}
 	}
+
 	return;
 }

@@ -1,7 +1,9 @@
-import type { MetaFunction } from "@remix-run/node";
+import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
 import { Button } from "../components/ui/button";
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "@remix-run/react";
+import { __DANGEROUS_createSupabaseServerClient_BYPASS_RLS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED } from "@/lib/supabase.server";
+import { MercadoPagoConfig, MerchantOrder, Payment, PaymentRefund } from "mercadopago";
 
 export const meta: MetaFunction = () => {
 	return [

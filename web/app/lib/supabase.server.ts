@@ -22,7 +22,7 @@ export const createSupabaseServerClient = (request?: Request) => {
 export const __DANGEROUS_createSupabaseServerClient_BYPASS_RLS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED = (
 	request?: Request,
 ) => {
-	const cookies = parseCookieHeader(request?.headers?.get("Cookie") ?? "");
+	const cookies = parseCookieHeader("");
 	const headers = new Headers();
 	const supabaseClient = createServerClient(
 		process.env.SUPABASE_URL!,

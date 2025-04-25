@@ -7,6 +7,7 @@ import {
 	createSupabaseServerClient,
 } from "~/lib/supabase.server";
 import { reservationsTable, mpPaymentsTable } from "@/../../../db/schema";
+import { PreferenceCreateData } from "mercadopago/dist/clients/preference/create/types";
 
 type PaymentRequest = {
 	userId: string;
@@ -105,6 +106,7 @@ async function getMercadoPagoRedirectURL(
 			name,
 			description,
 			price,
+			avatar_url,
 			images,
 			users!owner (
 				mp_oauth_authorization!user_id (
@@ -141,12 +143,12 @@ async function getMercadoPagoRedirectURL(
 	const mercadoPagoConfig = new MercadoPagoConfig({
 		// @ts-ignore Not an array
 		accessToken: data.users.mp_oauth_authorization.access_token,
-		options: {},
+		options: { timeout: 5000 },
 	});
 
 	const RESERVATION_ID = uuidv4();
 
-	const BODY = {
+	const BODY: PreferenceCreateData = {
 		body: {
 			items: [
 				{
@@ -157,6 +159,7 @@ async function getMercadoPagoRedirectURL(
 					quantity: 1,
 					currency_id: "ARS",
 					category_id: "others",
+					picture_url: data.avatar_url,
 				},
 			],
 			back_urls: {
@@ -172,12 +175,18 @@ async function getMercadoPagoRedirectURL(
 			},
 			binary_mode: true,
 			notification_url: `https://matchpointapp.com.ar/api/v1/payments/notifications?user_id=${user.id}&reservation_id=${RESERVATION_ID}&amount=${data.price}&merchant_fee=${0}`,
-			external_reference: `field:${fieldId}::user:${user.id}`,
+			external_reference: `${RESERVATION_ID}`,
 			marketplace: "8221763286725670",
 			marketplace_fee: 0,
 		},
+		requestOptions: {
+			timeout: 5000,
+			idempotencyKey: `${RESERVATION_ID}-${Math.floor(new Date().getTime() / 1000 / 60)}`,
+		},
 	};
+
 	console.log("BODY", JSON.stringify(BODY));
+
 	const preference = await new Preference(mercadoPagoConfig).create(BODY);
 
 	if (
