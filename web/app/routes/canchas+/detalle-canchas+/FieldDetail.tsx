@@ -344,7 +344,7 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
 				<TableHeader>
 					{table.getHeaderGroups().map((headerGroup) => (
 						<TableRow key={headerGroup.id}>
-							{pheaderGroup.headers.map((header) => {
+							{headerGroup.headers.map((header) => {
 								return (
 									<TableHead
 										key={header.id}
