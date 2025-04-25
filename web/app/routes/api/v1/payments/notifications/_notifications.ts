@@ -98,6 +98,13 @@ async function processMercadoPagoNotification(
 	merchant_fee: number,
 	dataID: string,
 ): Promise<Response | void> {
+	if (!reservation_id || !user_id) {
+		return new Response("Missing reservation_id or user_id", {
+			status: 200,
+			statusText: "Missing reservation_id or user_id",
+		});
+	}
+
 	const res = await supabaseClient
 		.from("reservations")
 		.select(
