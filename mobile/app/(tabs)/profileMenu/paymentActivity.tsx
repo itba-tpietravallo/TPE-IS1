@@ -1,0 +1,142 @@
+import { supabase } from "@/lib/supabase";
+import React from "react";
+import { View, Text, FlatList, StyleSheet, TouchableOpacity } from "react-native";
+import Icon from "react-native-vector-icons/FontAwesome6";
+import { useEffect, useState } from "react";
+import { Session } from "@supabase/supabase-js";
+import { router } from "expo-router";
+
+const hardcodedPayments = [
+	{ payment_id: "1", last_updated: "17/04/2025 18:21", status: "Pendiente", transaction_amount: "$9500" },
+	{ payment_id: "2", last_updated: "09/04/2025 11:43", status: "Completado", transaction_amount: "$25000" },
+	{ payment_id: "3", last_updated: "01/04/2025 18:21", status: "Pendiente", transaction_amount: "$10700" },
+	{ payment_id: "4", last_updated: "28/03/2025 23:01", status: "Completado", transaction_amount: "$31200" },
+	{ payment_id: "5", last_updated: "21/03/2025 15:41", status: "Completado", transaction_amount: "$18000" },
+	{ payment_id: "6", last_updated: "12/03/2025 00:12", status: "Pendiente", transaction_amount: "$7450" },
+];
+
+export default function CardList() {
+	type Payment = {
+		payment_id: string;
+		// user_id: string;
+		// field_id: string;
+		last_updated: string;
+		status: string;
+		transaction_amount: string;
+	};
+
+	const [user, setUser] = useState<Session>();
+	const [payments, setPayments] = useState<Payment[]>([]);
+
+	useEffect(() => {
+		supabase.auth.getSession().then(({ data: { session } }) => {
+			supabase
+				.from("users")
+				.select("*")
+				.eq("id", session?.user.id)
+				.single()
+				.then(({ data, error }) => {
+					if (error) {
+						console.error("Error fetching user:", error);
+					} else {
+						setUser(data);
+						console.log("id:", data.id);
+						supabase
+							.from("mp_payments")
+							.select("payment_id, last_updated, status, transaction_amount")
+							.eq("user_id", data.id)
+							.order("last_updated", { ascending: false })
+							.then(({ data, error }) => {
+								if (error) {
+									console.error("Error fetching payments:", error);
+								} else {
+									setPayments(data || []);
+								}
+							});
+					}
+				});
+		});
+	}, []);
+
+	return (
+		<View
+			style={{
+				flex: 1,
+				alignItems: "stretch",
+				backgroundColor: "#f2f4f3",
+				padding: 6,
+			}}
+		>
+			<TouchableOpacity
+				style={{ flexDirection: "row", alignItems: "flex-start", paddingVertical: 15, paddingHorizontal: 10 }}
+				onPress={() => router.push("/(tabs)/profile")}
+			>
+				<Icon name="arrow-left" size={14} color="#262626" style={{ marginRight: 8 }} />
+				<Text style={{ fontSize: 14, color: "#262626" }}>Atrás</Text>
+			</TouchableOpacity>
+			<Text
+				style={{
+					fontSize: 30,
+					fontWeight: "bold",
+					color: "#f18f01",
+					textAlign: "left",
+					padding: 10,
+				}}
+			>
+				Mi actividad
+			</Text>
+			<FlatList
+				data={hardcodedPayments}
+				keyExtractor={(item) => item.payment_id}
+				contentContainerStyle={styles.container}
+				scrollEnabled={true}
+				renderItem={({ item }) => (
+					<View style={styles.payment}>
+						<Text style={styles.last_updated}>{item.last_updated}</Text>
+						<View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+							<Text style={styles.transaction_amount}>{item.transaction_amount}</Text>
+							<Text
+								style={{
+									fontWeight: "bold",
+									fontSize: 18,
+									color: item.status === "Completado" ? "green" : "#ff5f00",
+								}}
+							>
+								{item.status}
+							</Text>
+						</View>
+					</View>
+				)}
+			/>
+		</View>
+	);
+}
+
+const styles = StyleSheet.create({
+	container: {
+		padding: 16,
+		paddingBottom: 90,
+	},
+	payment: {
+		backgroundColor: "#223332",
+		padding: 16,
+		marginBottom: 16,
+		borderRadius: 12,
+		shadowColor: "#000",
+		shadowOffset: { width: 0, height: 2 },
+		shadowOpacity: 0.1,
+		shadowRadius: 4,
+		elevation: 3, // for Android
+	},
+	transaction_amount: {
+		fontSize: 22,
+		fontWeight: "bold",
+		color: "#f2f4f3",
+		marginBottom: 4,
+	},
+	last_updated: {
+		fontSize: 14,
+		color: "#d9dcdb",
+		marginBottom: 20,
+	},
+});

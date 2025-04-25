@@ -1,4 +1,4 @@
-import { MapPin } from "lucide-react";
+import { MapPin, DollarSign } from "lucide-react";
 import { Card, CardTitle, CardDescription, CardContent } from "~/components/ui/card";
 import { LoaderFunctionArgs } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
@@ -10,7 +10,8 @@ import clsx from "clsx";
 type FieldPreviewProps = {
 	id: string;
 	name: string;
-	img: string /* aca ni idea como poner*/;
+	img: string;
+	price: number;
 	location: string;
 };
 
@@ -41,16 +42,25 @@ export function FieldsPreviewGrid({ fields }: FieldsPreviewGridProps) {
 }
 
 export function FieldPreview(props: FieldPreviewProps & { className?: string }) {
-	const { id, name, location, img } = props;
+	const { id, name, location, price, img } = props;
 	return (
 		<div className={clsx("flex h-full min-h-full w-full grow p-2", props?.className)}>
 			<Link to={`/canchas/detalle-canchas/${id}`} className="min-h-full w-full">
 				<Card className="min-h-full w-full border border-[#f2f4f3] bg-[#f2f4f3] transition-all duration-200 hover:border-[#f18f01] hover:bg-[#f18f01]">
-					<CardTitle className="p-4">{name}</CardTitle>
-					<CardDescription className="m-3 flex items-center gap-2">
-						<MapPin className="h-4 w-4 text-gray-500" />
-						{location}
-					</CardDescription>
+					<div className="flex flex-col">
+						<CardTitle className="p-4">{name}</CardTitle>
+						<hr className="mx-4 w-[85%] border-t border-gray-300" />
+						<CardDescription className="flex flex-col gap-2 p-4">
+							<div className="flex items-center gap-2">
+								<MapPin className="h-4 w-4 text-gray-500" />
+								{location}
+							</div>
+							<div className="flex items-center gap-2">
+								<DollarSign className="h-4 w-4 text-gray-500" />
+								{price}
+							</div>
+						</CardDescription>
+					</div>
 					<CardContent className="flex justify-center">
 						<img src={img} className="h-32 w-full rounded-lg object-cover" />
 					</CardContent>
@@ -82,11 +92,15 @@ export default function () {
 		id: user.id,
 		name: user.name,
 		img: user.images[0],
+		price: user.price,
 		location: `${user.street} ${user.street_number}`,
 	}));
 
 	return (
-		<div className="h-full bg-[#223332]">
+		<div
+			className="h-full w-full bg-[#f2f4f3] bg-auto bg-cover"
+			style={{ backgroundImage: "url('/matchpoint-bg2.png')" }}
+		>
 			<FieldsPreviewGrid fields={fields} />
 		</div>
 	);

@@ -123,7 +123,13 @@ export default function CheckoutButton({
 
 	return (
 		<TouchableOpacity
-			style={{ width: "100%", padding: "5%", backgroundColor: ButtonStyles[status].backgroundColor }}
+			disabled={disabled || pending}
+			style={{
+				width: "100%",
+				padding: "5%",
+				backgroundColor: disabled ? "#cccccc" : ButtonStyles[status].backgroundColor,
+				opacity: disabled ? 0.6 : 1,
+			}}
 			onPress={() => handlePress()}
 		>
 			<View style={{ flexDirection: "row", justifyContent: "center", alignItems: "center" }}>

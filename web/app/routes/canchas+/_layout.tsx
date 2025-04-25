@@ -103,7 +103,7 @@ export function NavigationMenuListDesktop({ MenuBarLinks }: { MenuBarLinks: Menu
 			{MenuBarLinks.map((link, index) => {
 				return link.content ? (
 					<NavigationMenuItem key={link.name}>
-						<NavigationMenuTrigger className="!bg-[#223222] !text-white hover:brightness-150">
+						<NavigationMenuTrigger className="!bg-[#223332] !text-white hover:brightness-150">
 							{link.name}
 						</NavigationMenuTrigger>
 						<NavigationMenuContent>
@@ -112,7 +112,7 @@ export function NavigationMenuListDesktop({ MenuBarLinks }: { MenuBarLinks: Menu
 									<li key={subIndex}>
 										<NavigationMenuLink className="p-2 px-4 !text-white" asChild>
 											<Link
-												className="block select-none space-y-1 rounded-md !bg-[#223222] p-3 leading-none no-underline outline-none transition-colors hover:text-accent-foreground hover:brightness-150 focus:text-accent-foreground"
+												className="block select-none space-y-1 rounded-md !bg-[#223332] p-3 leading-none no-underline outline-none transition-colors hover:text-accent-foreground hover:brightness-150 focus:text-accent-foreground"
 												to={subLink.href}
 											>
 												<div className="mb-2 text-sm font-medium leading-none text-background">
@@ -133,7 +133,7 @@ export function NavigationMenuListDesktop({ MenuBarLinks }: { MenuBarLinks: Menu
 						<NavigationMenuLink className="px-4 !text-white" asChild>
 							<Link
 								to={link.href}
-								className="m-0 inline-flex h-9 select-none items-center justify-center rounded-md !bg-[#223222] p-0 !text-white no-underline outline-none transition-colors hover:text-accent-foreground hover:brightness-150 focus:text-accent-foreground"
+								className="m-0 inline-flex h-9 select-none items-center justify-center rounded-md !bg-[#223332] p-0 !text-white no-underline outline-none transition-colors hover:text-accent-foreground hover:brightness-150 focus:text-accent-foreground"
 							>
 								<div className="text-nowrap text-sm font-medium leading-none text-background">
 									{link.name}
@@ -151,7 +151,7 @@ export function NavigationMenuListMobile({ MenuBarLinks }: { MenuBarLinks: MenuB
 	return (
 		<NavigationMenuList className="relative lg:hidden">
 			<NavigationMenuItem>
-				<NavigationMenuTrigger className="h-full !bg-[#223222] !text-white hover:brightness-150">
+				<NavigationMenuTrigger className="h-full !bg-[#223332] !text-white hover:brightness-150">
 					Menu
 				</NavigationMenuTrigger>
 				<NavigationMenuContent>
@@ -166,7 +166,7 @@ export function NavigationMenuListMobile({ MenuBarLinks }: { MenuBarLinks: MenuB
 												<NavigationMenuLink className="p-2 px-4 !text-white" asChild>
 													<Link
 														to={subLink.href}
-														className="block h-full select-none space-y-1 rounded-md !bg-[#223222] p-3 leading-none no-underline outline-none transition-colors hover:text-accent-foreground hover:brightness-150 focus:text-accent-foreground"
+														className="block h-full select-none space-y-1 rounded-md !bg-[#223332] p-3 leading-none no-underline outline-none transition-colors hover:text-accent-foreground hover:brightness-150 focus:text-accent-foreground"
 													>
 														<div className="mb-2 text-sm font-medium leading-none text-background">
 															{subLink.name}
@@ -185,7 +185,7 @@ export function NavigationMenuListMobile({ MenuBarLinks }: { MenuBarLinks: MenuB
 									<NavigationMenuLink className="p-2 px-4 !text-white" asChild>
 										<Link
 											to={link.href}
-											className="block h-full select-none space-y-1 rounded-md !bg-[#223222] p-3 leading-none no-underline outline-none transition-colors hover:text-accent-foreground hover:brightness-150 focus:text-accent-foreground"
+											className="block h-full select-none space-y-1 rounded-md !bg-[#223332] p-3 leading-none no-underline outline-none transition-colors hover:text-accent-foreground hover:brightness-150 focus:text-accent-foreground"
 										>
 											<div className="mb-2 text-sm font-medium leading-none text-background">
 												{link.name}

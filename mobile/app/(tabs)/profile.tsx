@@ -1,9 +1,10 @@
 import { supabase } from "@/lib/supabase";
 import { Button, Image } from "@rneui/themed";
-import { StyleSheet, Text, TouchableOpacity, View, Modal } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View, FlatList } from "react-native";
 import { useEffect, useState } from "react";
 import { Session } from "@supabase/supabase-js";
-import ReservationInfo from "@/components/reservationInfo";
+import { router } from "expo-router";
+import Icon from "react-native-vector-icons/FontAwesome6";
 
 type User = {
 	id: string;
@@ -11,30 +12,8 @@ type User = {
 	avatar_url: string;
 };
 
-// type Reservation = {
-// 	id: string;
-// 	start_time: string;
-// 	date: string;
-// 	field: {
-// 		name: string;
-// 		//location: string;
-// 		street_number: string;
-// 		street: string;
-// 		neighborhood: string;
-// 		city: string;
-// 	};
-// };
-
-type Reservation = {
-	id: string;
-	field_id: string;
-	date_time: string;
-	owner_id: string;
-};
-
 export default function Index() {
 	const [user, setUser] = useState<Session>();
-	const [reservations, setReservations] = useState<Reservation[]>([]);
 
 	useEffect(() => {
 		supabase.auth.getSession().then(({ data: { session } }) => {
@@ -49,142 +28,52 @@ export default function Index() {
 					} else {
 						setUser(data);
 						console.log("id:", data.id);
-						supabase
-							.from("reservations")
-							.select(
-								`*, field: fields (name, street_number, street, neighborhood, city)`, // , location: fields(location)`",
-							)
-							.eq("owner_id", data.id)
-							.order("date_time", { ascending: true })
-							.then(({ data, error }) => {
-								if (error) {
-									console.error("Error fetching reservations:", error);
-								} else {
-									setReservations(data || []);
-								}
-							});
 					}
 				});
 		});
 	}, []);
 
-	const [isModalVisible, setIsModalVisible] = useState(false);
-	const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
-
-	const handleOpenModal = (reservation: Reservation) => {
-		setSelectedReservation(reservation);
-		setIsModalVisible(true);
-	};
-	const handleCloseModal = () => {
-		setIsModalVisible(false);
-		setSelectedReservation(null);
-	};
-
-	const selectedDate = new Date(selectedReservation?.date_time || "");
-	const selectedTime = new Date(selectedReservation?.date_time || "");
-
 	return (
-		<View style={styles.containter}>
-			<View>
-				<View>
-					<View style={{ alignItems: "center", padding: 30 }}>
-						<Image source={{ uri: user?.avatar_url }} style={{ width: 100, height: 100 }} />
-						<Text style={{ fontSize: 30, fontWeight: "bold", paddingTop: 20 }}>{user?.full_name}</Text>
-						<Button
-							buttonStyle={styles.buttonContainer}
-							title="Cerrar sesión"
-							onPress={async () => {
-								const { error } = await supabase.auth.signOut({ scope: "local" });
-								if (error) {
-									console.error("Error signing out:", error.message);
-								}
-								console.log("Signed out successfully");
-							}}
-						/>
-					</View>
-				</View>
+		<View style={buttonStyles.containter}>
+			<View style={{ alignItems: "center", padding: 30 }}>
+				<Image source={{ uri: user?.avatar_url }} style={{ width: 100, height: 100 }} />
+				<Text style={{ fontSize: 25, fontWeight: "bold", paddingTop: 20, textAlign: "center" }}>
+					{user?.full_name}
+				</Text>
 			</View>
 
-			<View>
-				<Text
-					style={{
-						fontSize: 30,
-						fontWeight: "bold",
-						color: "gray",
-						textAlign: "left",
-						paddingBottom: 10,
-					}}
-				>
-					Mis reservas:
-				</Text>
-				<View style={{ padding: 20, borderWidth: 1, borderColor: "#ccc", borderRadius: 5 }}>
-					{reservations.length > 0 ? (
-						reservations.map((reservation, i) => (
-							<View
-								key={reservation.id}
-								style={{
-									flexDirection: "row",
-									justifyContent: "space-between",
-									padding: 10,
-									borderBottomWidth: 1,
-									borderBottomColor: "#ccc",
-								}}
-							>
-								<Text>
-									{new Date(reservation.date_time).toLocaleDateString("es-ES", {
-										year: "numeric",
-										month: "2-digit",
-										day: "2-digit",
-									})}{" "}
-								</Text>
-								<Text style={{ fontWeight: "bold" }}>{reservation.field.name}</Text>
-								<TouchableOpacity onPress={() => handleOpenModal(reservation)}>
-									<Image
-										style={{ width: 20, height: 20 }}
-										source={require("@/assets/images/info.png")}
-									/>
-								</TouchableOpacity>
-							</View>
-						))
-					) : (
-						<Text>No tienes reservas.</Text>
-					)}
-				</View>
-			</View>
-			<Modal style={styles.modal} visible={isModalVisible} transparent={true} onRequestClose={handleCloseModal}>
-				<View style={styles.centeredView}>
-					<ReservationInfo
-						onClose={handleCloseModal}
-						field_name={selectedReservation?.field?.name || ""}
-						date={selectedDate.toLocaleDateString("es-ES", {
-							year: "numeric",
-							month: "2-digit",
-							day: "2-digit",
-						})}
-						time={selectedTime.toLocaleTimeString("es-ES", {
-							hour: "2-digit",
-							minute: "2-digit",
-						})}
-						location={`${selectedReservation?.field?.street || ""} ${selectedReservation?.field?.street_number || ""}, ${selectedReservation?.field?.neighborhood || ""}, ${selectedReservation?.field?.city || ""}`}
-						id={selectedReservation?.id || ""}
-					/>
-				</View>
-			</Modal>
+			<ProfileMenuList />
+
+			<View style={{ flex: 1 }} />
+			<Button
+				buttonStyle={buttonStyles.buttonContainer}
+				title="Cerrar sesión"
+				titleStyle={{ color: "#ffffff" }}
+				onPress={async () => {
+					const { error } = await supabase.auth.signOut({ scope: "local" });
+					if (error) {
+						console.error("Error signing out:", error.message);
+					}
+					console.log("Signed out successfully");
+				}}
+			/>
 		</View>
 	);
 }
 
-const styles = StyleSheet.create({
+const buttonStyles = StyleSheet.create({
 	buttonContainer: {
-		marginTop: 10,
-		padding: 10,
+		marginTop: 50,
+		padding: 7,
 		borderRadius: 15,
 		//		backgroundColor: "#CC0000",
 		backgroundColor: "#223332",
 		justifyContent: "center",
+		alignSelf: "center",
 	},
 	containter: {
 		justifyContent: "space-between",
+		backgroundColor: "#f2f4f3",
 		padding: 20,
 	},
 	centeredView: {
@@ -202,3 +91,47 @@ const styles = StyleSheet.create({
 		maxWidth: 400,
 	},
 });
+
+const itemStyles = StyleSheet.create({
+	item: {
+		flexDirection: "row",
+		alignItems: "center",
+		paddingVertical: 15,
+		paddingHorizontal: 20,
+	},
+	icon: {
+		marginRight: 15,
+	},
+	label: {
+		fontSize: 16,
+	},
+});
+
+const menuItems = [
+	{ label: "Mi actividad", icon: "money-check", action: () => router.push("/(tabs)/profileMenu/paymentActivity") },
+	{ label: "Mis reservas", icon: "calendar-check", action: () => router.push("/(tabs)/profileMenu/reservations") },
+];
+
+export function ProfileMenuList() {
+	return (
+		<View style={{ borderWidth: 1, borderColor: "#ccc", borderRadius: 10, overflow: "hidden" }}>
+			<FlatList
+				data={menuItems}
+				scrollEnabled={false}
+				keyExtractor={(item) => item.label}
+				renderItem={({ item }) => (
+					<TouchableOpacity style={itemStyles.item} onPress={item.action}>
+						<View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
+							<Icon name={item.icon} size={24} color="#f18f01" style={itemStyles.icon} />
+							<Text style={itemStyles.label}>{item.label}</Text>
+						</View>
+						<Icon name="angle-right" size={24} color="#f18f01" />
+					</TouchableOpacity>
+				)}
+				ItemSeparatorComponent={() => (
+					<View style={{ height: 1, backgroundColor: "#ccc", marginHorizontal: 10 }} />
+				)}
+			/>
+		</View>
+	);
+}
