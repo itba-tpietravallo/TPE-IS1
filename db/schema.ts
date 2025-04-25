@@ -117,7 +117,7 @@ export const reservationsTable = pgTable(
 		owner_id: uuid()
 			.notNull()
 			.references(() => usersTable.id, { onDelete: "cascade" }),
-		payments_id: bigint({ mode: "number" }).default(sql`NULL`),
+		payment_id: bigint({ mode: "number" }).default(sql`NULL`),
 	},
 	(table) => [
 		pgPolicy("reservations - select authenticated", {

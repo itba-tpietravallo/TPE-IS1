@@ -36,7 +36,7 @@ const ButtonStyles = {
 export default function CheckoutButton({
 	fieldId,
 	date_time,
-	disabled = true,
+	disabled = false,
 }: {
 	fieldId: string;
 	date_time: string;

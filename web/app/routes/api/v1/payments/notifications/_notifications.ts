@@ -52,7 +52,15 @@ export async function action({ request }: ActionFunctionArgs) {
 	// Obtain the secret key for the user/application from Mercadopago developers site
 	const secret = process.env.MERCADO_PAGO_SECRET_KEY!;
 	// Generate the manifest string
-	const manifest = dataID ? `id:${dataID};request-id:${xRequestId};ts:${ts};` : `request-id:${xRequestId};ts:${ts};`;
+	const manifest = [
+		{ id: "id", data: dataID },
+		{ id: "request-id", data: xRequestId },
+		{ id: "ts", data: ts },
+	]
+		.map((r) => (r.data ? `${r.id}:${r.data};` : null))
+		.filter((a) => !!a)
+		.join("");
+
 	// Create an HMAC signature
 	const hmac = createHmac("sha256", secret);
 
@@ -81,10 +89,9 @@ export async function action({ request }: ActionFunctionArgs) {
 			statusText: "HMAC verification passed",
 		});
 	} else {
-		console.error("HMAC verification failed");
-		return new Response("HMAC verification failed", {
+		return new Response(`HMAC verification failed. ${manifest}. ${dataID}. ${xRequestId}. ${ts}. ${hash}`, {
 			status: 400,
-			statusText: "HMAC verification failed",
+			statusText: `HMAC verification failed. ${manifest}. ${dataID}. ${xRequestId}. ${ts}. ${hash}`,
 		});
 	}
 }
@@ -161,6 +168,22 @@ async function processMercadoPagoNotification(
 					statusText: "Error inserting notification",
 				});
 			}
+
+			const { error: error2 } = await supabaseClient
+				.from("reservations")
+				.update({
+					payment_id: Number(data.data.id),
+				})
+				.eq("id", reservation_id);
+
+			if (error2) {
+				console.error("Error updating reservation:", error2);
+				return new Response("Error updating reservation", {
+					status: 500,
+					statusText: "Error updating reservation",
+				});
+			}
+
 			break;
 		}
 		case "merchant_order": {
