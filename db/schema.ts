@@ -207,6 +207,7 @@ export const teamsTable = pgTable(
 		sport: text().notNull(),
 		description: text(),
 		images: text().array(),
+		players: uuid().array().notNull()
 	},
 	(table) => [
 		// INSERT, UPDATE, DELETE are disallowed by default.
@@ -225,39 +226,4 @@ export const teamsTable = pgTable(
 			as: "permissive",
 		}),
 	],
-).enableRLS();
-
-export const teamPlayersTable = pgTable(
-    "team_players",
-    {
-        user_id: uuid()
-			.array()
-            .notNull()
-			// .references(() => usersTable.id, { onDelete: "cascade" }),
-			// @TODO 
-			,
-        team_id: uuid()
-			.array()
-            .notNull()
-            //.references(() => teamsTable.team_id, { onDelete: "cascade" })
-			//@TODO
-			,
-    },
-    (table) => [
-        // INSERT, UPDATE, DELETE are disallowed by default.
-        // This table is managed via Supabase triggers on auth.users.
-        // Do not grant users insert/delete privileges on this table.
-        pgPolicy("teams - select authenticated", {
-            for: "select",
-            using: sql`true`,
-            to: authenticatedRole, // only allow authenticated users to select from the table
-            as: "permissive",
-        }),
-        pgPolicy("teams - insert authenticated", {
-            for: "insert",
-            withCheck: sql`true`,
-            to: authenticatedRole, // only allow authenticated users to select from the table
-            as: "permissive",
-        }),
-    ],
 ).enableRLS();
