@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase";
-import { Button, Image } from "@rneui/themed";
+import { Image } from "@rneui/themed";
 import { StyleSheet, Text, TouchableOpacity, View, FlatList } from "react-native";
 import { useEffect, useState } from "react";
 import { Session } from "@supabase/supabase-js";
@@ -36,7 +36,7 @@ export default function Index() {
 	return (
 		<View style={buttonStyles.containter}>
 			<View style={{ alignItems: "center", padding: 30 }}>
-				<Image source={{ uri: user?.avatar_url }} style={{ width: 100, height: 100 }} />
+				<Image source={{ uri: user?.avatar_url }} style={{ width: 100, height: 100 }} borderRadius={100} />
 				<Text style={{ fontSize: 25, fontWeight: "bold", paddingTop: 20, textAlign: "center" }}>
 					{user?.full_name}
 				</Text>
@@ -45,10 +45,8 @@ export default function Index() {
 			<ProfileMenuList />
 
 			<View style={{ flex: 1 }} />
-			<Button
-				buttonStyle={buttonStyles.buttonContainer}
-				title="Cerrar sesión"
-				titleStyle={{ color: "#ffffff" }}
+			<TouchableOpacity
+				style={{ alignItems: "center", padding: 30 }}
 				onPress={async () => {
 					const { error } = await supabase.auth.signOut({ scope: "local" });
 					if (error) {
@@ -56,7 +54,9 @@ export default function Index() {
 					}
 					console.log("Signed out successfully");
 				}}
-			/>
+			>
+				<Text style={{ color: "red", fontSize: 16 }}>Cerrar sesión</Text>
+			</TouchableOpacity>
 		</View>
 	);
 }
