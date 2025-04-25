@@ -4,10 +4,8 @@ import "react-native-url-polyfill/auto";
 import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabase";
 import Auth from "../components/Auth";
-import { AuthChangeEvent, Session } from "@supabase/supabase-js";
-import { ThemeProvider } from "@react-navigation/native";
+import { Session } from "@supabase/supabase-js";
 import { StatusBar } from "expo-status-bar";
-import NavigationBar from "@/components/NavigationBar";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
