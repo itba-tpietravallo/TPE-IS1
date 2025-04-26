@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { View, Text, Button, StyleSheet, Image, TouchableOpacity, Modal, Alert, ScrollView } from "react-native";
 import { ScreenHeight, ScreenWidth } from "@rneui/themed/dist/config";
+import { supabase } from "@/lib/supabase";
+import { Session } from "@supabase/supabase-js";
 
 // type User = {
 // 	id: string;
@@ -20,6 +22,7 @@ type PropsPopUpTeam = {
 	name: string;
 	sport: string;
 	description: string;
+	//players: string[];
 	players: Player[];
 };
 
@@ -42,14 +45,7 @@ function PopUpTeam(props: PropsPopUpTeam) {
 				{/* Nombre del equipo y deporte */}
 				<View style={styles.topInfo}>
 					<View style={{ flex: 1, paddingRight: 10, alignItems: "center" }}>
-						<Text
-							style={{
-								fontSize: 32,
-								fontWeight: "bold",
-								justifyContent: "center",
-								color: "#f18f01",
-							}}
-						>
+						<Text style={styles.teamName}>
 							{name}
 						</Text>
 						<Text style={{ fontSize: 16, color: "gray", marginBottom: 10 }}>{sport}</Text>
@@ -71,8 +67,8 @@ function PopUpTeam(props: PropsPopUpTeam) {
 							);
 						})}
 					</View>
-				</ScrollView>
-
+				</ScrollView> 
+				
 				{/* Descripcion del equipo */}
 				<Text style={styles.description}>{description}</Text>
 			</View>
@@ -86,6 +82,12 @@ function PopUpTeam(props: PropsPopUpTeam) {
 }
 
 const styles = StyleSheet.create({
+	teamName: {
+		fontSize: 32,
+		fontWeight: "bold",
+		justifyContent: "center",
+		color: "#f18f01",
+	},
 	description: {
 		paddingTop: 20,
 		paddingBottom: 10,

@@ -16,6 +16,7 @@ type PropsTeam = {
 	name: string;
 	sport: string;
 	description: string;
+	//players: string[];
 	players: Player[];
 };
 
@@ -26,7 +27,7 @@ function TeamPost(props: PropsTeam) {
 		setIsModalVisible(false);
 	};
 
-	const backgroundImageSource = require("@/assets/images/no-imagen.jpeg");
+	const backgroundImageSource = require("@/assets/images/people-logo.jpg");
 
 	return (
 		<View style={{ flex: 1 }}>
@@ -38,9 +39,6 @@ function TeamPost(props: PropsTeam) {
 				>
 					<View style={styles.topContent}>
 						<Text style={styles.title}>{props.name}</Text>
-					</View>
-					<View style={styles.bottomContent}>
-						<Image style={styles.icon} source={require("@/assets/images/cancha.png")} />
 					</View>
 				</ImageBackground>
 			</TouchableOpacity>

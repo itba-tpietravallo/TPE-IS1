@@ -94,6 +94,7 @@ export default function PostTeam({ navigation }: { navigation: any }) {
 				</Picker>
 
 				{/* Miembros del Equipo */}
+				{/* Habria que cambiar esto para invitar usuarios a unirse en vez de meterlos al equipo */}
 				<Text style={styles.label}>Miembros Iniciales (opcional):</Text>
 				<View style={styles.memberInputContainer}>
 					<TextInput

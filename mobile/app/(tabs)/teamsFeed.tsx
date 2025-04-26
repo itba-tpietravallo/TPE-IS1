@@ -54,6 +54,7 @@ type Team = {
 	sport: string;
 	members: number;
 	description: string;
+	//players: string[];
 };
 
 function TeamsFeed() {
@@ -145,7 +146,7 @@ function TeamsFeed() {
 					})
 					.map((team) => (
 						<TeamPost
-							key={team.id}
+							key={team.id || `player-${team.id}`}   //lo que esta despues del || no se porque lo tuve que poner pero sino me tira error each child should have a unique key ... 
 							name={team.name}
 							sport={team.sport}
 							players={players}
