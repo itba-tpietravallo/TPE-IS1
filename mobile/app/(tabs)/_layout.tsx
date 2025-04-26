@@ -2,7 +2,7 @@ import React from "react";
 import { View, StyleSheet } from "react-native";
 import { Slot } from "expo-router";
 import NavigationBar from "../../components/NavigationBar";
-import TopBar from "@/components/TopBar";
+import TopBar from "@components/TopBar";
 
 export default function MainLayout() {
 	return (

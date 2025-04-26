@@ -6,6 +6,7 @@ import { supabase } from "../lib/supabase";
 import Auth from "../components/Auth";
 import { Session } from "@supabase/supabase-js";
 import { StatusBar } from "expo-status-bar";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -15,6 +16,7 @@ export default function RootLayout() {
 
 	// This loads instantly, but is set up so it can await fonts or other critical resources.
 	const [loaded, setLoaded] = useState(true);
+
 	useEffect(() => {
 		if (loaded) {
 			SplashScreen.hideAsync();
@@ -35,19 +37,31 @@ export default function RootLayout() {
 		});
 	}, []);
 
+	const queryClient = new QueryClient({
+		defaultOptions: {
+			queries: {
+				gcTime: 1000 * 60 * 5,
+				staleTime: 1000 * 60 * 5,
+				refetchOnReconnect: true,
+				refetchOnWindowFocus: "always",
+			},
+		},
+	});
+
 	return (
 		// <ThemeProvider > */}
-		session && session.user ? (
-			<>
-				<Stack>
-					<Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-					<Stack.Screen name="+not-found" />
-				</Stack>
-				<StatusBar style="auto" />
-			</>
-		) : (
-			<Auth />
-		)
-		// </ThemeProvider>
+		<QueryClientProvider client={queryClient}>
+			{session && session.user ? (
+				<>
+					<Stack>
+						<Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+						<Stack.Screen name="+not-found" />
+					</Stack>
+					<StatusBar style="auto" />
+				</>
+			) : (
+				<Auth />
+			)}
+		</QueryClientProvider>
 	);
 }
