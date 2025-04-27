@@ -42,8 +42,9 @@ export default function RootLayout() {
 			queries: {
 				gcTime: 1000 * 60 * 5,
 				staleTime: 1000 * 60 * 5,
-				refetchOnReconnect: true,
+				refetchOnReconnect: "always",
 				refetchOnWindowFocus: "always",
+				refetchOnMount: "always",
 			},
 		},
 	});
