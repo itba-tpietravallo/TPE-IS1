@@ -120,6 +120,27 @@ To visualize the db schema and records present run:
 npx drizzle-kit studio
 ```
 
+## Caching
+
+> There are only two hard things in Computer Science: cache invalidation and naming things.
+> 
+> Phil Karlton
+
+In order to avoid querying on each navigation, improve load times (prefetch/ssr), and provide a better user/developer experience, Tan Stack Query (formerly React Query) is implemented.
+
+The `useQuery` function, along with [supabase's cache helpers](https://github.com/psteinroe/supabase-cache-helpers), provide an easy way to cache data.
+
+### DTOs
+
+To improve the quality of the code, the [`db/queries.ts`](./db/queries.ts) shall be the only place that contains logic that interacts with the database. This is a cheap/hacky way to abstract the database away from the client layer.
+
+> [!NOTE]
+> This means that any changes to queries affect both the web and app clients.
+
+Changes to the `queries.ts` file should ideally not remove data expected by clients, but instead add new queries or expand the scope of existing ones, without breaking compatibility.
+
+Moving forwards, this also provides an easy way to test features in production, by means of using an integer flag like `is_live_mode` that can be selectively filtered on all queries at the same time and in the same place.
+
 ## Links
 
 - [Drizzle documentation](https://orm.drizzle.team/docs/overview)
