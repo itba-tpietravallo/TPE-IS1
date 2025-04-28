@@ -3,13 +3,14 @@ env:
     VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
     VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 on:
+    workflow_dispatch:
     push:
         paths:
             - "web/**"
         branches-ignore:
             - main
 jobs:
-    Deploy-Production:
+    Deploy-Preview:
         runs-on: ubuntu-latest
         defaults:
             run:
@@ -17,8 +18,6 @@ jobs:
         steps:
             - name: Checkout Repository
               uses: actions/checkout@v4
-              with:
-                  sparse-checkout: "web"
 
             - name: Cache node modules
               uses: actions/cache@v3
@@ -36,11 +35,14 @@ jobs:
                         - 'db/**'
 
             - name: Run Database Types Generation
-              if: ${{ steps.db-changes.outputs.db == 'true' }}
-              uses: ./.github/workflows/database-types.yaml
+              if: steps.db-changes.outputs.db == 'true'
+              uses: ./.github/actions/database-types
+              with:
+                SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+                SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
 
             - name: Install Vercel CLI
-              if: ${{ steps.cache-modules.outputs.cache-hit != 'true' }}
+              if: steps.cache-modules.outputs.cache-hit != 'true'
               run: npm install --global vercel@latest
 
             - name: Pull Vercel Environment Information
@@ -48,8 +50,10 @@ jobs:
 
             - name: Build Project Artifacts
               run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
+              timeout-minutes: 2
 
             - name: Deploy Project Artifacts to Vercel
               run: |
                   msg=`vercel deploy --token=${{ secrets.VERCEL_TOKEN }} --prebuilt`
                   echo "::notice title={[Preview] Deployed on Vercel}::$msg"
+              timeout-minutes: 2
