@@ -15,6 +15,7 @@ import { Picker } from "@react-native-picker/picker";
 import { createClient } from "@supabase/supabase-js";
 
 import { supabase } from "@/lib/supabase";
+import { router } from "expo-router";
 
 export default function PostTeam() {
 	const [teamName, setTeamName] = useState("");
@@ -45,6 +46,7 @@ export default function PostTeam() {
 			.catch((error) => {
 				console.error("Error al publicar el equipo:", error.message);
 			});
+			router.push("/(tabs)/teamsFeed");
 	};
 
 	const handleCancel = () => {
@@ -184,7 +186,7 @@ const styles = StyleSheet.create({
 		color: "#223332",
 	},
 	picker: {
-		height: 50,
+		height: 150,
 		width: "100%",
 		marginBottom: 15,
 		color: "#223332",

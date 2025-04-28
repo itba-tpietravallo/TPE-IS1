@@ -35,19 +35,20 @@ function PopUpTeam(props: PropsPopUpTeam) {
 	const playerPic = "https://cdn-icons-png.flaticon.com/512/1144/1144760.png";
 
 	const handleJoinTeam = async () => {
-		const newMembers = [...members, "Felipe"];
-		setMembers(newMembers);
-		await supabase
-			.from("teams")
-			.update({ players: newMembers })
-			.eq("team_id", team_id)
-			.then(({ data, error }) => {
-				console.log(error);
-				console.log("funciono");
-			})
-			.catch((error) => {
-				console.error("Error al unirse al equipo:", error.message);
-			});
+		console.log(team_id)
+		const newMembers = [...members, "Feli"];
+	  
+		const { data, error } = await supabase
+		  .from("teams")
+		  .update({ players: newMembers })
+		  .eq("team_id", team_id);
+	  
+		if (error) {
+		  console.error("Error al unirse al equipo:", error.message);
+		} else {
+		  console.log("Actualización exitosa", data);
+		  setMembers(newMembers); 
+		}
 	};
 
 	return (
@@ -76,7 +77,7 @@ function PopUpTeam(props: PropsPopUpTeam) {
 									<View style={styles.info}>
 										<Text style={styles.name}>{member}</Text>
 									</View>
-									<Text style={styles.number}>10</Text>
+									<Text style={styles.number}> {/* FEAT: NUMEROS DE JUGADORES */} </Text>   
 								</View>
 							);
 						})}
@@ -87,10 +88,10 @@ function PopUpTeam(props: PropsPopUpTeam) {
 				<Text style={styles.description}>{description}</Text>
 			</View>
 
-			{/* Unirse a un equipo */}
-			<TouchableOpacity style={[styles.joinTeamButton]} onPress={handleJoinTeam}>
+			{/* Unirse a un equipo */} 
+			{/* <TouchableOpacity style={[styles.joinTeamButton]} onPress={handleJoinTeam}>
 				<Text style={styles.buttonText}>Join Team</Text>
-			</TouchableOpacity>
+			</TouchableOpacity> */}
 		</View>
 	);
 }
@@ -119,12 +120,13 @@ const styles = StyleSheet.create({
 		paddingBottom: 20,
 	},
 	scrollArea: {
-		height: 320, // ← Largo fijo del ScrollView
+		height: 320, 
 		backgroundColor: "#f0f0f0",
 		marginBottom: 10,
 	},
 	mainInfo: {
 		marginLeft: 10,
+		marginRight: 10,
 	},
 	topInfo: {
 		paddingTop: 5,

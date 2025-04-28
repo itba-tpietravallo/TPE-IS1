@@ -4,45 +4,6 @@ cada equipo A,B,C a MI tab "teamsFeed.tsx"
 
 yo implemento la tab, feli implementa los modulos que se van a ver desde mi tab*/
 
-const players = [
-	{
-		id: "1",
-		name: "Feli B",
-		number: 11,
-		photo: "https://cdn-icons-png.flaticon.com/512/1144/1144760.png",
-	},
-	{
-		id: "2",
-		name: "Tomi P",
-		number: 10,
-		photo: "https://cdn-icons-png.flaticon.com/512/1144/1144760.png",
-	},
-	{
-		id: "3",
-		name: "Maxi W",
-		number: 7,
-		photo: "https://cdn-icons-png.flaticon.com/512/1144/1144760.png",
-	},
-	{
-		id: "4",
-		name: "Lola DV",
-		number: 8,
-		photo: "https://cdn-icons-png.flaticon.com/512/1144/1144760.png",
-	},
-	{
-		id: "5",
-		name: "Lu O",
-		number: 9,
-		photo: "https://cdn-icons-png.flaticon.com/512/1144/1144760.png",
-	},
-	{
-		id: "6",
-		name: "Jose M",
-		number: 6,
-		photo: "https://cdn-icons-png.flaticon.com/512/1144/1144760.png",
-	},
-];
-
 import React, { useEffect, useState } from "react";
 import { ScrollView, Text, View, StyleSheet, TouchableOpacity, ImageBackground } from "react-native";
 import TeamPost from "../../components/teamPost"; // Importamos el módulo de Feli
@@ -66,22 +27,6 @@ type Team = {
 function TeamsFeed() {
 	const { data: teams } = useQuery(getAllTeams(supabase));
 	const [selectedSport, setSelectedSport] = useState<string>("");
-
-	// Placeholder para los equipos ACA ES DONDE EN REALIDAD VA A HABER UNA LLAMADA A LA BDD O API (igual que en canchas.tsx)
-	// useEffect(() => {
-	// 	const placeholderTeams = [
-	// 		{ id: "1", name: "Equipo A", sport: "Fútbol", members: 5, description: "Equipo de fútbol local" },
-	// 		{
-	// 			id: "2",
-	// 			name: "Equipo B",
-	// 			sport: "Básquetbol",
-	// 			members: 8,
-	// 			description: "Equipo de básquet competitivo",
-	// 		},
-	// 		{ id: "3", name: "Equipo C", sport: "Tenis", members: 2, description: "Dúo de tenis profesional" },
-	// 	];
-	// 	setTeams(placeholderTeams);
-	// }, []);
 
 	const handleSportPress = (sportName: string) => {
 		setSelectedSport(sportName);
