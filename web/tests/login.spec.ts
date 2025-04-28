@@ -4,7 +4,7 @@ const BASE_URL = "http://localhost:5173";
 const TEST_USER_EMAIL = process.env.TEST_USER_EMAIL || "";
 const TEST_USER_PASSWORD = process.env.TEST_USER_PASSWORD || "";
 
-test.only("email login", async ({ page }) => {
+test("email login", async ({ page }) => {
 	await page.goto(`${BASE_URL}/login`);
 
 	// Expect a title "to contain" a substring.

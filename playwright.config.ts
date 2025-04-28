@@ -6,14 +6,21 @@ import { defineConfig, devices } from "@playwright/test";
  */
 import dotenv from "dotenv";
 import path from "path";
-console.log(dotenv.config({ path: path.resolve(__dirname, ".env") }));
+import fs from "fs";
+
+try {
+	// File exists then load it
+	if (fs.existsSync(path.resolve(__dirname, ".env"))) {
+		console.log(dotenv.config({ path: path.resolve(__dirname, ".env") }));
+	}
+} catch (e) {}
 
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
 	webServer: {
-		command: "cd web && npm run dev",
+		command: "cd web && npm ci && npm run dev",
 		port: 5173,
 		reuseExistingServer: !process.env.CI,
 		env: {
