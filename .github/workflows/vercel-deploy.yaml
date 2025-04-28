@@ -49,14 +49,14 @@ jobs:
               run: npm install --global vercel@latest
 
             - name: Pull Vercel Environment Information
-              run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+              run: npx vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
 
             - name: Build Project Artifacts
-              run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+              run: npx vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
               timeout-minutes: 2
 
             - name: Deploy Project Artifacts to Vercel
               run: |
-                  msg=`vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}`
+                  msg=`npx vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}`
                   echo "::notice title={[Production] Deployed on Vercel}::$msg"
               timeout-minutes: 2
