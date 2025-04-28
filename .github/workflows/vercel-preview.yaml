@@ -23,7 +23,9 @@ jobs:
               uses: actions/cache@v3
               id: cache-modules
               with:
-                  path: web/node_modules
+                  path: |
+                    web/node_modules
+                    ~/.npm
                   key: node_modules-${{ runner.os }}-preview-${{hashFiles('web/package-lock.json')}}
                   restore-keys: node_modules-${{ runner.os }}-preview-
 
