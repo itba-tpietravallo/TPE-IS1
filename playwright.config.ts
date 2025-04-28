@@ -4,18 +4,22 @@ import { defineConfig, devices } from "@playwright/test";
  * Read environment variables from file.
  * https://github.com/motdotla/dotenv
  */
-// import dotenv from 'dotenv';
-// import path from 'path';
-// dotenv.config({ path: path.resolve(__dirname, '.env') });
+import dotenv from "dotenv";
+import path from "path";
+console.log(dotenv.config({ path: path.resolve(__dirname, ".env") }));
 
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
 	webServer: {
-		command: "cd web && npm ci && npm run dev",
+		command: "cd web && npm run dev",
 		port: 5173,
 		reuseExistingServer: !process.env.CI,
+		env: {
+			TEST_USER_EMAIL: process.env.TEST_USER_EMAIL!,
+			TEST_USER_PASSWORD: process.env.TEST_USER_PASSWORD!,
+		},
 	},
 	testDir: "./web/tests",
 	/* Run tests in files in parallel */

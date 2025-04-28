@@ -24,13 +24,13 @@ jobs:
       
             - name: Get installed Playwright version
               id: playwright-version
-              run: echo "version::$(npm ls @playwright/test --json | jq --raw-output '.dependencies["@playwright/test"].version')" >> $GITHUB_OUTPUT
+              run: echo "PLAYWRIGHT_VERSION=$(npm ls @playwright/test --json | jq --raw-output '.dependencies["@playwright/test"].version')" >> $GITHUB_ENV
             
             - uses: actions/cache@v3
               id: playwright-cache
               with:
                 path: '~/.cache/ms-playwright'
-                key: '${{ runner.os }}-playwright-${{ steps.playwright-version.outputs.version }}'
+                key: '${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}'
                 restore-keys: |
                   ${{ runner.os }}-playwright-
 

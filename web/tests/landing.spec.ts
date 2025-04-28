@@ -1,14 +1,18 @@
 import { test, expect } from "@playwright/test";
 
+const BASE_URL = "http://localhost:5173";
+// const TEST_USER_EMAIL = process.env.TEST_USER_EMAIL || "";
+// const TEST_USER_PASSWORD = process.env.TEST_USER_PASSWORD || "";
+
 test("has title", async ({ page }) => {
-	await page.goto("http://localhost:5173/");
+	await page.goto(`${BASE_URL}/`);
 
 	// Expect a title "to contain" a substring.
 	await expect(page).toHaveTitle(/MatchPoint/);
 });
 
 test("publish field login redirection", async ({ page }) => {
-	await page.goto("http://localhost:5173/");
+	await page.goto(`${BASE_URL}/`);
 
 	// Click the get started link.
 	const button = await page.getByText("Publicá tu cancha");
