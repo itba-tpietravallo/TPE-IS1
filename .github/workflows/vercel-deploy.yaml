@@ -3,11 +3,13 @@ env:
     VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
     VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 on:
+    workflow_dispatch:
     push:
         paths:
             - "web/**"
         branches:
             - main
+
 jobs:
     Deploy-Production:
         runs-on: ubuntu-latest
@@ -17,26 +19,44 @@ jobs:
         steps:
             - name: Checkout Repository
               uses: actions/checkout@v4
+              
+            - uses: dorny/paths-filter@v3
+              id: db-changes
               with:
-                  sparse-checkout: "web"
+                  filters: |
+                      db:
+                        - 'db/**'
 
+            - name: Run Database Types Generation
+              if: steps.db-changes.outputs.db == 'true'
+              uses: ./.github/actions/database-types
+              with:
+                SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+                SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+                
             - name: Cache node modules
               uses: actions/cache@v3
+              id: cache-modules
               with:
-                  path: web/node_modules
-                  key: node_modules-${{ runner.os }}-deploy-${{hashFiles('web/package-lock.lock')}}
+                  path: |
+                    web/node_modules
+                    ~/.npm
+                  key: node_modules-${{ runner.os }}-deploy-${{hashFiles('web/package-lock.json')}}
                   restore-keys: node_modules-${{ runner.os }}-deploy-
 
             - name: Install Vercel CLI
+              if: steps.cache-modules.outputs.cache-hit != 'true'
               run: npm install --global vercel@latest
 
             - name: Pull Vercel Environment Information
-              run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+              run: npx vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
 
             - name: Build Project Artifacts
-              run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+              run: npx vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+              timeout-minutes: 2
 
             - name: Deploy Project Artifacts to Vercel
               run: |
-                  msg=`vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}`
+                  msg=`npx vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}`
                   echo "::notice title={[Production] Deployed on Vercel}::$msg"
+              timeout-minutes: 2
