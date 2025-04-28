@@ -31,10 +31,10 @@ export default function FieldDetailPage() {
 
 	// Isn't this an infinite loop?
 	// -- Tomas Pietravallo (2024-04-28)
-	// useEffect(() => {
-	// 	setName(field?.name);
-	// 	setDescription(field?.description);
-	// }, [field?.name, field?.description]);
+	useEffect(() => {
+		setName(field?.name);
+		setDescription(field?.description);
+	}, [field?.name, field?.description]);
 
 	return (
 		<FieldDetail
