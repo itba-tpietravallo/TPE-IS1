@@ -38,23 +38,6 @@ const normalizeString = (str: string) => {
 function CanchasFeed() {
 	const [selectedSport, setSelectedSport] = useState<string>("");
 
-	// useEffect(() => {
-	//   supabase
-	//     .rpc("nearby_fields", {
-	//       lat: -34.601, // @todo get user location
-	//       long: -58.382,
-	//       lim: 10,
-	//     })
-	//     .then(({ data, error }) => {
-	//       if (error) {
-	//         console.error("Error fetching fields:", error);
-	//       } else {
-	//         console.log("Fetched fields:", data);
-	//         setFields(data);
-	//       }
-	//     });
-	// }, []);
-
 	const { data: fields } = useQuery(getAllFields(supabase));
 	const { data: sports } = useQuery(getAllSports(supabase));
 
@@ -101,9 +84,11 @@ function CanchasFeed() {
 							</TouchableOpacity>
 						</View>
 					))}
-					<TouchableOpacity style={{ padding: 10 }} onPress={() => handleSportPress("")}>
-						<Text>X</Text>
-					</TouchableOpacity>
+					{(sports || [])?.length > 0 && (
+						<TouchableOpacity style={{ padding: 10 }} onPress={() => handleSportPress("")}>
+							<Text>X</Text>
+						</TouchableOpacity>
+					)}
 				</ScrollView>
 			</View>
 			<ScrollView

@@ -27,26 +27,17 @@ export default function PostTeam() {
 	const [isPublishing, setIsPublishing] = useState(false); // Estado para controlar el color del botón "Publicar"
 
 	const handlePostTeam = async () => {
-		await supabase
-			.from("teams")
-			.insert([
-				{
-					name: teamName,
-					sport: sport,
-					description: description,
-					images: null,
-					//availability: availability, // Disponibilidad ingresada
-					players: members, // Miembros como una lista separada por comas
-				},
-			])
-			.then(({ data, error }) => {
-				console.log(error);
-				console.log("funciono");
-			})
-			.catch((error) => {
-				console.error("Error al publicar el equipo:", error.message);
-			});
-			router.push("/(tabs)/teamsFeed");
+		await supabase.from("teams").insert([
+			{
+				name: teamName,
+				sport: sport,
+				description: description,
+				images: null,
+				//availability: availability, // Disponibilidad ingresada
+				players: members, // Miembros como una lista separada por comas
+			},
+		]);
+		router.push("/(tabs)/teamsFeed");
 	};
 
 	const handleCancel = () => {

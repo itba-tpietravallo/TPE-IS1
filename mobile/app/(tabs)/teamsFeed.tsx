@@ -13,7 +13,7 @@ import { router } from "expo-router";
 
 import { supabase } from "@/lib/supabase";
 import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
-import { getAllTeams } from "@/lib/autogen/queries";
+import { getAllTeams, getAllSports } from "@/lib/autogen/queries";
 
 type Team = {
 	team_id: string;
@@ -26,6 +26,7 @@ type Team = {
 
 function TeamsFeed() {
 	const { data: teams } = useQuery(getAllTeams(supabase));
+	const { data: sports } = useQuery(getAllSports(supabase));
 	const [selectedSport, setSelectedSport] = useState<string>("");
 
 	const handleSportPress = (sportName: string) => {
@@ -58,19 +59,29 @@ function TeamsFeed() {
 						paddingRight: 10,
 					}}
 				>
-					{["Fútbol", "Básquetbol", "Tenis", "Hockey", "Volley"].map((sport) => (
-						<View key={sport} style={{ padding: 10 }}>
-							<TouchableOpacity
-								style={[styles.sportButton, selectedSport === sport ? styles.selectedSportButton : {}]}
-								onPress={() => handleSportPress(sport)}
-							>
-								<Text>{sport}</Text>
-							</TouchableOpacity>
-						</View>
-					))}
-					<TouchableOpacity style={{ padding: 10 }} onPress={() => handleSportPress("")}>
-						<Text>X</Text>
-					</TouchableOpacity>
+					{(sports || []).length > 0 &&
+						(sports || []).map(
+							(sport) =>
+								sport &&
+								sport.name && (
+									<View key={sport.name} style={{ padding: 10 }}>
+										<TouchableOpacity
+											style={[
+												styles.sportButton,
+												selectedSport === sport.name ? styles.selectedSportButton : {},
+											]}
+											onPress={() => handleSportPress(sport.name)}
+										>
+											<Text>{sport.name}</Text>
+										</TouchableOpacity>
+									</View>
+								),
+						)}
+					{(sports || []).length > 0 && (
+						<TouchableOpacity style={{ padding: 10 }} onPress={() => handleSportPress("")}>
+							<Text>X</Text>
+						</TouchableOpacity>
+					)}
 				</ScrollView>
 			</View>
 
