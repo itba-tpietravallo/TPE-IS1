@@ -1,9 +1,11 @@
 name: Playwright Tests
 on:
+    workflow_dispatch:
     push:
         branches: [main, dev]
         paths:
             - "web/tests/**"
+            - "playwright.config.ts"
     pull_request:
         branches: [main, dev]
         paths:
@@ -15,15 +17,44 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
+
             - uses: actions/setup-node@v4
               with:
                   node-version: lts/*
+      
+            - name: Get installed Playwright version
+              id: playwright-version
+              run: echo -n "::set-output name=version::$(npm ls @playwright/test --json | jq --raw-output '.dependencies["@playwright/test"].version')"
+            
+            - uses: actions/cache@v3
+              id: playwright-cache
+              with:
+                path: '~/.cache/ms-playwright'
+                key: '${{ runner.os }}-playwright-${{ steps.playwright-version.outputs.version }}'
+                restore-keys: |
+                  ${{ runner.os }}-playwright-
+
+            - uses: actions/cache@v3
+              id: node-cache
+              with:
+                path: |
+                  '~/.npm'
+                  'node_modules'
+                key: "${{ runner.os }}-playwright-node-${{ hashFiles('package-lock.json') }}"
+                restore-keys: |
+                  ${{ runner.os }}-playwright-
+
             - name: Install dependencies
+              if: steps.node-cache.outputs.cache-hit != 'true'
               run: npm ci
+            
             - name: Install Playwright Browsers
+              if: steps.playwright-cache.outputs.cache-hit != 'true'
               run: npx playwright install --with-deps
+            
             - name: Run Playwright tests
               run: npx playwright test
+            
             - uses: actions/upload-artifact@v4
               if: ${{ !cancelled() }}
               with:

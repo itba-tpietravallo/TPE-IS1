@@ -13,7 +13,7 @@ import { defineConfig, devices } from "@playwright/test";
  */
 export default defineConfig({
 	webServer: {
-		command: "cd web && npm run dev",
+		command: "cd web && npm ci && npm run dev",
 		port: 5173,
 		reuseExistingServer: !process.env.CI,
 	},
