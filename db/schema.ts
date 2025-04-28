@@ -204,10 +204,10 @@ export const teamsTable = pgTable(
 	{
 		team_id: uuid().primaryKey().defaultRandom().notNull(),
 		name: text().notNull(),
-		sport: text().notNull(),
+		sport: text().notNull(),  //@TODO: hacer reference a sportsTable
 		description: text(),
 		images: text().array(),
-		players: uuid().array().notNull()
+		players: text().array().notNull()   //Solucion provisoria | @TODO: convertir a uuid y hacer reference a usersTable
 	},
 	(table) => [
 		// INSERT, UPDATE, DELETE are disallowed by default.
