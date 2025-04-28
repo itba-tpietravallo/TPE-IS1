@@ -1,11 +1,19 @@
 import { MapPin, DollarSign } from "lucide-react";
 import { Card, CardTitle, CardDescription, CardContent } from "~/components/ui/card";
 import { LoaderFunctionArgs } from "@remix-run/node";
-import { useLoaderData } from "@remix-run/react";
-import { createBrowserClient } from "@supabase/ssr";
 import { useEffect, useState } from "react";
 import { Link } from "@remix-run/react";
 import clsx from "clsx";
+
+import { useLoaderData } from "@remix-run/react"; // Remix Loader
+import { createBrowserClient } from "@supabase/ssr"; // Supabase Client
+
+import { dehydrate, QueryClient } from "@tanstack/react-query"; // React Query
+import { useQuery, prefetchQuery } from "@supabase-cache-helpers/postgrest-react-query"; // Cache Helpers
+
+import { getAllFields } from "@lib/autogen/queries"; // Database Queries
+import type { Database } from "@lib/autogen/database.types"; // Database Types
+import { createSupabaseServerClient } from "@lib/supabase.server";
 
 type FieldPreviewProps = {
 	id: string;
@@ -15,28 +23,33 @@ type FieldPreviewProps = {
 	location: string;
 };
 
-export function loader(args: LoaderFunctionArgs) {
+export async function loader(args: LoaderFunctionArgs) {
 	const env = {
 		SUPABASE_URL: process.env.SUPABASE_URL!,
 		SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY!,
 	};
 
+	const queryClient = new QueryClient();
+
+	const { supabaseClient } = createSupabaseServerClient(args.request);
+	await prefetchQuery(queryClient, getAllFields(supabaseClient));
+	// @todo fetchQueryInitialData
+
 	return {
 		env,
 		URL_ORIGIN: new URL(args.request.url).origin,
+		dehydratedState: dehydrate(queryClient),
 	};
 }
 
 type FieldsPreviewGridProps = {
-	fields: FieldPreviewProps[];
+	fields: FieldPreviewProps[] | null;
 };
 
 export function FieldsPreviewGrid({ fields }: FieldsPreviewGridProps) {
 	return (
 		<div className="grid w-full grid-cols-1 gap-2 p-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-			{fields.map((field, index) => (
-				<FieldPreview key={field.id} {...field} />
-			))}
+			{fields?.map((field, index) => <FieldPreview key={field.id} {...field} />)}
 		</div>
 	);
 }
@@ -46,17 +59,17 @@ export function FieldPreview(props: FieldPreviewProps & { className?: string }) 
 	return (
 		<div className={clsx("flex h-full min-h-full w-full grow p-2", props?.className)}>
 			<Link to={`/canchas/detalle-canchas/${id}`} className="min-h-full w-full">
-				<Card className="min-h-full w-full border border-[#f2f4f3] bg-[#f2f4f3] transition-all duration-200 hover:border-[#f18f01] hover:bg-[#f18f01]">
+				<Card className="group min-h-full w-full border border-[#22332a] bg-[#223332]/80 backdrop-blur-md transition-all duration-200 hover:bg-[#223332]">
 					<div className="flex flex-col">
-						<CardTitle className="p-4">{name}</CardTitle>
-						<hr className="mx-4 w-[85%] border-t border-gray-300" />
+						<CardTitle className="p-4 text-[#f2f4f3] group-hover:text-[#f18f01]">{name}</CardTitle>
+						<hr className="mx-4 w-[85%] border-t border-gray-200" />
 						<CardDescription className="flex flex-col gap-2 p-4">
-							<div className="flex items-center gap-2">
-								<MapPin className="h-4 w-4 text-gray-500" />
+							<div className="flex items-center gap-2 text-gray-300">
+								<MapPin className="h-4 w-4" />
 								{location}
 							</div>
-							<div className="flex items-center gap-2">
-								<DollarSign className="h-4 w-4 text-gray-500" />
+							<div className="flex items-center gap-2 text-gray-300">
+								<DollarSign className="h-4 w-4" />
 								{price}
 							</div>
 						</CardDescription>
@@ -72,35 +85,20 @@ export function FieldPreview(props: FieldPreviewProps & { className?: string }) 
 
 export default function () {
 	const { URL_ORIGIN, env } = useLoaderData<typeof loader>();
-	const supabase = createBrowserClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
-	const [users, setUsers] = useState<any[]>([]);
+	const supabase = createBrowserClient<Database>(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
 
-	useEffect(() => {
-		supabase
-			.from("fields")
-			.select("*")
-			.then(({ data, error }) => {
-				if (error) {
-					console.error("Supabase error:", error);
-				} else {
-					setUsers(data as any[]);
-				}
-			});
-	}, []);
+	const { data } = useQuery(getAllFields(supabase));
 
-	const fields = users.map((user, i) => ({
+	const fields = data?.map((user, i) => ({
 		id: user.id,
 		name: user.name,
 		img: user.images[0],
 		price: user.price,
 		location: `${user.street} ${user.street_number}`,
-	}));
+	}))!;
 
 	return (
-		<div
-			className="h-full w-full bg-[#f2f4f3] bg-auto bg-cover"
-			style={{ backgroundImage: "url('/matchpoint-bg2.png')" }}
-		>
+		<div className="h-full w-full bg-[#f2f4f3] bg-cover" style={{ backgroundImage: "url('/matchpoint-bg2.png')" }}>
 			<FieldsPreviewGrid fields={fields} />
 		</div>
 	);

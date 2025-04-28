@@ -24,4 +24,4 @@ All commits to a branch will trigger a Github Action's workflow that'll build an
 
 Commits on the main branch will trigger production builds, while commits on other branches will trigger preview builds.
 
-Github Actions use secrets corresponding to the `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`, and `VERCEL_TOKEN` corresponding to @tomaspietravallo's account (please get in touch to debug the ci/cd pipeline). Secrets were set up on March 18th, 2025 with a 1 YEAR expiry. 
+Github Actions use secrets corresponding to the `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`, and `VERCEL_TOKEN` corresponding to @tomaspietravallo's account (please get in touch to debug the ci/cd pipeline). Secrets were set up on March 18th, 2025 with a 1 YEAR expiry.

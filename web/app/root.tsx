@@ -1,7 +1,12 @@
 import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "@remix-run/react";
 import type { LinksFunction } from "@remix-run/node";
 
+import { Hydrate, QueryCache, QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+import { useDehydratedState } from "use-dehydrated-state";
+
 import styles from "./tailwind.css?url";
+import { useState } from "react";
 
 export const links: LinksFunction = () => [
 	{ rel: "stylesheet", href: styles },
@@ -36,5 +41,27 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-	return <Outlet />;
+	const [queryClient] = useState(
+		() =>
+			new QueryClient({
+				defaultOptions: {
+					queries: {
+						cacheTime: 1000 * 60 * 5,
+						staleTime: 1000 * 60 * 5,
+						refetchOnWindowFocus: "always",
+						refetchOnReconnect: true,
+					},
+				},
+			}),
+	);
+
+	const dehydratedState = useDehydratedState();
+
+	return (
+		<QueryClientProvider client={queryClient}>
+			<Hydrate state={dehydratedState}>
+				<Outlet />
+			</Hydrate>
+		</QueryClientProvider>
+	);
 }

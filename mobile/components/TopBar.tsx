@@ -4,6 +4,8 @@ import { router } from "expo-router";
 import { supabase } from "@/lib/supabase";
 import { useEffect, useState } from "react";
 import { Session } from "@supabase/supabase-js";
+import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
+import { getUserSession } from "@/lib/autogen/queries";
 
 type User = {
 	id: string;
@@ -12,23 +14,8 @@ type User = {
 };
 
 function TopBar() {
-	const [user, setUser] = useState<Session | null>(null);
-	useEffect(() => {
-		supabase.auth.getSession().then(({ data: { session } }) => {
-			supabase
-				.from("users")
-				.select("*")
-				.eq("id", session?.user.id)
-				.single()
-				.then(({ data, error }) => {
-					if (error) {
-						console.error("Error fetching user:", error);
-					} else {
-						setUser(data);
-					}
-				});
-		});
-	}, []);
+	const { data: user } = useQuery(getUserSession(supabase));
+
 	return (
 		<SafeAreaView style={styles.container}>
 			<View style={styles.innerContainer}>
@@ -52,7 +39,8 @@ function TopBar() {
 					</Text>
 				</View>
 				<TouchableOpacity onPress={() => router.push("/(tabs)/profile")}>
-					<Image style={styles.image} source={{ uri: user?.avatar_url }} />
+					{/* @todo undefined_image is a stub that'll hopefully get logged in RN Dev Tools */}
+					<Image style={styles.image} source={{ uri: user?.avatar_url || "undefined_image" }} />
 				</TouchableOpacity>
 			</View>
 		</SafeAreaView>

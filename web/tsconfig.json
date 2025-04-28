@@ -5,7 +5,8 @@
 		"**/.server/**/*.ts",
 		"**/.server/**/*.tsx",
 		"**/.client/**/*.ts",
-		"**/.client/**/*.tsx"
+		"**/.client/**/*.tsx",
+		"../db/queries.ts"
 	],
 	"compilerOptions": {
 		"lib": ["DOM", "DOM.Iterable", "ES2022"],
@@ -23,8 +24,9 @@
 		"forceConsistentCasingInFileNames": true,
 		"baseUrl": ".",
 		"paths": {
-			"@/*": ["./app/*"],
-			"~/*": ["./app/*"]
+			"@*": ["./app/*"],
+			"~/*": ["./app/*"],
+			"@db/*": ["../db/*"]
 		},
 
 		// Vite takes care of building everything, not tsc.

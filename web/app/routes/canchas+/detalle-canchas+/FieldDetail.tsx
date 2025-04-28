@@ -25,7 +25,9 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { useLoaderData, useNavigate } from "@remix-run/react";
 import { createBrowserClient } from "@supabase/ssr";
 import { LoaderFunctionArgs } from "@remix-run/node";
-import { set } from "react-hook-form";
+
+import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
+import { getAllUsers } from "@lib/autogen/queries";
 
 let globalName = "";
 let globalDescription = "";
@@ -241,20 +243,7 @@ export function FieldDetail(props: FieldProps) {
 	const { imgSrc, name, setName, location, price, description, setDescription, reservations } = props;
 	const { env, URL_ORIGIN, id } = useLoaderData<typeof loader>();
 	const supabase = createBrowserClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
-	const [users, setUsers] = useState<Users[]>([]);
-
-	useEffect(() => {
-		supabase
-			.from("users")
-			.select("*")
-			.then(({ data, error }) => {
-				if (error) {
-					console.error("Error al guardar:", error.message);
-				} else {
-					setUsers(data as Users[]);
-				}
-			});
-	}, [name]);
+	const { data: users } = useQuery(getAllUsers(supabase));
 
 	return (
 		<div className="h-full bg-[#f2f4f3]">
@@ -303,7 +292,10 @@ export function FieldDetail(props: FieldProps) {
 												</div>
 												<div>
 													{" "}
-													{users.find((user) => user.id === reservations.owner_id)?.full_name}
+													{
+														(users || [])?.find((user) => user.id === reservations.owner_id)
+															?.full_name
+													}
 												</div>
 											</div>
 										))

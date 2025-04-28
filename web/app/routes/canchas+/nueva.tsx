@@ -14,13 +14,16 @@ import {
 import { Input } from "../../components/ui/input";
 import { Textarea } from "../../components/ui/textarea";
 import MultipleSelector, { Option } from "../../components/ui/multiselector";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import clsx from "clsx";
 import { LoaderFunctionArgs } from "@remix-run/node";
-import { createBrowserClient, createServerClient } from "@supabase/ssr";
+import { createBrowserClient } from "@supabase/ssr";
 import { useLoaderData } from "@remix-run/react";
 import { authenticateUser } from "~/lib/auth.server";
 import { User } from "@supabase/supabase-js";
+import { DollarSign } from "lucide-react";
+import { getAllSports, insertNewField } from "@/lib/autogen/queries";
+import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
 
 export async function loader(args: LoaderFunctionArgs) {
 	const env = {
@@ -90,22 +93,20 @@ export function NewField() {
 				: [];
 
 			// Insert form data into a table
-			const { error: insertError } = await supabase.from("fields").insert([
-				{
-					owner: user.user.id,
-					name: data.name,
-					street: data.street,
-					street_number: data.street_number,
-					neighborhood: data.neighbourhood,
-					city: data.city,
-					sports: sportsArray,
-					images: uploadedImageUrls,
-					price: Number(data.price),
-					location: `POINT(${lat} ${lng})`,
-					description: data.description,
-					avatar_url: user.avatar_url,
-				},
-			]);
+			const { error: insertError } = await insertNewField(supabase, {
+				owner: user.user.id,
+				name: data.name,
+				street: data.street,
+				street_number: data.street_number,
+				neighborhood: data.neighbourhood,
+				city: data.city,
+				sports: sportsArray,
+				images: uploadedImageUrls,
+				price: Number(data.price),
+				location: `POINT(${lat} ${lng})`,
+				description: data.description,
+				avatar_url: user.avatar_url,
+			});
 
 			if (insertError) throw new Error(`Insert error: ${insertError.message}`);
 		} catch (err: any) {
@@ -115,26 +116,16 @@ export function NewField() {
 		window.location.href = `${URL_ORIGIN}/canchas`;
 	};
 
-	const [options, setOptions] = useState<Option[]>([]);
+	const { data: sports } = useQuery(getAllSports(supabase));
 
-	useEffect(() => {
-		supabase
-			.from("sports")
-			.select("name")
-			.then((values) => {
-				if (values.error) {
-					console.error("Error fetching sports:", values.error.message);
-					return;
-				}
-
-				const fetchedOptions: Option[] = values.data.map((item) => ({
-					label: item.name,
-					value: item.name.toLowerCase(),
-				}));
-
-				setOptions(fetchedOptions);
-			});
-	}, []);
+	const options = useMemo(
+		() =>
+			(sports || [])?.map((item) => ({
+				label: item.name,
+				value: item.name.toLowerCase(),
+			})),
+		[sports],
+	);
 
 	return (
 		<div className="flex min-h-screen flex-col items-center justify-center space-y-12 bg-[#f2f4f3]">
@@ -157,15 +148,7 @@ export function NewField() {
 					<hr className="my-4 border-t border-gray-300" />
 					<ImageSection form={form} />
 					<hr className="my-4 border-t border-gray-300" />
-					<BasicBox
-						section="price"
-						label="Precio"
-						placeholder=""
-						description=""
-						box_specifications="w-6/6 h-10 text-lg px-4"
-						label_specifications="text-base font-sans text-[#223332]"
-						form={form}
-					/>
+					<PriceSection form={form} />
 					<hr className="my-4 border-t border-gray-300" />
 					<DescriptionSection
 						placeholder="Información adicional sobre la cancha y servicios. Por ejemplo, cantidad de jugadores, días y horarios de apertura."
@@ -195,7 +178,7 @@ type BasicBoxProps = {
 	description: string;
 	box_specifications: string;
 	label_specifications?: string;
-	form: UseFormReturn<any, any, undefined>;
+	form: UseFormReturn<any, any, any>;
 };
 
 function BasicBox({
@@ -225,7 +208,7 @@ function BasicBox({
 	);
 }
 
-function AddressSection({ form }: { form: UseFormReturn<any, any, undefined> }) {
+function AddressSection({ form }: { form: UseFormReturn<any, any, any> }) {
 	return (
 		<div className="flex flex-col space-y-5">
 			<FormLabel className="font-sansfont-sans text-base text-[#223332]">Dirección</FormLabel>
@@ -267,7 +250,7 @@ function AddressSection({ form }: { form: UseFormReturn<any, any, undefined> }) 
 	);
 }
 
-function SelectFormSection({ form, options }: { form: UseFormReturn<any, any, undefined>; options: Option[] }) {
+function SelectFormSection({ form, options }: { form: UseFormReturn<any, any, any>; options: Option[] }) {
 	return (
 		<FormField
 			control={form.control}
@@ -297,10 +280,35 @@ function SelectFormSection({ form, options }: { form: UseFormReturn<any, any, un
 	);
 }
 
+function PriceSection({ form }: { form: UseFormReturn<any, any, any> }) {
+	return (
+		<FormField
+			control={form.control}
+			name="price"
+			render={({ field }) => (
+				<FormItem>
+					<FormLabel className={clsx("font-sans text-base text-[#223332]", "text-[#223332]")}>
+						Precio
+					</FormLabel>
+					<FormControl>
+						<div className="relative w-full">
+							<span className="absolute left-3 top-1/2 -translate-y-1/2 text-black">
+								<DollarSign className="h-4 w-4" />
+							</span>
+							<Input className="w-6/6 h-10 pl-8 pr-4 text-lg" {...field} />
+						</div>
+					</FormControl>
+					<FormMessage />
+				</FormItem>
+			)}
+		/>
+	);
+}
+
 type DescriptionSectionProps = {
 	placeholder: string;
 	box_specifications: string;
-	form: UseFormReturn<any, any, undefined>;
+	form: UseFormReturn<any, any, any>;
 };
 
 function DescriptionSection({ placeholder, box_specifications, form }: DescriptionSectionProps) {
@@ -321,7 +329,7 @@ function DescriptionSection({ placeholder, box_specifications, form }: Descripti
 	);
 }
 
-function ImageSection({ form }: { form: UseFormReturn<any, any, undefined> }) {
+function ImageSection({ form }: { form: UseFormReturn<any, any, any> }) {
 	const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 	const fileInputRef = useRef<HTMLInputElement | null>(null);
 
