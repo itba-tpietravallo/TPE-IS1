@@ -3,6 +3,8 @@ import { useLoaderData } from "@remix-run/react";
 import { createBrowserClient } from "@supabase/ssr";
 import { useEffect, useState } from "react";
 import { FieldDetail } from "./FieldDetail";
+import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
+import { getAllReservationsForFieldById, getFieldById } from "@lib/autogen/queries";
 
 export function loader(args: LoaderFunctionArgs) {
 	const env = {
@@ -18,59 +20,33 @@ export function loader(args: LoaderFunctionArgs) {
 }
 
 export default function FieldDetailPage() {
-	const imgs: string[] = ["web/public/img1-f11.jpg", "web/public/img2-f11.jpg", "web/public/img3-f11.jpg"];
+	// @todo prefetch images
 	const { env, URL_ORIGIN, id } = useLoaderData<typeof loader>();
 	const supabase = createBrowserClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
-	const [field, setField] = useState<any>([]);
-	const [reservations, setReservations] = useState<any[]>([]);
+	const { data: field } = useQuery(getFieldById(supabase, id || ""));
+	const { data: reservations } = useQuery(getAllReservationsForFieldById(supabase, id || ""));
 
-	useEffect(() => {
-		supabase
-			.from("fields")
-			.select("*")
-			.eq("id", id)
-			.single()
-			.then(({ data, error }) => {
-				if (error) {
-					console.error("Supabase error:", error);
-				} else {
-					setField(data as any[]);
-				}
-			});
-		supabase
-			.from("reservations")
-			.select("*")
-			.eq("field_id", id)
-			.then(({ data, error }) => {
-				if (error) {
-					console.error("Supabase error:", error);
-				} else {
-					setReservations(data as any[]);
-				}
-			});
-	}, []);
+	const [name, setName] = useState(field?.name);
+	const [description, setDescription] = useState(field?.description);
 
-	console.log(id);
-
-	const [name, setName] = useState(field.name);
-	const [description, setDescription] = useState(field.description);
-
-	useEffect(() => {
-		setName(field.name);
-		setDescription(field.description);
-	}, [field.name, field.description]);
+	// Isn't this an infinite loop?
+	// -- Tomas Pietravallo (2024-04-28)
+	// useEffect(() => {
+	// 	setName(field?.name);
+	// 	setDescription(field?.description);
+	// }, [field?.name, field?.description]);
 
 	return (
 		<FieldDetail
 			key={id}
-			name={name}
-			description={description}
-			imgSrc={field.images}
-			price={field.price}
-			location={`${field.street} ${field.street_number}`}
+			name={name || ""}
+			description={description || ""}
+			imgSrc={field?.images ?? []}
+			price={field?.price || 0}
+			location={`${field?.street} ${field?.street_number}`}
 			setDescription={setDescription}
 			setName={setName}
-			reservations={reservations}
+			reservations={reservations || []}
 		/>
 	);
 }

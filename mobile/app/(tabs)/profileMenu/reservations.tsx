@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase";
-import { StyleSheet, Text, TouchableOpacity, View, Modal } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View, Modal, FlatList } from "react-native";
 import { Image } from "@rneui/themed";
 import { Session } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
@@ -93,34 +93,42 @@ export default function Index() {
 			>
 				Mis reservas
 			</Text>
-			<View style={{ padding: 20, borderWidth: 1, borderColor: "#ccc", borderRadius: 5, margin: 10 }}>
+			<View style={{ padding: 5, borderWidth: 1, borderColor: "#ccc", borderRadius: 5, margin: 10 }}>
 				{reservations.length > 0 ? (
-					reservations.map((reservation, i) => (
-						<View
-							key={reservation.id}
-							style={{
-								flexDirection: "row",
-								justifyContent: "space-between",
-								padding: 10,
-								borderBottomWidth: 1,
-								borderBottomColor: "#ccc",
-							}}
-						>
-							<Text>
-								{new Date(reservation.date_time).toLocaleDateString("es-ES", {
-									year: "numeric",
-									month: "2-digit",
-									day: "2-digit",
-								})}{" "}
-							</Text>
-							<Text style={{ fontWeight: "bold" }}>{reservation.field.name}</Text>
-							<TouchableOpacity onPress={() => handleOpenModal(reservation)}>
-								<Image style={{ width: 20, height: 20 }} source={require("@/assets/images/info.png")} />
-							</TouchableOpacity>
-						</View>
-					))
+					<FlatList
+						data={reservations}
+						scrollEnabled={false}
+						keyExtractor={(item) => item.id.toString()}
+						renderItem={({ item }) => (
+							<View
+								style={{
+									flexDirection: "row",
+									justifyContent: "space-between",
+									padding: 15,
+								}}
+							>
+								<Text>
+									{new Date(item.date_time).toLocaleDateString("es-ES", {
+										year: "numeric",
+										month: "2-digit",
+										day: "2-digit",
+									})}
+								</Text>
+								<Text style={{ fontWeight: "bold" }}>{item.field.name}</Text>
+								<TouchableOpacity onPress={() => handleOpenModal(item)}>
+									<Image
+										style={{ width: 20, height: 20 }}
+										source={require("@/assets/images/info.png")}
+									/>
+								</TouchableOpacity>
+							</View>
+						)}
+						ItemSeparatorComponent={() => (
+							<View style={{ height: 1, backgroundColor: "#ccc", marginHorizontal: 10 }} />
+						)}
+					/>
 				) : (
-					<Text style={{ color: "gray" }}>No tienes reservas.</Text>
+					<Text style={{ color: "gray", padding: 20 }}>No tienes reservas.</Text>
 				)}
 			</View>
 			<Modal style={styles.modal} visible={isModalVisible} transparent={true} onRequestClose={handleCloseModal}>

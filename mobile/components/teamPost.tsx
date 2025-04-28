@@ -6,27 +6,29 @@ import PopUpReserva from "./PopUpReserva";
 import { router } from "expo-router";
 
 type Player = {
-    id: string
-    name: string
-    number: number
-    photo: string
-  }
-  
-  type PropsTeam = {
-    name: string;
-    sport: string;
-    description: string;
-    players: Player[];
-  };
+	id: string;
+	name: string;
+	number: number;
+	photo: string;
+};
+
+type PropsTeam = {
+	team_id: string;
+	name: string;
+	sport: string;
+	description: string;
+	players: string[]; //solucion provisoria
+	//players: Player[];
+};
 
 function TeamPost(props: PropsTeam) {
-	const { name, sport, description, players } = props;
+	const { team_id, name, sport, description, players } = props;
 	const [isModalVisible, setIsModalVisible] = useState(false);
 	const handleCloseModal = () => {
 		setIsModalVisible(false);
 	};
 
-	const backgroundImageSource = require("@/assets/images/no-imagen.jpeg");
+	const backgroundImageSource = require("@/assets/images/people-logo.jpg");
 
 	return (
 		<View style={{ flex: 1 }}>
@@ -39,9 +41,6 @@ function TeamPost(props: PropsTeam) {
 					<View style={styles.topContent}>
 						<Text style={styles.title}>{props.name}</Text>
 					</View>
-					<View style={styles.bottomContent}>
-						<Image style={styles.icon} source={require("@/assets/images/cancha.png")} />
-					</View>
 				</ImageBackground>
 			</TouchableOpacity>
 			<Modal
@@ -51,13 +50,14 @@ function TeamPost(props: PropsTeam) {
 				onRequestClose={() => setIsModalVisible(false)}
 			>
 				<View style={styles.centeredView}>
-                <PopUpTeam
+					<PopUpTeam
 						onClose={handleCloseModal}
+						team_id={team_id}
 						name={name}
 						sport={sport}
 						description={description}
-                        players={players}
-				/>
+						players={players}
+					/>
 				</View>
 			</Modal>
 		</View>

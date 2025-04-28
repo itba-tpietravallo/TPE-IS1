@@ -8,12 +8,11 @@ To host and maintain the PostgreSQL DB, [Supabase](https://supabase.com) was cho
 
 ### Error handling on Supabase
 
-> 
 > [!NOTE] DB/SQL errors produced on Supabase **WILL NOT** throw and will instead return an error object as follows:
 
 ```js
 // Lets assume the productx table does not exist
-const response = await supabase.from('productx').select('*')
+const response = await supabase.from("productx").select("*");
 ```
 
 Then the response will be:
@@ -49,11 +48,13 @@ This does not affect development in any way for features released up to drizzle-
 ## Environment Variables
 
 To push schema changes, pull, and visualize records using drizzle kit, a `.env` file needs to be present in the `/db` directory, with the following secrets:
+
 - `DATABASE_URL`
 
 This variable is a SECRET, and must be treated as such.
 
 For client libraries connecting to Supabase, the following env variables must be present on either `/web` or `/mobile`:
+
 - `SUPABASE_URL`
 - `SUPABASE_ANON_KEY`
 
@@ -68,36 +69,40 @@ All tables are protected by RLS. Using DrizzleORM, RLS can be explicitly enabled
 
 Queries made via Supabase are automatically identified internally to one of the following roles:
 
-1. anon 
+1. anon
 2. authenticated
 
-Anon roles correspond to anonymous users, meaning a users that has not logged in. 
+Anon roles correspond to anonymous users, meaning a users that has not logged in.
 
-An Authenticated call might come from someone who's signed in via the web or mobile applications. 
+An Authenticated call might come from someone who's signed in via the web or mobile applications.
 
 As an example, let's see how to implement RLS on the `users` table using drizzle.
 
 ```ts
-export const usersTable = pgTable("users", {
-	id: uuid()
-		.primaryKey()
-		.notNull()
-		.references((): AnyPgColumn => authUsers.id),
-	full_name: varchar({ length: 255 }).notNull(),
-	avatar_url: text(),
-  // ...
-}, (table) => [
-  // create a new Postgres Policy called "users - select authenticated"
-	pgPolicy("users - select authenticated", {
-		for: "select",
-		using: sql`true`,
-		to: authenticatedRole,
-		as: "restrictive",
-	}),
-]).enableRLS();
+export const usersTable = pgTable(
+	"users",
+	{
+		id: uuid()
+			.primaryKey()
+			.notNull()
+			.references((): AnyPgColumn => authUsers.id),
+		full_name: varchar({ length: 255 }).notNull(),
+		avatar_url: text(),
+		// ...
+	},
+	(table) => [
+		// create a new Postgres Policy called "users - select authenticated"
+		pgPolicy("users - select authenticated", {
+			for: "select",
+			using: sql`true`,
+			to: authenticatedRole,
+			as: "restrictive",
+		}),
+	],
+).enableRLS();
 ```
 
-In this example, RLS is enabled meaning no users can perform any operations not described by a policy. Then, we add a policy targeting `authenticatedRole` and specifically allow `SELECT`s to be performed. 
+In this example, RLS is enabled meaning no users can perform any operations not described by a policy. Then, we add a policy targeting `authenticatedRole` and specifically allow `SELECT`s to be performed.
 
 Read more on the [Drizzle docs on RLS](https://orm.drizzle.team/docs/rls).
 
@@ -119,6 +124,59 @@ To visualize the db schema and records present run:
 # npm i
 npx drizzle-kit studio
 ```
+
+## Caching
+
+> There are only two hard things in Computer Science: cache invalidation and naming things.
+>
+> Phil Karlton
+
+In order to avoid querying on each navigation, improve load times (prefetch/ssr), and provide a better user/developer experience, Tan Stack Query (formerly React Query) is implemented.
+
+The `useQuery` function, along with [supabase's cache helpers](https://github.com/psteinroe/supabase-cache-helpers), provide an easy way to cache data.
+
+### In practice
+
+Here you can see how two useEffect calls are simplified drastically by abstracting away the database calls. This way, useQuery replaces `useEffect + supabase.from + set[StateName]`
+
+```diff
+- useEffect(() => {
+- 	supabase
+- 		.from("fields")
+- 		.select("*")
+- 		.then(({ data, error }) => {
+- 			if (error) {
+- 				console.error("Error fetching fields:", error);
+- 			} else {
+- 				setFields(data);
+- 			}
+- 		});
+- 	supabase
+- 		.from("sports")
+- 		.select("*")
+- 		.then(({ data, error }) => {
+- 			if (error) {
+- 				console.error("Error fetching sports:", error);
+- 			} else {
+- 				setSports(data);
+- 			}
+- 		});
+- }, []);
+
++ const { data: fields } = useQuery(getAllFields(supabase));
++ const { data: sports } = useQuery(getAllSports(supabase));
+```
+
+### DTOs
+
+To improve the quality of the code, the [`db/queries.ts`](./db/queries.ts) shall be the only place that contains logic that interacts with the database. This is a cheap/hacky way to abstract the database away from the client layer.
+
+> [!NOTE]
+> This means that any changes to queries affect both the web and app clients.
+
+Changes to the `queries.ts` file should ideally not remove data expected by clients, but instead add new queries or expand the scope of existing ones, without breaking compatibility.
+
+Moving forwards, this also provides an easy way to test features in production, by means of using an integer flag like `is_live_mode` that can be selectively filtered on all queries at the same time and in the same place.
 
 ## Links
 

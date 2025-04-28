@@ -44,39 +44,51 @@ const players = [
 ];
 
 import React, { useEffect, useState } from "react";
-import { ScrollView, Text, View, StyleSheet, TouchableOpacity } from "react-native";
+import { ScrollView, Text, View, StyleSheet, TouchableOpacity, ImageBackground } from "react-native";
 import TeamPost from "../../components/teamPost"; // Importamos el módulo de Feli
 
+import { ScreenHeight } from "@rneui/themed/dist/config";
+import { router } from "expo-router";
+
+import { supabase } from "@/lib/supabase";
+import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
+import { getAllTeams } from "@/lib/autogen/queries";
+
 type Team = {
-	id: string;
+	team_id: string;
 	name: string;
 	sport: string;
 	members: number;
 	description: string;
+	players: string[];
 };
 
 function TeamsFeed() {
-	const [teams, setTeams] = useState<Team[]>([]);
+	const { data: teams } = useQuery(getAllTeams(supabase));
 	const [selectedSport, setSelectedSport] = useState<string>("");
 
 	// Placeholder para los equipos ACA ES DONDE EN REALIDAD VA A HABER UNA LLAMADA A LA BDD O API (igual que en canchas.tsx)
-	useEffect(() => {
-		const placeholderTeams = [
-			{ id: "1", name: "Equipo A", sport: "Fútbol", members: 5, description: "Equipo de fútbol local" },
-			{
-				id: "2",
-				name: "Equipo B",
-				sport: "Básquetbol",
-				members: 8,
-				description: "Equipo de básquet competitivo",
-			},
-			{ id: "3", name: "Equipo C", sport: "Tenis", members: 2, description: "Dúo de tenis profesional" },
-		];
-		setTeams(placeholderTeams);
-	}, []);
+	// useEffect(() => {
+	// 	const placeholderTeams = [
+	// 		{ id: "1", name: "Equipo A", sport: "Fútbol", members: 5, description: "Equipo de fútbol local" },
+	// 		{
+	// 			id: "2",
+	// 			name: "Equipo B",
+	// 			sport: "Básquetbol",
+	// 			members: 8,
+	// 			description: "Equipo de básquet competitivo",
+	// 		},
+	// 		{ id: "3", name: "Equipo C", sport: "Tenis", members: 2, description: "Dúo de tenis profesional" },
+	// 	];
+	// 	setTeams(placeholderTeams);
+	// }, []);
 
 	const handleSportPress = (sportName: string) => {
 		setSelectedSport(sportName);
+	};
+
+	const handleAddNewTeam = () => {
+		router.push("/(tabs)/PostTeam");
 	};
 
 	return (
@@ -124,20 +136,30 @@ function TeamsFeed() {
 				showsHorizontalScrollIndicator={false}
 				showsVerticalScrollIndicator={false}
 			>
-				{teams
+				{(teams ?? [])
 					.filter((team) => {
 						if (selectedSport === "") return true;
 						return team.sport === selectedSport;
 					})
-					.map((team) => (
+					.map((team, i) => (
 						<TeamPost
-							key={team.id}
+							key={team.team_id}
+							team_id={team.team_id}
 							name={team.name}
 							sport={team.sport}
-							players={players}
-							description={team.description}
+							players={team.players}
+							description={team.description ?? ""}
 						/>
 					))}
+
+				{/* Boton para agregar un equipo */}
+				<TouchableOpacity onPress={() => handleAddNewTeam()}>
+					<ImageBackground
+						style={styles.container}
+						imageStyle={{ borderRadius: 15, opacity: 0.9 }}
+						source={require("@/assets/images/add-logo.jpg")}
+					></ImageBackground>
+				</TouchableOpacity>
 			</ScrollView>
 		</View>
 	);
@@ -151,6 +173,14 @@ const styles = StyleSheet.create({
 		alignContent: "center",
 		justifyContent: "center",
 		alignItems: "center",
+	},
+	container: {
+		backgroundColor: "#f8f8f8",
+		justifyContent: "space-between",
+		flexDirection: "column",
+		margin: 10,
+		width: ScreenHeight * 0.4,
+		height: ScreenHeight * 0.4,
 	},
 	sportButton: {
 		backgroundColor: "#f8f9f9",

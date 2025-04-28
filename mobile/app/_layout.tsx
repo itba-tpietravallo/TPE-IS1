@@ -4,52 +4,65 @@ import "react-native-url-polyfill/auto";
 import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabase";
 import Auth from "../components/Auth";
-import { AuthChangeEvent, Session } from "@supabase/supabase-js";
-import { ThemeProvider } from "@react-navigation/native";
+import { Session } from "@supabase/supabase-js";
 import { StatusBar } from "expo-status-bar";
-import NavigationBar from "@/components/NavigationBar";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const [session, setSession] = useState<Session | null>(null);
+	const [session, setSession] = useState<Session | null>(null);
 
-  // This loads instantly, but is set up so it can await fonts or other critical resources.
-  const [loaded, setLoaded] = useState(true);
-  useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
+	// This loads instantly, but is set up so it can await fonts or other critical resources.
+	const [loaded, setLoaded] = useState(true);
 
-  if (!loaded) {
-    return null;
-  }
+	useEffect(() => {
+		if (loaded) {
+			SplashScreen.hideAsync();
+		}
+	}, [loaded]);
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-    });
+	if (!loaded) {
+		return null;
+	}
 
-    supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-  }, []);
+	useEffect(() => {
+		supabase.auth.getSession().then(({ data: { session } }) => {
+			setSession(session);
+		});
 
-  return (
-    // <ThemeProvider > */}
-    session && session.user ? (
-      <>
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="+not-found" />
-        </Stack>
-        <StatusBar style="auto" />
-      </>
-    ) : (
-      <Auth />
-    )
-    // </ThemeProvider>
-  );
+		supabase.auth.onAuthStateChange((_event, session) => {
+			setSession(session);
+		});
+	}, []);
+
+	const queryClient = new QueryClient({
+		defaultOptions: {
+			queries: {
+				gcTime: 1000 * 60 * 5,
+				staleTime: 1000 * 60 * 5,
+				refetchOnReconnect: "always",
+				refetchOnWindowFocus: "always",
+				refetchOnMount: "always",
+			},
+		},
+	});
+
+	return (
+		// <ThemeProvider > */}
+		<QueryClientProvider client={queryClient}>
+			{session && session.user ? (
+				<>
+					<Stack>
+						<Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+						<Stack.Screen name="+not-found" />
+					</Stack>
+					<StatusBar style="auto" />
+				</>
+			) : (
+				<Auth />
+			)}
+		</QueryClientProvider>
+	);
 }

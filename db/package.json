@@ -1,13 +1,15 @@
 {
-  "dependencies": {
-    "dotenv": "^16.4.7",
-    "drizzle-orm": "0.41.0",
-    "postgres": "^3.4.5",
-    "typescript": "^5.8.2"
-  },
-  "devDependencies": {
-    "@itba-tpietravallo/drizzle-kit": "^0.30.8-4",
-    "@types/node": "^22.13.17",
-    "tsx": "^4.19.3"
-  }
+	"dependencies": {
+		"dotenv": "^16.4.7",
+		"drizzle-orm": "0.41.0",
+		"postgres": "^3.4.5",
+		"typescript": "^5.8.2"
+	},
+	"devDependencies": {
+		"@itba-tpietravallo/drizzle-kit": "^0.30.8-4",
+		"@supabase/supabase-js": "^2.49.4",
+		"@types/node": "^22.13.17",
+		"supabase": "^2.22.6",
+		"tsx": "^4.19.3"
+	}
 }

@@ -6,14 +6,14 @@ import { useEffect, useState } from "react";
 import { Session } from "@supabase/supabase-js";
 import { router } from "expo-router";
 
-const hardcodedPayments = [
-	{ payment_id: "1", last_updated: "17/04/2025 18:21", status: "Pendiente", transaction_amount: "$9500" },
-	{ payment_id: "2", last_updated: "09/04/2025 11:43", status: "Completado", transaction_amount: "$25000" },
-	{ payment_id: "3", last_updated: "01/04/2025 18:21", status: "Pendiente", transaction_amount: "$10700" },
-	{ payment_id: "4", last_updated: "28/03/2025 23:01", status: "Completado", transaction_amount: "$31200" },
-	{ payment_id: "5", last_updated: "21/03/2025 15:41", status: "Completado", transaction_amount: "$18000" },
-	{ payment_id: "6", last_updated: "12/03/2025 00:12", status: "Pendiente", transaction_amount: "$7450" },
-];
+// const hardcodedPayments = [
+// 	{ payment_id: "1", last_updated: "17/04/2025 18:21", status: "Pendiente", transaction_amount: "$9500" },
+// 	{ payment_id: "2", last_updated: "09/04/2025 11:43", status: "Completado", transaction_amount: "$25000" },
+// 	{ payment_id: "3", last_updated: "01/04/2025 18:21", status: "Pendiente", transaction_amount: "$10700" },
+// 	{ payment_id: "4", last_updated: "28/03/2025 23:01", status: "Completado", transaction_amount: "$31200" },
+// 	{ payment_id: "5", last_updated: "21/03/2025 15:41", status: "Completado", transaction_amount: "$18000" },
+// 	{ payment_id: "6", last_updated: "12/03/2025 00:12", status: "Pendiente", transaction_amount: "$7450" },
+// ];
 
 export default function CardList() {
 	type Payment = {
@@ -27,6 +27,12 @@ export default function CardList() {
 
 	const [user, setUser] = useState<Session>();
 	const [payments, setPayments] = useState<Payment[]>([]);
+	let date: Date | undefined = undefined;
+	let day: number | undefined = undefined;
+	let month: number | undefined = undefined;
+	let year: number | undefined = undefined;
+	let hours: number | undefined = undefined;
+	let minutes: number | undefined = undefined;
 
 	useEffect(() => {
 		supabase.auth.getSession().then(({ data: { session } }) => {
@@ -50,6 +56,19 @@ export default function CardList() {
 								if (error) {
 									console.error("Error fetching payments:", error);
 								} else {
+									data.forEach((payment) => {
+										date = new Date(payment.last_updated);
+										day = date.getDay();
+										month = date.getMonth() + 1;
+										year = date.getFullYear();
+										hours = date.getHours();
+										minutes = date.getMinutes();
+										payment.last_updated = `${day.toString().padStart(2, "0")}/${month.toString().padStart(2, "0")}/${year} a las ${hours}:${minutes.toString().padStart(2, "0")}`;
+
+										if (payment.status == "payment.created") {
+											payment.status = "Completado";
+										}
+									});
 									setPayments(data || []);
 								}
 							});
@@ -86,7 +105,7 @@ export default function CardList() {
 				Mi actividad
 			</Text>
 			<FlatList
-				data={hardcodedPayments}
+				data={payments}
 				keyExtractor={(item) => item.payment_id}
 				contentContainerStyle={styles.container}
 				scrollEnabled={true}
@@ -99,7 +118,7 @@ export default function CardList() {
 								style={{
 									fontWeight: "bold",
 									fontSize: 18,
-									color: item.status === "Completado" ? "green" : "#ff5f00",
+									color: item.status === "Completado" ? "#5fd700" : "#ff5e00",
 								}}
 							>
 								{item.status}

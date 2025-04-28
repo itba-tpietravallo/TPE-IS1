@@ -1,4 +1,3 @@
-
 export async function loader() {
-    return Response.json({ message: "Hello from /api !" });
+	return Response.json({ message: "Hello from /api !" });
 }
