@@ -8,6 +8,7 @@ on:
             - "web/**"
         branches:
             - main
+
 jobs:
     Deploy-Production:
         runs-on: ubuntu-latest
@@ -22,12 +23,26 @@ jobs:
 
             - name: Cache node modules
               uses: actions/cache@v3
+              id: cache-modules
               with:
                   path: web/node_modules
                   key: node_modules-${{ runner.os }}-deploy-${{hashFiles('web/package-lock.lock')}}
                   restore-keys: node_modules-${{ runner.os }}-deploy-
 
+            - uses: dorny/paths-filter@v3
+              id: db-changes
+              with:
+                  filters: |
+                      db:
+                        - 'db/**'
+
+            - name: Run Database Types Generation
+              if: steps.db-changes.outputs.db == 'true'
+              uses: ./.github/workflows/database-types.yaml
+              secrets: inherit
+
             - name: Install Vercel CLI
+              if: steps.cache-modules.outputs.cache-hit != 'true'
               run: npm install --global vercel@latest
 
             - name: Pull Vercel Environment Information
