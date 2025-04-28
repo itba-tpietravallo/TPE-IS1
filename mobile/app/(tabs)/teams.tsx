@@ -1,6 +1,6 @@
 /*  lo que tengo que hacer aca es diseniar un feed en el que van a aparecer (listados y scrolleables) los distintas instancias del
 modulo que esta implementando feli. Feli disenia el modulo "equipos" , y luego a medida que los usuarios creen y carguen equipos, se van a ir posteando modulos "equipos" con los datos de 
-cada equipo A,B,C a MI tab "teamsFeed.tsx"
+cada equipo A,B,C a MI tab "teams.tsx"
 
 yo implemento la tab, feli implementa los modulos que se van a ver desde mi tab*/
 
@@ -34,7 +34,7 @@ function TeamsFeed() {
 	};
 
 	const handleAddNewTeam = () => {
-		router.push("/(tabs)/PostTeam");
+		router.push("/(tabs)/newTeam");
 	};
 
 	return (
