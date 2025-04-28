@@ -1,5 +1,7 @@
 // ===============================================================
 // Source file: db/queries.ts
+// This file must contain all the queries to the database.
+// This file is automatically copied to /web and /mobile in CI.
 // ===============================================================
 
 import { SupabaseClient } from "@supabase/supabase-js";
