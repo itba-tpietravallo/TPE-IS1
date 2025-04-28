@@ -46,9 +46,13 @@ const players = [
 import React, { useEffect, useState } from "react";
 import { ScrollView, Text, View, StyleSheet, TouchableOpacity, ImageBackground } from "react-native";
 import TeamPost from "../../components/teamPost"; // Importamos el módulo de Feli
-import { supabase } from "@/lib/supabase";
+
 import { ScreenHeight } from "@rneui/themed/dist/config";
 import { router } from "expo-router";
+
+import { supabase } from "@/lib/supabase";
+import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
+import { getAllTeams } from "@/lib/autogen/queries";
 
 type Team = {
 	team_id: string;
@@ -60,7 +64,7 @@ type Team = {
 };
 
 function TeamsFeed() {
-	const [teams, setTeams] = useState<Team[]>([]);
+	const { data: teams } = useQuery(getAllTeams(supabase));
 	const [selectedSport, setSelectedSport] = useState<string>("");
 
 	// Placeholder para los equipos ACA ES DONDE EN REALIDAD VA A HABER UNA LLAMADA A LA BDD O API (igual que en canchas.tsx)
@@ -79,25 +83,12 @@ function TeamsFeed() {
 	// 	setTeams(placeholderTeams);
 	// }, []);
 
-	useEffect(() => {
-		supabase
-			.from("teams")
-			.select("*")
-			.then(({ data, error }) => {
-				if (error) {
-					console.error("Error fetching fields:", error);
-				} else {
-					setTeams(data);
-				}
-			});
-	}, []);
-
 	const handleSportPress = (sportName: string) => {
 		setSelectedSport(sportName);
 	};
 
 	const handleAddNewTeam = () => {
-		router.push("/(tabs)/PostTeam")
+		router.push("/(tabs)/PostTeam");
 	};
 
 	return (
@@ -145,31 +136,30 @@ function TeamsFeed() {
 				showsHorizontalScrollIndicator={false}
 				showsVerticalScrollIndicator={false}
 			>
-				{teams
+				{(teams ?? [])
 					.filter((team) => {
 						if (selectedSport === "") return true;
 						return team.sport === selectedSport;
 					})
-					.map((team) => (
+					.map((team, i) => (
 						<TeamPost
 							key={team.team_id}
 							team_id={team.team_id}
 							name={team.name}
 							sport={team.sport}
 							players={team.players}
-							description={team.description}
+							description={team.description ?? ""}
 						/>
 					))}
 
-					{/* Boton para agregar un equipo */}
-					<TouchableOpacity onPress={() => handleAddNewTeam()}>
-						<ImageBackground
-							style={styles.container}
-							imageStyle={{ borderRadius: 15, opacity: 0.9 }}
-							source={require("@/assets/images/add-logo.jpg")}
-							>
-						</ImageBackground>
-					</TouchableOpacity>
+				{/* Boton para agregar un equipo */}
+				<TouchableOpacity onPress={() => handleAddNewTeam()}>
+					<ImageBackground
+						style={styles.container}
+						imageStyle={{ borderRadius: 15, opacity: 0.9 }}
+						source={require("@/assets/images/add-logo.jpg")}
+					></ImageBackground>
+				</TouchableOpacity>
 			</ScrollView>
 		</View>
 	);

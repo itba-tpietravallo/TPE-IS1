@@ -1,7 +1,10 @@
-import FieldPost from "@/components/fieldPost";
+import FieldPost from "@components/fieldPost";
 import { ScrollView, Text, View, SafeAreaView, StyleSheet, TouchableOpacity, Button } from "react-native";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@lib/supabase";
 import React, { useEffect, useState } from "react";
+
+import { useQuery } from "@supabase-cache-helpers/postgrest-react-query"; // Cache Helpers
+import { getAllFields, getAllSports } from "@lib/autogen/queries"; // Database Queries
 
 type Field = {
 	// lat: number;
@@ -33,8 +36,6 @@ const normalizeString = (str: string) => {
 };
 
 function CanchasFeed() {
-	const [fields, setFields] = useState<Field[]>([]);
-	const [sports, setSports] = useState<Sport[]>([]);
 	const [selectedSport, setSelectedSport] = useState<string>("");
 
 	// useEffect(() => {
@@ -53,28 +54,9 @@ function CanchasFeed() {
 	//       }
 	//     });
 	// }, []);
-	useEffect(() => {
-		supabase
-			.from("fields")
-			.select("*")
-			.then(({ data, error }) => {
-				if (error) {
-					console.error("Error fetching fields:", error);
-				} else {
-					setFields(data);
-				}
-			});
-		supabase
-			.from("sports")
-			.select("*")
-			.then(({ data, error }) => {
-				if (error) {
-					console.error("Error fetching sports:", error);
-				} else {
-					setSports(data);
-				}
-			});
-	}, []);
+
+	const { data: fields } = useQuery(getAllFields(supabase));
+	const { data: sports } = useQuery(getAllSports(supabase));
 
 	const handleSportPress = (sportName: string) => {
 		if (selectedSport === sportName) {
@@ -105,7 +87,7 @@ function CanchasFeed() {
 						paddingRight: 10,
 					}}
 				>
-					{sports.map((sport) => (
+					{sports?.map((sport) => (
 						<View key={sport.name} style={{ padding: 10 }}>
 							<TouchableOpacity
 								key={sport.name}
@@ -131,7 +113,7 @@ function CanchasFeed() {
 				showsVerticalScrollIndicator={false}
 			>
 				{fields
-					.filter((field) => {
+					?.filter((field) => {
 						if (selectedSport === "") return true;
 						const normalizedSelectedSport = normalizeString(selectedSport);
 
