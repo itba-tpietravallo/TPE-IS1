@@ -135,6 +135,37 @@ In order to avoid querying on each navigation, improve load times (prefetch/ssr)
 
 The `useQuery` function, along with [supabase's cache helpers](https://github.com/psteinroe/supabase-cache-helpers), provide an easy way to cache data.
 
+### In practice 
+Here you can see how two useEffect calls are simplified drastically by abstracting away the database calls. This way, useQuery replaces `useEffect + supabase.from + set[StateName]`
+
+```diff
+- useEffect(() => {
+- 	supabase
+- 		.from("fields")
+- 		.select("*")
+- 		.then(({ data, error }) => {
+- 			if (error) {
+- 				console.error("Error fetching fields:", error);
+- 			} else {
+- 				setFields(data);
+- 			}
+- 		});
+- 	supabase
+- 		.from("sports")
+- 		.select("*")
+- 		.then(({ data, error }) => {
+- 			if (error) {
+- 				console.error("Error fetching sports:", error);
+- 			} else {
+- 				setSports(data);
+- 			}
+- 		});
+- }, []);
+
++ const { data: fields } = useQuery(getAllFields(supabase));
++ const { data: sports } = useQuery(getAllSports(supabase));
+```
+
 ### DTOs
 
 To improve the quality of the code, the [`db/queries.ts`](./db/queries.ts) shall be the only place that contains logic that interacts with the database. This is a cheap/hacky way to abstract the database away from the client layer.
