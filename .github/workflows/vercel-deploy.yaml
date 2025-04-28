@@ -26,7 +26,7 @@ jobs:
               id: cache-modules
               with:
                   path: web/node_modules
-                  key: node_modules-${{ runner.os }}-deploy-${{hashFiles('web/package-lock.lock')}}
+                  key: node_modules-${{ runner.os }}-deploy-${{hashFiles('web/package-lock.json')}}
                   restore-keys: node_modules-${{ runner.os }}-deploy-
 
             - uses: dorny/paths-filter@v3
