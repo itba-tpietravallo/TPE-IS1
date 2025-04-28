@@ -117,7 +117,7 @@ export const reservationsTable = pgTable(
 		owner_id: uuid()
 			.notNull()
 			.references(() => usersTable.id, { onDelete: "cascade" }),
-		payments_id: bigint({ mode: "number" }).default(sql`NULL`),
+		payment_id: bigint({ mode: "number" }).default(sql`NULL`),
 	},
 	(table) => [
 		pgPolicy("reservations - select authenticated", {
@@ -204,10 +204,10 @@ export const teamsTable = pgTable(
 	{
 		team_id: uuid().primaryKey().defaultRandom().notNull(),
 		name: text().notNull(),
-		sport: text().notNull(),  //@TODO: hacer reference a sportsTable
+		sport: text().notNull(), //@TODO: hacer reference a sportsTable
 		description: text(),
 		images: text().array(),
-		players: text().array().notNull()   //Solucion provisoria | @TODO: convertir a uuid y hacer reference a usersTable
+		players: text().array().notNull(), //Solucion provisoria | @TODO: convertir a uuid y hacer reference a usersTable
 	},
 	(table) => [
 		// INSERT, UPDATE, DELETE are disallowed by default.
