@@ -11,15 +11,19 @@ import {
 	KeyboardAvoidingView,
 	Platform,
 } from "react-native";
-import { Picker } from "@react-native-picker/picker";
+
+import SelectDropdown from "react-native-select-dropdown";
 import { createClient } from "@supabase/supabase-js";
 
 import { supabase } from "@/lib/supabase";
 import { router } from "expo-router";
+import { getAllSports } from "@lib/autogen/queries";
+import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
 
 export default function PostTeam() {
 	const [teamName, setTeamName] = useState("");
-	const [sport, setSport] = useState("Fútbol");
+	const [sport, setSport] = useState("");
+	const { data: sports } = useQuery(getAllSports(supabase));
 	const [description, setDescription] = useState("");
 	const [members, setMembers] = useState<string[]>([]);
 	const [newMember, setNewMember] = useState("");
@@ -37,16 +41,17 @@ export default function PostTeam() {
 				players: members, // Miembros como una lista separada por comas
 			},
 		]);
-		router.push("/(tabs)/teamsFeed");
+		router.push("/(tabs)/teams");
 	};
 
 	const handleCancel = () => {
 		setTeamName("");
-		setSport("Fútbol");
+		setSport("");
 		setDescription("");
 		setMembers([]);
 		setNewMember("");
 		setAvailability(0);
+		router.push("/(tabs)/teams");
 	};
 
 	const addMember = () => {
@@ -78,13 +83,39 @@ export default function PostTeam() {
 
 				{/* Deporte */}
 				<Text style={styles.label}>Deporte:</Text>
-				<Picker selectedValue={sport} style={styles.picker} onValueChange={(itemValue) => setSport(itemValue)}>
-					<Picker.Item label="Fútbol" value="Fútbol" />
-					<Picker.Item label="Básquetbol" value="Básquetbol" />
-					<Picker.Item label="Tenis" value="Tenis" />
-					<Picker.Item label="Volley" value="Volley" />
-					<Picker.Item label="Hockey" value="Hockey" />
-				</Picker>
+				<SelectDropdown
+					defaultValue={(sports ?? [])[0] || ""}
+					onSelect={(itemValue, index) => setSport(itemValue)}
+					data={sports?.map((sport) => sport.name) || []}
+					dropdownStyle={{ backgroundColor: "white", gap: 5, borderRadius: 8 }}
+					renderButton={(selectedItem, isOpened) => {
+						return (
+							<View style={styles.dropdownButtonStyle}>
+								{/* {selectedItem && (
+							//   <Icon name={selectedItem.icon} style={styles.dropdownButtonIconStyle} />
+							)} */}
+								<Text style={styles.dropdownButtonTxtStyle}>
+									{selectedItem || "Selecciona un deporte"}
+								</Text>
+								{/* <Icon name={isOpened ? 'chevron-up' : 'chevron-down'} style={styles.dropdownButtonArrowStyle} /> */}
+							</View>
+						);
+					}}
+					renderItem={(item, index, isSelected) => {
+						return (
+							<View
+								style={{
+									...styles.dropdownItemStyle,
+									...(isSelected && { backgroundColor: "#D2D9DF" }),
+								}}
+							>
+								{/* <Icon name={item.icon} style={styles.dropdownItemIconStyle} /> */}
+								<Text style={styles.dropdownItemTxtStyle}>{item}</Text>
+							</View>
+						);
+					}}
+					// renderItem={}
+				/>
 
 				{/* Miembros del Equipo */}
 				{/* Habria que cambiar esto para invitar usuarios a unirse en vez de meterlos al equipo */}
@@ -99,6 +130,31 @@ export default function PostTeam() {
 					<TouchableOpacity style={styles.addButton} onPress={addMember}>
 						<Text style={styles.addButtonText}>Agregar</Text>
 					</TouchableOpacity>
+				</View>
+
+				<View>
+					{members.length > 0 && (
+						<View style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+							{members.map((item, index) => (
+								<View
+									key={`${item} - ${index}`}
+									style={{
+										backgroundColor: "#C7CCCC",
+										flexDirection: "row",
+										justifyContent: "space-between",
+										alignItems: "center",
+										padding: 10,
+										borderRadius: 8,
+									}}
+								>
+									<Text style={styles.memberText}>{item}</Text>
+									<TouchableOpacity onPress={() => removeMember(index)}>
+										<Text style={styles.removeText}>Eliminar</Text>
+									</TouchableOpacity>
+								</View>
+							))}
+						</View>
+					)}
 				</View>
 
 				{/* Disponibilidad */}
@@ -179,13 +235,13 @@ const styles = StyleSheet.create({
 	picker: {
 		height: 150,
 		width: "100%",
-		marginBottom: 15,
 		color: "#223332",
 	},
 	memberInputContainer: {
+		display: "flex",
 		flexDirection: "row",
-		alignItems: "center",
-		marginBottom: 10,
+		alignItems: "flex-start",
+		justifyContent: "flex-start",
 	},
 	memberInput: {
 		flex: 1,
@@ -217,6 +273,7 @@ const styles = StyleSheet.create({
 		flexDirection: "row",
 		justifyContent: "space-between",
 		marginTop: 20,
+		marginBottom: 120,
 	},
 	button: {
 		flex: 1,
@@ -246,11 +303,67 @@ const styles = StyleSheet.create({
 		borderRadius: 5,
 		alignItems: "center",
 		justifyContent: "center",
-		marginTop: 10,
+		// marginTop: 10,
 	},
 	addButtonText: {
 		color: "#fff",
 		fontSize: 16,
 		fontWeight: "bold",
+		margin: 0,
+		padding: 0,
+	},
+	// HOTFIX:
+	dropdownButtonStyle: {
+		width: 250,
+		height: 40,
+		backgroundColor: "#C7CCCC",
+		borderRadius: 12,
+		flexDirection: "row",
+		justifyContent: "center",
+		textAlignVertical: "center",
+		verticalAlign: "middle",
+		alignItems: "center",
+		paddingHorizontal: 12,
+		marginTop: 8,
+		marginBottom: 16,
+	},
+	dropdownButtonTxtStyle: {
+		flex: 1,
+		fontSize: 18,
+		fontWeight: "500",
+		color: "#151E26",
+	},
+	dropdownButtonArrowStyle: {
+		fontSize: 28,
+	},
+	dropdownButtonIconStyle: {
+		fontSize: 28,
+		marginRight: 8,
+	},
+	dropdownMenuStyle: {
+		backgroundColor: "#E9ECEF",
+		borderRadius: 8,
+	},
+	dropdownItemStyle: {
+		width: "100%",
+		backgroundColor: "#F9FCFF",
+		flexDirection: "row",
+		paddingHorizontal: 12,
+		justifyContent: "center",
+		alignItems: "center",
+		paddingVertical: 8,
+		borderRadius: 8,
+		borderBottomWidth: 1,
+		borderColor: "#000000",
+	},
+	dropdownItemTxtStyle: {
+		flex: 1,
+		fontSize: 18,
+		fontWeight: "500",
+		color: "#151E26",
+	},
+	dropdownItemIconStyle: {
+		fontSize: 28,
+		marginRight: 8,
 	},
 });
