@@ -31,6 +31,7 @@ function FieldPost(props: props) {
 					style={styles.container}
 					imageStyle={{ borderRadius: 15, opacity: 0.9 }}
 					source={backgroundImageSource}
+					progressiveRenderingEnabled={true}
 				>
 					<View style={styles.topContent}>
 						<Text style={styles.title}>{props.name}</Text>
