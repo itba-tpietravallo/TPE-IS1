@@ -50,3 +50,7 @@ export function getUserSession(supabase: SupabaseClient<Database>) {
 export function getAllUsers(supabase: SupabaseClient<Database>) {
 	return supabase.from("users").select("id, full_name, avatar_url");
 }
+
+export function getUserAvatar(supabase: SupabaseClient<Database>, user_name: string) {
+	return supabase.from("users").select("avatar_url").eq("full_name", user_name).single();
+}

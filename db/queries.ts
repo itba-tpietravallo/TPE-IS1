@@ -11,11 +11,17 @@ export function getAllFields(supabase: SupabaseClient<Database>) {
 	return supabase.from("fields").select("*");
 }
 
-export function getAllFieldsByOwner(supabase: SupabaseClient<Database>, ownerId: string) {
+export function getAllFieldsByOwner(
+	supabase: SupabaseClient<Database>,
+	ownerId: string
+) {
 	return supabase.from("fields").select("*").eq("owner", ownerId);
 }
 
-export function getFieldById(supabase: SupabaseClient<Database>, fieldId: string) {
+export function getFieldById(
+	supabase: SupabaseClient<Database>,
+	fieldId: string
+) {
 	return supabase.from("fields").select("*").eq("id", fieldId).single();
 }
 
@@ -25,22 +31,33 @@ export function getAllSports(supabase: SupabaseClient<Database>) {
 
 export function insertNewField(
 	supabase: SupabaseClient<Database>,
-	field: Database["public"]["Tables"]["fields"]["Insert"],
+	field: Database["public"]["Tables"]["fields"]["Insert"]
 ) {
 	return supabase.from("fields").insert(field);
 }
 
-export function getAllReservationsForFieldById(supabase: SupabaseClient<Database>, fieldId: string) {
+export function getAllReservationsForFieldById(
+	supabase: SupabaseClient<Database>,
+	fieldId: string
+) {
 	return supabase.from("reservations").select("*").eq("field_id", fieldId);
 }
 
-export function getAllReservationTimeSlots(supabase: SupabaseClient<Database>, fieldId: string) {
-	return supabase.from("reservations").select("date_time").eq("field_id", fieldId);
+export function getAllReservationTimeSlots(
+	supabase: SupabaseClient<Database>,
+	fieldId: string
+) {
+	return supabase
+		.from("reservations")
+		.select("date_time")
+		.eq("field_id", fieldId);
 	// .gte("start_time", startTime);
 }
 
 export function getAllTeams(supabase: SupabaseClient<Database>) {
-	return supabase.from("teams").select("team_id, name, sport, description, images, players");
+	return supabase
+		.from("teams")
+		.select("team_id, name, sport, description, images, players");
 }
 
 export function getTeamMembers(supabase: SupabaseClient<Database>, teamId: string) {
@@ -48,9 +65,24 @@ export function getTeamMembers(supabase: SupabaseClient<Database>, teamId: strin
 }
 
 export function getUserSession(supabase: SupabaseClient<Database>) {
-	return supabase.from("users").select("id, full_name, avatar_url").eq("id", `auth.uid()`).single();
+	return supabase
+		.from("users")
+		.select("id, full_name, avatar_url")
+		.eq("id", `auth.uid()`)
+		.single();
 }
 
 export function getAllUsers(supabase: SupabaseClient<Database>) {
 	return supabase.from("users").select("id, full_name, avatar_url");
+}
+
+export function getUserAvatar(
+	supabase: SupabaseClient<Database>,
+	user_name: string
+) {
+	return supabase
+		.from("users")
+		.select("avatar_url")
+		.eq("full_name", user_name)
+		.single();
 }

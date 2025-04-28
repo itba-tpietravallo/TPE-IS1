@@ -15,14 +15,21 @@ import { supabase } from "@/lib/supabase";
 import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
 import { getAllTeams, getAllSports } from "@/lib/autogen/queries";
 
-type Team = {
-	team_id: string;
+export type Player = {
+	id: string;
 	name: string;
-	sport: string;
-	members: number;
-	description: string;
-	players: string[];
+	number: number;
+	photo: string;
 };
+
+// type Team = {
+// 	team_id: string;
+// 	name: string;
+// 	sport: string;
+// 	members: number;
+// 	description: string;
+// 	players: Player[];
+// };
 
 function TeamsFeed() {
 	const { data: teams } = useQuery(getAllTeams(supabase));
@@ -92,8 +99,8 @@ function TeamsFeed() {
 				showsHorizontalScrollIndicator={false}
 				showsVerticalScrollIndicator={false}
 			>
-				{(teams ?? [])
-					.filter((team) => {
+				{teams
+					?.filter((team) => {
 						if (selectedSport === "") return true;
 						return team.sport === selectedSport;
 					})
@@ -104,7 +111,7 @@ function TeamsFeed() {
 							name={team.name}
 							sport={team.sport}
 							players={team.players}
-							description={team.description ?? ""}
+							description={team.description || ""}
 						/>
 					))}
 

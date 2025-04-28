@@ -2,15 +2,7 @@ import { ScreenHeight } from "@rneui/themed/dist/config";
 import React, { useState } from "react";
 import PopUpTeam from "./PopUpTeam";
 import { StyleSheet, Text, View, ImageBackground, Image, TouchableOpacity, Modal } from "react-native";
-import PopUpReserva from "./PopUpReserva";
-import { router } from "expo-router";
-
-type Player = {
-	id: string;
-	name: string;
-	number: number;
-	photo: string;
-};
+import { Player } from "../app/(tabs)/teams.tsx";
 
 type PropsTeam = {
 	team_id: string;
@@ -22,7 +14,6 @@ type PropsTeam = {
 };
 
 function TeamPost(props: PropsTeam) {
-	const { team_id, name, sport, description, players } = props;
 	const [isModalVisible, setIsModalVisible] = useState(false);
 	const handleCloseModal = () => {
 		setIsModalVisible(false);
@@ -52,11 +43,11 @@ function TeamPost(props: PropsTeam) {
 				<View style={styles.centeredView}>
 					<PopUpTeam
 						onClose={handleCloseModal}
-						team_id={team_id}
-						name={name}
-						sport={sport}
-						description={description}
-						players={players}
+						team_id={props.team_id}
+						name={props.name}
+						sport={props.sport}
+						description={props.description}
+						players={props.players}
 					/>
 				</View>
 			</Modal>

@@ -114,8 +114,8 @@ function CanchasFeed() {
 							sport={field.sports}
 							location={`${field.street} ${field.street_number}, ${field.neighborhood}`}
 							key={field.id}
-							images={field.images}
-							description={field.description}
+							images={field.images || []}
+							description={field.description || ""}
 							price={field.price}
 						/>
 					))}
