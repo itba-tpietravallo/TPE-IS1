@@ -46,7 +46,7 @@ export default function PostTeam() {
 			.catch((error) => {
 				console.error("Error al publicar el equipo:", error.message);
 			});
-			router.push("/(tabs)/teamsFeed");
+		router.push("/(tabs)/teams");
 	};
 
 	const handleCancel = () => {

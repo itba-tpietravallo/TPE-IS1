@@ -1,8 +1,7 @@
 import React from "react";
-import { Button, Text, View, Image } from "react-native";
-import { StyleSheet } from "react-native";
+import { Text, View, Image } from "react-native";
 
-function PlayerFeed() {
+function PlayerPreview() {
 	return (
 		<View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
 			<Image source={require("@/assets/images/herramienta.png")} />
@@ -11,4 +10,4 @@ function PlayerFeed() {
 	);
 }
 
-export default PlayerFeed;
+export default PlayerPreview;
