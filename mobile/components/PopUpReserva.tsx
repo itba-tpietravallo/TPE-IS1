@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
 import { View, Text, Button, StyleSheet, Image, TouchableOpacity, Modal, Alert } from "react-native";
-import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
-import { ScreenHeight, ScreenWidth } from "@rneui/themed/dist/config";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { ScreenWidth } from "@rneui/themed/dist/config";
 import { supabase } from "@/lib/supabase";
 import { Session } from "@supabase/supabase-js";
 import CheckoutButton from "./CheckoutButton";
-import { useGlobalSearchParams, useLocalSearchParams, useRouter } from "expo-router";
+
+import { getAllReservationTimeSlots, getUserSession } from "@/lib/autogen/queries";
+import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
 
 type User = {
 	id: string;
@@ -26,46 +28,10 @@ interface PopUpReservaProps {
 }
 
 function PopUpReserva({ onClose, name, fieldId, sport, location, images, description, price }: PopUpReservaProps) {
-	const [user, setUser] = useState<Session | null>(null);
+	const { data: user } = useQuery(getUserSession(supabase));
 	const [isModalVisible, setIsModalVisible] = useState(false);
 	const [selectedDateTime, setSelectedDateTime] = useState<Date>(new Date());
 	const [unavailable, setUnavailability] = useState<boolean | null>(null);
-
-	useEffect(() => {
-		supabase.auth.getSession().then(({ data: { session } }) => {
-			supabase
-				.from("users")
-				.select("*")
-				.eq("id", session?.user.id)
-				.single()
-				.then(({ data, error }) => {
-					if (error) {
-						console.error("Error fetching user:", error);
-					} else {
-						setUser(data);
-					}
-				});
-		});
-	}, []);
-
-	const handleReservation = async () => {
-		await supabase
-			.from("reservations")
-			.insert({
-				start_time: selectedDateTime.toISOString(),
-				date: selectedDateTime.toISOString(),
-				owner_id: user?.user.id,
-				payments_id: null,
-			})
-			.then(() => {
-				const msg = `Reserva creada para el ${selectedDateTime.toLocaleDateString()} a las ${selectedDateTime.toLocaleTimeString()}`;
-				Alert.alert("Reserva exitosa", msg);
-				onClose(); // Close the modal after successful reservation
-			})
-			.catch((error) => {
-				console.log("Error creating reservation:", error);
-			});
-	};
 
 	const handleDateTimeChange = async (event: any, date?: Date) => {
 		if (date) {
@@ -226,7 +192,7 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 }
 
 async function isSlotUnavailable(fieldId: string, selectedDateTime: Date): Promise<boolean> {
-	const { data, error } = await supabase.from("reservations").select("date_time").eq("field_id", fieldId);
+	const { data, error } = await getAllReservationTimeSlots(supabase, fieldId);
 
 	if (error) {
 		console.error("Error checking availability:", error);
