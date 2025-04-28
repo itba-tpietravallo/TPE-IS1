@@ -49,8 +49,10 @@ jobs:
 
             - name: Build Project Artifacts
               run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
+              timeout-minutes: 2
 
             - name: Deploy Project Artifacts to Vercel
               run: |
                   msg=`vercel deploy --token=${{ secrets.VERCEL_TOKEN }} --prebuilt`
                   echo "::notice title={[Preview] Deployed on Vercel}::$msg"
+              timeout-minutes: 2
