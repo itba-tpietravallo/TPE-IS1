@@ -7,6 +7,7 @@ interface infoProps {
 	location: string;
 	id: string;
 }
+
 import { useEffect, useRef, useState } from "react";
 import { Alert, Text, View, TouchableOpacity, Image } from "react-native";
 import { Button } from "@rneui/themed";

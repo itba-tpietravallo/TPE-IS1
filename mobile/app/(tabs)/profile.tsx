@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import { Session } from "@supabase/supabase-js";
 import { router } from "expo-router";
 import Icon from "react-native-vector-icons/FontAwesome6";
+import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
+import { getUserSession } from "@/lib/autogen/queries";
 
 type User = {
 	id: string;
@@ -13,30 +15,17 @@ type User = {
 };
 
 export default function Index() {
-	const [user, setUser] = useState<Session>();
-
-	useEffect(() => {
-		supabase.auth.getSession().then(({ data: { session } }) => {
-			supabase
-				.from("users")
-				.select("*")
-				.eq("id", session?.user.id)
-				.single()
-				.then(({ data, error }) => {
-					if (error) {
-						console.error("Error fetching user:", error);
-					} else {
-						setUser(data);
-						console.log("id:", data.id);
-					}
-				});
-		});
-	}, []);
+	const { data: user } = useQuery(getUserSession(supabase));
 
 	return (
 		<View style={buttonStyles.containter}>
 			<View style={{ alignItems: "center", padding: 30 }}>
-				<Image source={{ uri: user?.avatar_url }} style={{ width: 100, height: 100 }} borderRadius={100} />
+				{/* @todo undefined_image is a stub that'll hopefully get logged in RN Dev Tools */}
+				<Image
+					source={{ uri: user?.avatar_url || "undefined_image" }}
+					style={{ width: 100, height: 100 }}
+					borderRadius={100}
+				/>
 				<Text style={{ fontSize: 25, fontWeight: "bold", paddingTop: 20, textAlign: "center" }}>
 					{user?.full_name}
 				</Text>

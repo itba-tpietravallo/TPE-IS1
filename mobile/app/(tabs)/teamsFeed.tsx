@@ -46,7 +46,10 @@ const players = [
 import React, { useEffect, useState } from "react";
 import { ScrollView, Text, View, StyleSheet, TouchableOpacity } from "react-native";
 import TeamPost from "../../components/teamPost"; // Importamos el módulo de Feli
+
 import { supabase } from "@/lib/supabase";
+import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
+import { getAllTeams } from "@/lib/autogen/queries";
 
 type Team = {
 	id: string;
@@ -57,7 +60,7 @@ type Team = {
 };
 
 function TeamsFeed() {
-	const [teams, setTeams] = useState<Team[]>([]);
+	const { data: teams } = useQuery(getAllTeams(supabase));
 	const [selectedSport, setSelectedSport] = useState<string>("");
 
 	// Placeholder para los equipos ACA ES DONDE EN REALIDAD VA A HABER UNA LLAMADA A LA BDD O API (igual que en canchas.tsx)
@@ -75,19 +78,6 @@ function TeamsFeed() {
 	// 	];
 	// 	setTeams(placeholderTeams);
 	// }, []);
-
-	useEffect(() => {
-		supabase
-			.from("teams")
-			.select("*")
-			.then(({ data, error }) => {
-				if (error) {
-					console.error("Error fetching fields:", error);
-				} else {
-					setTeams(data);
-				}
-			});
-	}, []);
 
 	const handleSportPress = (sportName: string) => {
 		setSelectedSport(sportName);
@@ -138,18 +128,18 @@ function TeamsFeed() {
 				showsHorizontalScrollIndicator={false}
 				showsVerticalScrollIndicator={false}
 			>
-				{teams
+				{(teams ?? [])
 					.filter((team) => {
 						if (selectedSport === "") return true;
 						return team.sport === selectedSport;
 					})
 					.map((team) => (
 						<TeamPost
-							key={team.id}
+							key={team.team_id}
 							name={team.name}
 							sport={team.sport}
 							players={players}
-							description={team.description}
+							description={team.description ?? ""}
 						/>
 					))}
 			</ScrollView>

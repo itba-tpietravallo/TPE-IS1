@@ -6,6 +6,8 @@ import { ProfilePictureAvatar } from "~/components/profile-picture";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader } from "~/components/ui/card";
 import { authenticateUser } from "~/lib/auth.server";
 import { FieldsPreviewGrid } from "./_index";
+import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
+import { getAllFieldsByOwner } from "@lib/autogen/queries";
 
 type Field = {
 	avatar_url: string;
@@ -36,22 +38,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export default function Index() {
 	const { user, avatar_url, email, phone, full_name, env } = useLoaderData<typeof loader>();
-	const [fields, setFields] = useState<Field[]>([]);
-
-	useEffect(() => {
-		const supabase = createBrowserClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
-		supabase
-			.from("fields")
-			.select("*")
-			.eq("owner", user.id)
-			.then((res) => {
-				if (res.error) {
-					console.error(res.error);
-				} else {
-					setFields(res.data);
-				}
-			});
-	}, []);
+	const supabase = createBrowserClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
+	const { data: fields } = useQuery(getAllFieldsByOwner(supabase, user.id));
 
 	return (
 		<>
@@ -108,15 +96,16 @@ export default function Index() {
 						<CardContent>
 							<hr className="mb-2" />
 							<CardDescription>
-								{fields.length === 0 ? (
+								{(fields || [])?.length === 0 ? (
 									<p className="text-lg">No tienes canchas vinculadas a tu cuenta.</p>
 								) : (
 									<FieldsPreviewGrid
-										fields={fields.map((field) => ({
+										fields={(fields || [])?.map((field) => ({
 											id: field.id,
 											name: field.name,
 											location: `${field.street} ${field.street_number}, ${field.neighborhood}, ${field.city}`,
-											img: field.images[0],
+											price: field.price,
+											img: (field.images || [])[0] || "undefined_image",
 										}))}
 									/>
 								)}
