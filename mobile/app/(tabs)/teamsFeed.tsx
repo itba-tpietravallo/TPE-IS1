@@ -44,17 +44,19 @@ const players = [
 ];
 
 import React, { useEffect, useState } from "react";
-import { ScrollView, Text, View, StyleSheet, TouchableOpacity } from "react-native";
+import { ScrollView, Text, View, StyleSheet, TouchableOpacity, ImageBackground } from "react-native";
 import TeamPost from "../../components/teamPost"; // Importamos el módulo de Feli
 import { supabase } from "@/lib/supabase";
+import { ScreenHeight } from "@rneui/themed/dist/config";
+import { router } from "expo-router";
 
 type Team = {
-	id: string;
+	team_id: string;
 	name: string;
 	sport: string;
 	members: number;
 	description: string;
-	//players: string[];
+	players: string[];
 };
 
 function TeamsFeed() {
@@ -92,6 +94,10 @@ function TeamsFeed() {
 
 	const handleSportPress = (sportName: string) => {
 		setSelectedSport(sportName);
+	};
+
+	const handleAddNewTeam = () => {
+		router.push("/(tabs)/PostTeam")
 	};
 
 	return (
@@ -146,13 +152,24 @@ function TeamsFeed() {
 					})
 					.map((team) => (
 						<TeamPost
-							key={team.id || `player-${team.id}`}   //lo que esta despues del || no se porque lo tuve que poner pero sino me tira error each child should have a unique key ... 
+							key={team.team_id}
+							team_id={team.team_id}
 							name={team.name}
 							sport={team.sport}
-							players={players}
+							players={team.players}
 							description={team.description}
 						/>
 					))}
+
+					{/* Boton para agregar un equipo */}
+					<TouchableOpacity onPress={() => handleAddNewTeam()}>
+						<ImageBackground
+							style={styles.container}
+							imageStyle={{ borderRadius: 15, opacity: 0.9 }}
+							source={require("@/assets/images/add-logo.jpg")}
+							>
+						</ImageBackground>
+					</TouchableOpacity>
 			</ScrollView>
 		</View>
 	);
@@ -166,6 +183,14 @@ const styles = StyleSheet.create({
 		alignContent: "center",
 		justifyContent: "center",
 		alignItems: "center",
+	},
+	container: {
+		backgroundColor: "#f8f8f8",
+		justifyContent: "space-between",
+		flexDirection: "column",
+		margin: 10,
+		width: ScreenHeight * 0.4,
+		height: ScreenHeight * 0.4,
 	},
 	sportButton: {
 		backgroundColor: "#f8f9f9",

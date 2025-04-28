@@ -19,19 +19,35 @@ type Player = {
 
 type PropsPopUpTeam = {
 	onClose: () => void;
+	team_id: string;
 	name: string;
 	sport: string;
 	description: string;
-	//players: string[];
-	players: Player[];
+	players: string[];   //solucion provisoria
+	//players: Player[];
 };
 
 function PopUpTeam(props: PropsPopUpTeam) {
-	const { onClose, name, sport, description, players } = props;
+	const { onClose, team_id, name, sport, description, players } = props;
+	const [members, setMembers] = useState<string[]>([]);
+	//const [userName, setUserName] = useState("");
 
-	const handlePostTeam = () => {
-		console.log("Me uni al equipo");
-		//insert en la base de datos un nuevo team player
+	const playerPic = "https://cdn-icons-png.flaticon.com/512/1144/1144760.png";
+
+	const handleJoinTeam = async () => {
+		const newMembers = [...members, "Felipe"];
+		setMembers(newMembers);
+		await supabase
+			.from("teams")
+			.update({ players: newMembers })
+			.eq("team_id", team_id)
+			.then(({ data, error }) => {
+				console.log(error);
+				console.log("funciono");
+			})
+			.catch((error) => {
+				console.error("Error al unirse al equipo:", error.message);
+			});
 	};
 
 	return (
@@ -57,12 +73,12 @@ function PopUpTeam(props: PropsPopUpTeam) {
 					<View style={{ width: "100%" }}>
 						{players.map((member) => {
 							return (
-								<View key={member.id} style={styles.row}>
-									<Image source={{ uri: member.photo }} style={styles.avatar} />
+								<View key={member} style={styles.row}>
+									<Image source={{ uri: playerPic }} style={styles.avatar} />
 									<View style={styles.info}>
-										<Text style={styles.name}>{member.name}</Text>
+										<Text style={styles.name}>{member}</Text>
 									</View>
-									<Text style={styles.number}>{member.number}</Text>
+									<Text style={styles.number}>10</Text>
 								</View>
 							);
 						})}
@@ -74,7 +90,7 @@ function PopUpTeam(props: PropsPopUpTeam) {
 			</View>
 
 			{/* Unirse a un equipo */}
-			<TouchableOpacity style={[styles.joinTeamButton]} onPress={handlePostTeam}>
+			<TouchableOpacity style={[styles.joinTeamButton]} onPress={handleJoinTeam}>
 				<Text style={styles.buttonText}>Join Team</Text>
 			</TouchableOpacity>
 		</View>

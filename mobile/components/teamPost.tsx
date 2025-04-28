@@ -13,15 +13,16 @@ type Player = {
 };
 
 type PropsTeam = {
+	team_id: string;
 	name: string;
 	sport: string;
 	description: string;
-	//players: string[];
-	players: Player[];
+	players: string[];   //solucion provisoria
+	//players: Player[];
 };
 
 function TeamPost(props: PropsTeam) {
-	const { name, sport, description, players } = props;
+	const { team_id, name, sport, description, players } = props;
 	const [isModalVisible, setIsModalVisible] = useState(false);
 	const handleCloseModal = () => {
 		setIsModalVisible(false);
@@ -51,6 +52,7 @@ function TeamPost(props: PropsTeam) {
 				<View style={styles.centeredView}>
 					<PopUpTeam
 						onClose={handleCloseModal}
+						team_id={team_id}
 						name={name}
 						sport={sport}
 						description={description}

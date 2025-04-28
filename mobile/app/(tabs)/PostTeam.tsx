@@ -16,7 +16,7 @@ import { createClient } from "@supabase/supabase-js";
 
 import { supabase } from "@/lib/supabase";
 
-export default function PostTeam({ navigation }: { navigation: any }) {
+export default function PostTeam() {
 	const [teamName, setTeamName] = useState("");
 	const [sport, setSport] = useState("Fútbol");
 	const [description, setDescription] = useState("");
@@ -33,9 +33,9 @@ export default function PostTeam({ navigation }: { navigation: any }) {
 					name: teamName,
 					sport: sport,
 					description: description,
-					images: ["j"],
+					images: null,
 					//availability: availability, // Disponibilidad ingresada
-					//members: members.join(", "), // Miembros como una lista separada por comas
+					players: members, // Miembros como una lista separada por comas
 				},
 			])
 			.then(({ data, error }) => {
