@@ -25,6 +25,13 @@ type Sport = {
 	name: string;
 };
 
+const normalizeString = (str: string) => {
+	return str
+		.normalize("NFD")
+		.replace(/[\u0300-\u036f]/g, "")
+		.toLowerCase();
+};
+
 function CanchasFeed() {
 	const [fields, setFields] = useState<Field[]>([]);
 	const [sports, setSports] = useState<Sport[]>([]);
@@ -112,6 +119,9 @@ function CanchasFeed() {
 							</TouchableOpacity>
 						</View>
 					))}
+					<TouchableOpacity style={{ padding: 10 }} onPress={() => handleSportPress("")}>
+						<Text>X</Text>
+					</TouchableOpacity>
 				</ScrollView>
 			</View>
 			<ScrollView
@@ -123,10 +133,12 @@ function CanchasFeed() {
 				{fields
 					.filter((field) => {
 						if (selectedSport === "") return true;
-						if (selectedSport === "Voley") return field.sports.includes("voley");
-						if (selectedSport === "Fútbol") return field.sports.includes("Futbol");
-						if (selectedSport === "Hockey sobre césped") return field.sports.includes("Hockey");
-						return field.sports.includes(selectedSport);
+						const normalizedSelectedSport = normalizeString(selectedSport);
+
+						return field.sports.some((fieldSport) => {
+							const normalizedFieldSport = normalizeString(fieldSport);
+							return normalizedFieldSport.includes(normalizedSelectedSport);
+						});
 					})
 					.map((field) => (
 						<FieldPost
