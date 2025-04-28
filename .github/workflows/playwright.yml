@@ -24,7 +24,7 @@ jobs:
       
             - name: Get installed Playwright version
               id: playwright-version
-              run: echo -n "::set-output name=version::$(npm ls @playwright/test --json | jq --raw-output '.dependencies["@playwright/test"].version')"
+              run: echo "version::$(npm ls @playwright/test --json | jq --raw-output '.dependencies["@playwright/test"].version')" >> $GITHUB_OUTPUT
             
             - uses: actions/cache@v3
               id: playwright-cache
@@ -38,7 +38,6 @@ jobs:
               id: node-cache
               with:
                 path: |
-                  '~/.npm'
                   'node_modules'
                 key: "${{ runner.os }}-playwright-node-${{ hashFiles('package-lock.json') }}"
                 restore-keys: |
