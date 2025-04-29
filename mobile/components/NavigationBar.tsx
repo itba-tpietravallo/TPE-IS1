@@ -5,7 +5,7 @@ import { View, TouchableOpacity, StyleSheet, Image } from "react-native";
 function NavigationBar() {
 	return (
 		<View style={styles.container}>
-			<TouchableOpacity style={styles.button} onPress={() => router.push("/(tabs)/teamsFeed")}>
+			<TouchableOpacity style={styles.button} onPress={() => router.push("/(tabs)/teams")}>
 				<Image style={styles.image} source={require("@/assets/images/player.png")} />
 			</TouchableOpacity>
 			<View style={styles.separator} />

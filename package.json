@@ -1,10 +1,13 @@
 {
-  "scripts": {
-    "prepare": "husky install"
-  },
-  "devDependencies": {
-    "husky": "^9.1.7",
-    "prettier": "^3.5.3",
-    "prettier-plugin-tailwindcss": "^0.6.11"
-  }
+	"scripts": {
+		"prepare": "husky install"
+	},
+	"devDependencies": {
+		"@playwright/test": "^1.52.0",
+		"@types/node": "^22.15.3",
+		"dotenv": "^16.5.0",
+		"husky": "^9.1.7",
+		"prettier": "^3.5.3",
+		"prettier-plugin-tailwindcss": "^0.6.11"
+	}
 }

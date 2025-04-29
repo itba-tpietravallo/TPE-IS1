@@ -2,7 +2,7 @@ import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { Card, CardTitle } from "~/components/ui/card";
 import { Link, useLoaderData } from "@remix-run/react";
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
 import { LoaderFunctionArgs } from "@remix-run/node";
 import { createSupabaseClient } from "~/lib/supabase";
 
@@ -24,6 +24,22 @@ export function LoginCard() {
 	const rurl =
 		url.origin.toString() + "/login/callback" + `?path=` + encodeURIComponent(url.searchParams.get("path") ?? "");
 
+	useEffect(() => {
+		supabase.auth.onAuthStateChange((event, session) => {
+			if (event === "SIGNED_IN" && session?.user.app_metadata.provider === "email") {
+				// Redirect to the path specified in the query string
+				const path = new URLSearchParams(window.location.search).get("path");
+				if (path) {
+					window.location.href = path;
+				} else {
+					window.location.href = "/canchas";
+				}
+			} else if (event === "SIGNED_OUT") {
+				// Handle sign out event if needed
+			}
+		});
+	}, []);
+
 	return (
 		<Card className="flex flex-col items-center justify-center p-4">
 			<CardTitle>Welcome to MatchPoint!</CardTitle>
@@ -34,6 +50,7 @@ export function LoginCard() {
 						appearance={{ theme: ThemeSupa }}
 						providers={["google", "facebook"]}
 						redirectTo={rurl}
+						onlyThirdPartyProviders={false}
 					/>
 				</Suspense>
 			</div>

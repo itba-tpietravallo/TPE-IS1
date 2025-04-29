@@ -1,47 +1,8 @@
 /*  lo que tengo que hacer aca es diseniar un feed en el que van a aparecer (listados y scrolleables) los distintas instancias del
 modulo que esta implementando feli. Feli disenia el modulo "equipos" , y luego a medida que los usuarios creen y carguen equipos, se van a ir posteando modulos "equipos" con los datos de 
-cada equipo A,B,C a MI tab "teamsFeed.tsx"
+cada equipo A,B,C a MI tab "teams.tsx"
 
 yo implemento la tab, feli implementa los modulos que se van a ver desde mi tab*/
-
-const players = [
-	{
-		id: "1",
-		name: "Feli B",
-		number: 11,
-		photo: "https://cdn-icons-png.flaticon.com/512/1144/1144760.png",
-	},
-	{
-		id: "2",
-		name: "Tomi P",
-		number: 10,
-		photo: "https://cdn-icons-png.flaticon.com/512/1144/1144760.png",
-	},
-	{
-		id: "3",
-		name: "Maxi W",
-		number: 7,
-		photo: "https://cdn-icons-png.flaticon.com/512/1144/1144760.png",
-	},
-	{
-		id: "4",
-		name: "Lola DV",
-		number: 8,
-		photo: "https://cdn-icons-png.flaticon.com/512/1144/1144760.png",
-	},
-	{
-		id: "5",
-		name: "Lu O",
-		number: 9,
-		photo: "https://cdn-icons-png.flaticon.com/512/1144/1144760.png",
-	},
-	{
-		id: "6",
-		name: "Jose M",
-		number: 6,
-		photo: "https://cdn-icons-png.flaticon.com/512/1144/1144760.png",
-	},
-];
 
 import React, { useEffect, useState } from "react";
 import { ScrollView, Text, View, StyleSheet, TouchableOpacity, ImageBackground } from "react-native";
@@ -52,7 +13,7 @@ import { router } from "expo-router";
 
 import { supabase } from "@/lib/supabase";
 import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
-import { getAllTeams } from "@/lib/autogen/queries";
+import { getAllTeams, getAllSports } from "@/lib/autogen/queries";
 
 type Team = {
 	team_id: string;
@@ -65,30 +26,15 @@ type Team = {
 
 function TeamsFeed() {
 	const { data: teams } = useQuery(getAllTeams(supabase));
+	const { data: sports } = useQuery(getAllSports(supabase));
 	const [selectedSport, setSelectedSport] = useState<string>("");
-
-	// Placeholder para los equipos ACA ES DONDE EN REALIDAD VA A HABER UNA LLAMADA A LA BDD O API (igual que en canchas.tsx)
-	// useEffect(() => {
-	// 	const placeholderTeams = [
-	// 		{ id: "1", name: "Equipo A", sport: "Fútbol", members: 5, description: "Equipo de fútbol local" },
-	// 		{
-	// 			id: "2",
-	// 			name: "Equipo B",
-	// 			sport: "Básquetbol",
-	// 			members: 8,
-	// 			description: "Equipo de básquet competitivo",
-	// 		},
-	// 		{ id: "3", name: "Equipo C", sport: "Tenis", members: 2, description: "Dúo de tenis profesional" },
-	// 	];
-	// 	setTeams(placeholderTeams);
-	// }, []);
 
 	const handleSportPress = (sportName: string) => {
 		setSelectedSport(sportName);
 	};
 
 	const handleAddNewTeam = () => {
-		router.push("/(tabs)/PostTeam");
+		router.push("/(tabs)/newTeam");
 	};
 
 	return (
@@ -113,19 +59,29 @@ function TeamsFeed() {
 						paddingRight: 10,
 					}}
 				>
-					{["Fútbol", "Básquetbol", "Tenis", "Hockey", "Volley"].map((sport) => (
-						<View key={sport} style={{ padding: 10 }}>
-							<TouchableOpacity
-								style={[styles.sportButton, selectedSport === sport ? styles.selectedSportButton : {}]}
-								onPress={() => handleSportPress(sport)}
-							>
-								<Text>{sport}</Text>
-							</TouchableOpacity>
-						</View>
-					))}
-					<TouchableOpacity style={{ padding: 10 }} onPress={() => handleSportPress("")}>
-						<Text>X</Text>
-					</TouchableOpacity>
+					{(sports || []).length > 0 &&
+						(sports || []).map(
+							(sport) =>
+								sport &&
+								sport.name && (
+									<View key={sport.name} style={{ padding: 10 }}>
+										<TouchableOpacity
+											style={[
+												styles.sportButton,
+												selectedSport === sport.name ? styles.selectedSportButton : {},
+											]}
+											onPress={() => handleSportPress(sport.name)}
+										>
+											<Text>{sport.name}</Text>
+										</TouchableOpacity>
+									</View>
+								),
+						)}
+					{(sports || []).length > 0 && (
+						<TouchableOpacity style={{ padding: 10 }} onPress={() => handleSportPress("")}>
+							<Text>X</Text>
+						</TouchableOpacity>
+					)}
 				</ScrollView>
 			</View>
 
