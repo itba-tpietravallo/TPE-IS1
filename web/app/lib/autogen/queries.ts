@@ -8,8 +8,7 @@ import { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "./database.types";
 
 export function getAllFields(supabase: SupabaseClient<Database>) {
-	return Promise.resolve({});
-	// return supabase.from("fields").select("*").over;
+	return supabase.from("fields").select("*");
 }
 
 export function getAllFieldsByOwner(supabase: SupabaseClient<Database>, ownerId: string) {
@@ -54,4 +53,8 @@ export function getUserSession(supabase: SupabaseClient<Database>, id: string) {
 
 export function getAllUsers(supabase: SupabaseClient<Database>) {
 	return supabase.from("users").select("id, full_name, avatar_url");
+}
+
+export function getUserAvatar(supabase: SupabaseClient<Database>, user_name: string) {
+	return supabase.from("users").select("avatar_url").eq("full_name", user_name).single();
 }
