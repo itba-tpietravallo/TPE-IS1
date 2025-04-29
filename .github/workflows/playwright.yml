@@ -21,41 +21,44 @@ jobs:
             - uses: actions/setup-node@v4
               with:
                   node-version: lts/*
-      
+
             - name: Get installed Playwright version
               id: playwright-version
               run: echo "PLAYWRIGHT_VERSION=$(npm ls @playwright/test --json | jq --raw-output '.dependencies["@playwright/test"].version')" >> $GITHUB_ENV
-            
+
             - uses: actions/cache@v3
               id: playwright-cache
               with:
-                path: '~/.cache/ms-playwright'
-                key: '${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}'
-                restore-keys: |
-                  ${{ runner.os }}-playwright-
+                  path: "~/.cache/ms-playwright"
+                  key: "${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}"
+                  restore-keys: |
+                      ${{ runner.os }}-playwright-
               env:
-                PLAYWRIGHT_VERSION: ${{ env.PLAYWRIGHT_VERSION }}
+                  PLAYWRIGHT_VERSION: ${{ env.PLAYWRIGHT_VERSION }}
 
             - uses: actions/cache@v3
               id: node-cache
               with:
-                path: |
-                  'node_modules'
-                key: "${{ runner.os }}-playwright-node-${{ hashFiles('package-lock.json') }}"
-                restore-keys: |
-                  ${{ runner.os }}-playwright-
+                  path: |
+                      'node_modules'
+                      'web/node_modules'
+                  key: "${{ runner.os }}-playwright-node-${{ hashFiles('package-lock.json') }}"
+                  restore-keys: |
+                      ${{ runner.os }}-playwright-
 
             - name: Install dependencies
               if: steps.node-cache.outputs.cache-hit != 'true'
-              run: npm ci
-            
+              run: |
+                  npm ci
+                  cd web && npm ci && cd ..
+
             - name: Install Playwright Browsers
               if: steps.playwright-cache.outputs.cache-hit != 'true'
               run: npx playwright install --with-deps
-            
+
             - name: Run Playwright tests
               run: npx playwright test
-            
+
             - uses: actions/upload-artifact@v4
               if: ${{ !cancelled() }}
               with:

@@ -43,8 +43,12 @@ export function getAllTeams(supabase: SupabaseClient<Database>) {
 	return supabase.from("teams").select("team_id, name, sport, description, images, players");
 }
 
-export function getUserSession(supabase: SupabaseClient<Database>) {
-	return supabase.from("users").select("id, full_name, avatar_url").eq("id", `auth.uid()`).single();
+export function getTeamMembers(supabase: SupabaseClient<Database>, teamId: string) {
+	return supabase.from("teams").select("players").eq("team_id", teamId).single();
+}
+
+export function getUserSession(supabase: SupabaseClient<Database>, id: string) {
+	return supabase.from("users").select("id, full_name, avatar_url").eq("id", id).single();
 }
 
 export function getAllUsers(supabase: SupabaseClient<Database>) {

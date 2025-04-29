@@ -14,7 +14,14 @@ type User = {
 };
 
 function TopBar() {
-	const { data: user } = useQuery(getUserSession(supabase));
+	const [userId, setUserId] = useState<string | null>(null);
+	useEffect(() => {
+		supabase.auth.getSession().then(({ data: { session } }) => {
+			setUserId(session?.user.id!);
+		});
+	}, []);
+	const { data: user } = useQuery(getUserSession(supabase, userId!));
+	console.log(user);
 
 	return (
 		<SafeAreaView style={styles.container}>
