@@ -8,8 +8,7 @@ import { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "./database.types";
 
 export function getAllFields(supabase: SupabaseClient<Database>) {
-	return Promise.resolve({});
-	// return supabase.from("fields").select("*").over;
+	return supabase.from("fields").select("*");
 }
 
 export function getAllFieldsByOwner(supabase: SupabaseClient<Database>, ownerId: string) {
