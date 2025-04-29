@@ -24,25 +24,46 @@ type PropsPopUpTeam = {
 };
 
 function PopUpTeam(props: PropsPopUpTeam) {
-	const [members, setMembers] = useState<string[]>([]);
-	//const [userName, setUserName] = useState("");
+	//const [members, setMembers] = useState<string[]>([]);
+	const [name, setName] = useState(props.name);
 
+	{/* VERSION 1 */}
 	const handleJoinTeam = async () => {
-		console.log(props.team_id);
-		const newMembers = [...members, "Feli"];
-
+		const newName = "EQUIPO";
+	  
 		const { data, error } = await supabase
-			.from("teams")
-			.update({ players: newMembers })
-			.eq("team_id", props.team_id);
-
+		  .from("teams")
+		  .update({ name: newName })
+		  .eq("team_id", props.team_id);
+	  
 		if (error) {
-			console.error("Error al unirse al equipo:", error.message);
+		  console.error("Error al guardar:", error.message);
 		} else {
-			console.log("Actualización exitosa", data);
-			setMembers(newMembers);
+		  console.log("Guardado exitosamente:", data);
 		}
 	};
+
+	{/* VERSION 2 */}
+	// const handleJoinTeam = () => {
+	// 	console.log(props.team_id);
+	// 	setName("EQUIPO");
+	// };
+
+	// useEffect(() => {
+	// 	supabase
+	// 		.from("teams")
+	// 		.update({
+	// 			name: name,
+	// 		})
+	// 		.eq("team_id", props.team_id)
+	// 		.then(({ data, error }) => {
+	// 			if (error) {
+	// 				console.error("Error al guardar:", error.message);
+	// 			} else {
+	// 				console.log("Guardado exitosamente:", data);
+	// 			}
+	// 		});
+	// }, [name]);
 
 	return (
 		<View style={styles.modalView}>
@@ -86,9 +107,9 @@ function PopUpTeam(props: PropsPopUpTeam) {
 			</View>
 
 			{/* Unirse a un equipo */}
-			{/* <TouchableOpacity style={[styles.joinTeamButton]} onPress={handleJoinTeam}>
+			<TouchableOpacity style={[styles.joinTeamButton]} onPress={handleJoinTeam}>
 				<Text style={styles.buttonText}>Join Team</Text>
-			</TouchableOpacity> */}
+			</TouchableOpacity>
 		</View>
 	);
 }
