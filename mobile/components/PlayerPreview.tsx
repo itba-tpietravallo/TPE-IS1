@@ -1,7 +1,7 @@
 import React from "react";
 import { Text, View, Image } from "react-native";
 import { supabase } from "@/lib/supabase";
-import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
+
 import { getUserAvatar } from "@/lib/autogen/queries";
 
 type PlayerPreviewProps = {
@@ -9,7 +9,7 @@ type PlayerPreviewProps = {
 };
 
 function PlayerPreview({ player_name }: PlayerPreviewProps) {
-	const { data: player_avatar } = useQuery(getUserAvatar(supabase, player_name));
+	const { data: player_avatar } = getUserAvatar(supabase, player_name);
 	return (
 		<View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
 			<Image source={{ uri: "https://github.com/tomaspietravallo.png" }} />

@@ -1,10 +1,11 @@
 import { supabase } from "@/lib/supabase";
-import React from "react";
+import React, { useMemo } from "react";
 import { View, Text, FlatList, StyleSheet, TouchableOpacity } from "react-native";
 import Icon from "react-native-vector-icons/FontAwesome6";
 import { useEffect, useState } from "react";
 import { Session } from "@supabase/supabase-js";
 import { router } from "expo-router";
+import { getLastUserPayments, getUserSession } from "@lib/autogen/queries";
 
 // const hardcodedPayments = [
 // 	{ payment_id: "1", last_updated: "17/04/2025 18:21", status: "Pendiente", transaction_amount: "$9500" },
@@ -16,17 +17,8 @@ import { router } from "expo-router";
 // ];
 
 export default function CardList() {
-	type Payment = {
-		payment_id: string;
-		// user_id: string;
-		// field_id: string;
-		last_updated: string;
-		status: string;
-		transaction_amount: string;
-	};
-
-	const [user, setUser] = useState<Session>();
-	const [payments, setPayments] = useState<Payment[]>([]);
+	const { data: user } = getUserSession(supabase);
+	const { data: payments } = getLastUserPayments(supabase, user?.id!, { enabled: !!user?.id });
 	let date: Date | undefined = undefined;
 	let day: number | undefined = undefined;
 	let month: number | undefined = undefined;
@@ -34,48 +26,24 @@ export default function CardList() {
 	let hours: number | undefined = undefined;
 	let minutes: number | undefined = undefined;
 
-	useEffect(() => {
-		supabase.auth.getSession().then(({ data: { session } }) => {
-			supabase
-				.from("users")
-				.select("*")
-				.eq("id", session?.user.id)
-				.single()
-				.then(({ data, error }) => {
-					if (error) {
-						console.error("Error fetching user:", error);
-					} else {
-						setUser(data);
-						console.log("id:", data.id);
-						supabase
-							.from("mp_payments")
-							.select("payment_id, last_updated, status, transaction_amount")
-							.eq("user_id", data.id)
-							.order("last_updated", { ascending: false })
-							.then(({ data, error }) => {
-								if (error) {
-									console.error("Error fetching payments:", error);
-								} else {
-									data.forEach((payment) => {
-										date = new Date(payment.last_updated);
-										day = date.getDay();
-										month = date.getMonth() + 1;
-										year = date.getFullYear();
-										hours = date.getHours();
-										minutes = date.getMinutes();
-										payment.last_updated = `${day.toString().padStart(2, "0")}/${month.toString().padStart(2, "0")}/${year} a las ${hours}:${minutes.toString().padStart(2, "0")}`;
+	const memoPayments = useMemo(() => {
+		return (
+			payments?.map((payment) => {
+				date = new Date(payment.last_updated);
+				day = date.getDay();
+				month = date.getMonth() + 1;
+				year = date.getFullYear();
+				hours = date.getHours();
+				minutes = date.getMinutes();
+				payment.last_updated = `${day.toString().padStart(2, "0")}/${month.toString().padStart(2, "0")}/${year} a las ${hours}:${minutes.toString().padStart(2, "0")}`;
 
-										if (payment.status == "payment.created") {
-											payment.status = "Completado";
-										}
-									});
-									setPayments(data || []);
-								}
-							});
-					}
-				});
-		});
-	}, []);
+				if (payment.status == "payment.created") {
+					payment.status = "Completado";
+				}
+				return payment;
+			}) ?? []
+		);
+	}, [payments]);
 
 	return (
 		<View
@@ -105,8 +73,8 @@ export default function CardList() {
 				Mi actividad
 			</Text>
 			<FlatList
-				data={payments}
-				keyExtractor={(item) => item.payment_id}
+				data={memoPayments}
+				keyExtractor={(item) => item.payment_id.toString()}
 				contentContainerStyle={styles.container}
 				scrollEnabled={true}
 				renderItem={({ item }) => (

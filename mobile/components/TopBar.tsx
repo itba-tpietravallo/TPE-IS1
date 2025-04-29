@@ -4,7 +4,7 @@ import { router } from "expo-router";
 import { supabase } from "@/lib/supabase";
 import { useEffect, useState } from "react";
 import { Session } from "@supabase/supabase-js";
-import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
+
 import { getUserSession } from "@/lib/autogen/queries";
 
 type User = {
@@ -14,14 +14,7 @@ type User = {
 };
 
 function TopBar() {
-	const [userId, setUserId] = useState<string | null>(null);
-	useEffect(() => {
-		supabase.auth.getSession().then(({ data: { session } }) => {
-			setUserId(session?.user.id!);
-		});
-	}, []);
-	const { data: user } = useQuery(getUserSession(supabase, userId!));
-	console.log(user);
+	const { data: user } = getUserSession(supabase);
 
 	return (
 		<SafeAreaView style={styles.container}>

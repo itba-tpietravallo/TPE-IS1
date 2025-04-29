@@ -9,7 +9,6 @@ import { useLoaderData } from "@remix-run/react"; // Remix Loader
 import { createBrowserClient } from "@supabase/ssr"; // Supabase Client
 
 import { dehydrate, QueryClient } from "@tanstack/react-query"; // React Query
-import { useQuery, prefetchQuery } from "@supabase-cache-helpers/postgrest-react-query"; // Cache Helpers
 
 import { getAllFields } from "@lib/autogen/queries"; // Database Queries
 import type { Database } from "@lib/autogen/database.types"; // Database Types
@@ -87,7 +86,7 @@ export default function () {
 	const { URL_ORIGIN, env } = useLoaderData<typeof loader>();
 	const supabase = createBrowserClient<Database>(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
 
-	const { data } = useQuery(getAllFields(supabase));
+	const { data } = getAllFields(supabase);
 
 	const fields = data?.map((user, i) => ({
 		id: user.id,

@@ -3,7 +3,7 @@ import { useLoaderData } from "@remix-run/react";
 import { createBrowserClient } from "@supabase/ssr";
 import { useEffect, useState } from "react";
 import { FieldDetail } from "./FieldDetail";
-import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
+
 import { getAllReservationsForFieldById, getFieldById } from "@lib/autogen/queries";
 
 export function loader(args: LoaderFunctionArgs) {
@@ -23,8 +23,8 @@ export default function FieldDetailPage() {
 	// @todo prefetch images
 	const { env, URL_ORIGIN, id } = useLoaderData<typeof loader>();
 	const supabase = createBrowserClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
-	const { data: field } = useQuery(getFieldById(supabase, id || ""));
-	const { data: reservations } = useQuery(getAllReservationsForFieldById(supabase, id || ""));
+	const { data: field } = getFieldById(supabase, id || "");
+	const { data: reservations } = getAllReservationsForFieldById(supabase, id || "");
 
 	const [name, setName] = useState(field?.name);
 	const [description, setDescription] = useState(field?.description);

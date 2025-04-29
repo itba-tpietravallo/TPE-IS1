@@ -3,7 +3,6 @@ import { ScrollView, Text, View, SafeAreaView, StyleSheet, TouchableOpacity, But
 import { supabase } from "@lib/supabase";
 import React, { useEffect, useState } from "react";
 
-import { useQuery } from "@supabase-cache-helpers/postgrest-react-query"; // Cache Helpers
 import { getAllFields, getAllSports } from "@lib/autogen/queries"; // Database Queries
 
 type Field = {
@@ -38,8 +37,8 @@ const normalizeString = (str: string) => {
 function CanchasFeed() {
 	const [selectedSport, setSelectedSport] = useState<string>("");
 
-	const { data: fields } = useQuery(getAllFields(supabase));
-	const { data: sports } = useQuery(getAllSports(supabase));
+	const { data: fields } = getAllFields(supabase);
+	const { data: sports } = getAllSports(supabase);
 
 	const handleSportPress = (sportName: string) => {
 		if (selectedSport === sportName) {

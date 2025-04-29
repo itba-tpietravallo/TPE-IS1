@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { Session } from "@supabase/supabase-js";
 import { router } from "expo-router";
 import Icon from "react-native-vector-icons/FontAwesome6";
-import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
+
 import { getUserSession } from "@/lib/autogen/queries";
 
 type User = {
@@ -16,12 +16,14 @@ type User = {
 
 export default function Index() {
 	const [userId, setUserId] = useState<string | null>(null);
+
 	useEffect(() => {
 		supabase.auth.getSession().then(({ data: { session } }) => {
 			setUserId(session?.user.id!);
 		});
 	}, []);
-	const { data: user } = useQuery(getUserSession(supabase, userId!));
+
+	const { data: user } = getUserSession(supabase);
 
 	return (
 		<View style={buttonStyles.containter}>

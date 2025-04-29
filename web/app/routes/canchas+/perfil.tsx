@@ -6,7 +6,6 @@ import { ProfilePictureAvatar } from "~/components/profile-picture";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader } from "~/components/ui/card";
 import { authenticateUser } from "~/lib/auth.server";
 import { FieldsPreviewGrid } from "./_index";
-import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
 import { getAllFieldsByOwner } from "@lib/autogen/queries";
 
 type Field = {
@@ -39,7 +38,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 export default function Index() {
 	const { user, avatar_url, email, phone, full_name, env } = useLoaderData<typeof loader>();
 	const supabase = createBrowserClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
-	const { data: fields } = useQuery(getAllFieldsByOwner(supabase, user.id));
+	const { data: fields } = getAllFieldsByOwner(supabase, user.id);
 
 	return (
 		<>

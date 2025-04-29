@@ -12,7 +12,7 @@ import { ScreenHeight } from "@rneui/themed/dist/config";
 import { router } from "expo-router";
 
 import { supabase } from "@/lib/supabase";
-import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
+
 import { getAllTeams, getAllSports } from "@/lib/autogen/queries";
 
 export type Player = {
@@ -32,8 +32,8 @@ export type Player = {
 // };
 
 function TeamsFeed() {
-	const { data: teams } = useQuery(getAllTeams(supabase));
-	const { data: sports } = useQuery(getAllSports(supabase));
+	const { data: teams } = getAllTeams(supabase);
+	const { data: sports } = getAllSports(supabase);
 	const [selectedSport, setSelectedSport] = useState<string>("");
 
 	const handleSportPress = (sportName: string) => {

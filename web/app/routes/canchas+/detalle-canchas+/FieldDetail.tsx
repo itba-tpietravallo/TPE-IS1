@@ -26,7 +26,6 @@ import { useLoaderData, useNavigate } from "@remix-run/react";
 import { createBrowserClient } from "@supabase/ssr";
 import { LoaderFunctionArgs } from "@remix-run/node";
 
-import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
 import { getAllUsers } from "@lib/autogen/queries";
 
 let globalName = "";
@@ -243,7 +242,7 @@ export function FieldDetail(props: FieldProps) {
 	const { imgSrc, name, setName, location, price, description, setDescription, reservations } = props;
 	const { env, URL_ORIGIN, id } = useLoaderData<typeof loader>();
 	const supabase = createBrowserClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
-	const { data: users } = useQuery(getAllUsers(supabase));
+	const { data: users } = getAllUsers(supabase);
 
 	return (
 		<div className="h-full bg-[#f2f4f3]">

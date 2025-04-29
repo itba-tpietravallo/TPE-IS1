@@ -7,7 +7,6 @@ import { Session } from "@supabase/supabase-js";
 import CheckoutButton from "./CheckoutButton";
 
 import { getAllReservationTimeSlots, getUserSession } from "@/lib/autogen/queries";
-import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
 
 type User = {
 	id: string;
@@ -28,13 +27,7 @@ interface PopUpReservaProps {
 }
 
 function PopUpReserva({ onClose, name, fieldId, sport, location, images, description, price }: PopUpReservaProps) {
-	const [userId, setUserId] = useState<string | null>(null);
-	useEffect(() => {
-		supabase.auth.getSession().then(({ data: { session } }) => {
-			setUserId(session?.user.id!);
-		});
-	}, []);
-	const { data: user } = useQuery(getUserSession(supabase, userId!));
+	const { data: user } = getUserSession(supabase);
 	const [isModalVisible, setIsModalVisible] = useState(false);
 	const [selectedDateTime, setSelectedDateTime] = useState<Date>(new Date());
 	const [unavailable, setUnavailability] = useState<boolean | null>(null);
@@ -205,14 +198,14 @@ async function isSlotUnavailable(fieldId: string, selectedDateTime: Date): Promi
 		return false;
 	}
 
-	const isTaken = data.some((reservation) => {
+	const isTaken = data?.some((reservation) => {
 		const reservationDate = new Date(reservation.date_time);
 		reservationDate.setUTCHours(reservationDate.getUTCHours() + reservationDate.getTimezoneOffset() / 60);
 
 		return reservationDate.getTime() === selectedDateTime.getTime();
 	});
 
-	return isTaken;
+	return !!isTaken;
 }
 
 const styles = StyleSheet.create({

@@ -23,7 +23,6 @@ import { authenticateUser } from "~/lib/auth.server";
 import { User } from "@supabase/supabase-js";
 import { DollarSign } from "lucide-react";
 import { getAllSports, insertNewField } from "@/lib/autogen/queries";
-import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
 
 export async function loader(args: LoaderFunctionArgs) {
 	const env = {
@@ -116,7 +115,7 @@ export function NewField() {
 		window.location.href = `${URL_ORIGIN}/canchas`;
 	};
 
-	const { data: sports } = useQuery(getAllSports(supabase));
+	const { data: sports } = getAllSports(supabase);
 
 	const options = useMemo(
 		() =>

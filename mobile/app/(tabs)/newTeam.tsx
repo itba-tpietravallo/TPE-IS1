@@ -13,17 +13,15 @@ import {
 } from "react-native";
 
 import SelectDropdown from "react-native-select-dropdown";
-import { createClient } from "@supabase/supabase-js";
 
 import { supabase } from "@/lib/supabase";
 import { router } from "expo-router";
 import { getAllSports } from "@lib/autogen/queries";
-import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
 
 export default function PostTeam() {
 	const [teamName, setTeamName] = useState("");
 	const [sport, setSport] = useState("");
-	const { data: sports } = useQuery(getAllSports(supabase));
+	const { data: sports } = getAllSports(supabase);
 	const [description, setDescription] = useState("");
 	const [members, setMembers] = useState<string[]>([]);
 	const [newMember, setNewMember] = useState("");
