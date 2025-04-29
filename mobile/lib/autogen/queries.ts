@@ -29,12 +29,16 @@ export function getAllSports(supabase: SupabaseClient<Database>, opts: any = und
 export function insertNewField(
 	supabase: SupabaseClient<Database>,
 	field: Database["public"]["Tables"]["fields"]["Insert"],
-	opts: any = {}
+	opts: any = {},
 ) {
 	return useQuerySupabase(supabase.from("fields").insert(field), opts);
 }
 
-export function getAllReservationsForFieldById(supabase: SupabaseClient<Database>, fieldId: string, opts: any = undefined) {
+export function getAllReservationsForFieldById(
+	supabase: SupabaseClient<Database>,
+	fieldId: string,
+	opts: any = undefined,
+) {
 	return useQuerySupabase(supabase.from("reservations").select("*").eq("field_id", fieldId), opts);
 }
 
@@ -59,13 +63,25 @@ export function getUserAvatar(supabase: SupabaseClient<Database>, user_name: str
 }
 
 export function getUserSession(supabase: SupabaseClient<Database>, opts: any = undefined) {
-	return useQuery({
-		queryKey: ["user_session"],
-		queryFn: async () => {
-			const id = (await supabase.auth.getSession()).data.session?.user.id;
-			return (await supabase.from("users").select("id, full_name, avatar_url").eq("id", id!).single().throwOnError()).data;
-		}
-	}, opts) ?? { };
+	return (
+		useQuery(
+			{
+				queryKey: ["user_session"],
+				queryFn: async () => {
+					const id = (await supabase.auth.getSession()).data.session?.user.id;
+					return (
+						await supabase
+							.from("users")
+							.select("id, full_name, avatar_url")
+							.eq("id", id!)
+							.single()
+							.throwOnError()
+					).data;
+				},
+			},
+			opts,
+		) ?? {}
+	);
 }
 
 export function getLastUserPayments(supabase: SupabaseClient<Database>, userId: string, opts: any = undefined) {
@@ -77,9 +93,9 @@ export function getLastUserPayments(supabase: SupabaseClient<Database>, userId: 
 				.select("payment_id, last_updated, status, transaction_amount")
 				.eq("user_id", userId)
 				.order("last_updated", { ascending: false })
-				.throwOnError()
+				.throwOnError();
 
 			return data;
-		}
+		},
 	});
 }
