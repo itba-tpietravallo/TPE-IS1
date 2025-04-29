@@ -228,6 +228,7 @@ export const teamsTable = pgTable(
 		pgPolicy("teams - update authenticated", {
 			for: "update",
 			withCheck: sql`true`,
+			using: sql`true`,
 			to: authenticatedRole, // only allow authenticated users to select from the table
 			as: "permissive",
 		}),
