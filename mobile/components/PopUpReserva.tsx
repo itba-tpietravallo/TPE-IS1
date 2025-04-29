@@ -28,7 +28,13 @@ interface PopUpReservaProps {
 }
 
 function PopUpReserva({ onClose, name, fieldId, sport, location, images, description, price }: PopUpReservaProps) {
-	const { data: user } = useQuery(getUserSession(supabase));
+	const [userId, setUserId] = useState<string | null>(null);
+	useEffect(() => {
+		supabase.auth.getSession().then(({ data: { session } }) => {
+			setUserId(session?.user.id!);
+		});
+	}, []);
+	const { data: user } = useQuery(getUserSession(supabase, userId!));
 	const [isModalVisible, setIsModalVisible] = useState(false);
 	const [selectedDateTime, setSelectedDateTime] = useState<Date>(new Date());
 	const [unavailable, setUnavailability] = useState<boolean | null>(null);

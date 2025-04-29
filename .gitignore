@@ -15,3 +15,6 @@ mobile/lib/autogen/*
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+# Codegeneration
+**/autogen/*

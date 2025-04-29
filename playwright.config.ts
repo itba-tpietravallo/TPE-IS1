@@ -20,7 +20,7 @@ try {
  */
 export default defineConfig({
 	webServer: {
-		command: "cd web && npm ci && npm run dev",
+		command: "cd web && npm run dev",
 		port: 5173,
 		reuseExistingServer: !process.env.CI,
 		env: {
