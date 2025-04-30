@@ -23,6 +23,7 @@ import { authenticateUser } from "~/lib/auth.server";
 import { User } from "@supabase/supabase-js";
 import { DollarSign } from "lucide-react";
 import { getAllSports, insertNewField } from "@/lib/autogen/queries";
+import { APIProvider, Map, AdvancedMarker, Pin, InfoWindow } from "@vis.gl/react-google-maps";
 
 export async function loader(args: LoaderFunctionArgs) {
 	const env = {
@@ -49,6 +50,10 @@ export function NewField() {
 		defaultValues: { section: "" },
 	});
 
+	const apiKey = "AIzaSyBw6wwGh_tfBhOikkUtc8uibxX1GPbr1ew";
+	const [latitude, setLatitude] = useState<number | null>(null);
+	const [longitude, setLongitude] = useState<number | null>(null);
+
 	const onSubmit = async (data: any) => {
 		try {
 			const files = data.image || [];
@@ -72,7 +77,7 @@ export function NewField() {
 				}
 			}
 
-			const apiKey = "AIzaSyBw6wwGh_tfBhOikkUtc8uibxX1GPbr1ew";
+			//const apiKey = "AIzaSyBw6wwGh_tfBhOikkUtc8uibxX1GPbr1ew";
 			const direction = `${data.street} ${data.street_number}, ${data.city}`;
 			const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(direction)}&key=${apiKey}`;
 			const locationData = await fetch(url)
@@ -81,10 +86,14 @@ export function NewField() {
 
 			if (!locationData || locationData.status != "OK") {
 				setFormError(true);
+				setLatitude(null);
+				setLongitude(null);
 				throw new Error(`The coordinates could not be retrieved from address ${direction}.`);
 			}
 
 			const { lat, lng } = locationData.results[0].geometry.location;
+			setLatitude(lat);
+			setLongitude(lng);
 
 			console.log(lat, lng);
 			const sportsArray = Array.isArray(data.sports)
@@ -110,6 +119,8 @@ export function NewField() {
 			if (insertError) throw new Error(`Insert error: ${insertError.message}`);
 		} catch (err: any) {
 			console.error("Submission failed:", err.message || err);
+			setLatitude(null);
+			setLongitude(null);
 		}
 
 		window.location.href = `${URL_ORIGIN}/canchas`;
@@ -141,7 +152,7 @@ export function NewField() {
 						form={form}
 					/>
 					<hr className="my-4 border-t border-gray-300" />
-					<AddressSection form={form} />
+					<AddressSection form={form} latitude={latitude} longitude={longitude} apiKey={apiKey} />
 					<hr className="my-4 border-t border-gray-300" />
 					<SelectFormSection form={form} options={options} />
 					<hr className="my-4 border-t border-gray-300" />
@@ -206,8 +217,14 @@ function BasicBox({
 		/>
 	);
 }
+type AddressSectionProps = {
+	form: UseFormReturn<any, any, any>;
+	latitude: number | null;
+	longitude: number | null;
+	apiKey: string;
+};
 
-function AddressSection({ form }: { form: UseFormReturn<any, any, any> }) {
+function AddressSection({ form, latitude, longitude, apiKey }: AddressSectionProps) {
 	return (
 		<div className="flex flex-col space-y-5">
 			<FormLabel className="font-sansfont-sans text-base text-[#223332]">Dirección</FormLabel>
@@ -245,6 +262,17 @@ function AddressSection({ form }: { form: UseFormReturn<any, any, any> }) {
 					form={form}
 				/>
 			</div>
+			<APIProvider apiKey={apiKey}>
+				<div style={{ width: "100%", height: "400px" }}>
+					<Map defaultZoom={9} defaultCenter={{ lat: -34.37, lng: -58.25 }}>
+						{latitude !== null && longitude !== null && (
+							<AdvancedMarker position={{ lat: latitude, lng: longitude }}>
+								<Pin />
+							</AdvancedMarker>
+						)}
+					</Map>
+				</div>
+			</APIProvider>
 		</div>
 	);
 }
