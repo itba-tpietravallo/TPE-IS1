@@ -31,7 +31,7 @@ export async function loader(args: LoaderFunctionArgs) {
 	const queryClient = new QueryClient();
 
 	const { supabaseClient } = createSupabaseServerClient(args.request);
-	await prefetchQuery(queryClient, getAllFields(supabaseClient));
+	await queryClient.prefetchQuery(["getAllFields"], () => getAllFields(supabaseClient));
 	// @todo fetchQueryInitialData
 
 	return {
