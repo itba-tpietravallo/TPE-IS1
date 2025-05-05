@@ -188,6 +188,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "reservations_field_id_fields_id_fk"
+            columns: ["field_id"]
+            isOneToOne: false
+            referencedRelation: "fields_distance_view"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "reservations_owner_id_users_id_fk"
             columns: ["owner_id"]
             isOneToOne: false
@@ -279,6 +286,65 @@ export type Database = {
       }
     }
     Views: {
+      fields_distance_view: {
+        Row: {
+          avatar_url: string | null
+          city: string | null
+          description: string | null
+          dist_meters: number | null
+          id: string | null
+          images: string[] | null
+          location: unknown | null
+          name: string | null
+          neighborhood: string | null
+          owner: string | null
+          price: number | null
+          sports: string[] | null
+          street: string | null
+          street_number: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          city?: string | null
+          description?: string | null
+          dist_meters?: never
+          id?: string | null
+          images?: string[] | null
+          location?: unknown | null
+          name?: string | null
+          neighborhood?: string | null
+          owner?: string | null
+          price?: number | null
+          sports?: string[] | null
+          street?: string | null
+          street_number?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          city?: string | null
+          description?: string | null
+          dist_meters?: never
+          id?: string | null
+          images?: string[] | null
+          location?: unknown | null
+          name?: string | null
+          neighborhood?: string | null
+          owner?: string | null
+          price?: number | null
+          sports?: string[] | null
+          street?: string | null
+          street_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fields_owner_users_id_fk"
+            columns: ["owner"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       geography_columns: {
         Row: {
           coord_dimension: number | null
@@ -800,15 +866,21 @@ export type Database = {
         Returns: boolean
       }
       nearby_fields: {
-        Args:
-          | { lat: number; long: number }
-          | { lat: number; long: number; lim: number }
+        Args: { lat: number; long: number; lim: number }
         Returns: {
           id: string
           owner: string
+          name: string
+          location: unknown
+          street_number: string
+          street: string
+          neighborhood: string
+          sports: string[]
+          description: string
+          city: string
           avatar_url: string
           images: string[]
-          name: string
+          price: number
           lat: number
           long: number
           dist_meters: number
