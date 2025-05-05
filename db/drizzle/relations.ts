@@ -1,5 +1,31 @@
 import { relations } from "drizzle-orm/relations";
-import { reservations, mpPayments, users, fields, usersInAuth } from "./schema";
+import { users, mpOauthAuthorization, fields, reservations, mpPayments, usersInAuth } from "./schema";
+
+export const mpOauthAuthorizationRelations = relations(mpOauthAuthorization, ({one}) => ({
+	user: one(users, {
+		fields: [mpOauthAuthorization.userId],
+		references: [users.id]
+	}),
+}));
+
+export const usersRelations = relations(users, ({one, many}) => ({
+	mpOauthAuthorizations: many(mpOauthAuthorization),
+	fields: many(fields),
+	mpPayments: many(mpPayments),
+	reservations: many(reservations),
+	usersInAuth: one(usersInAuth, {
+		fields: [users.id],
+		references: [usersInAuth.id]
+	}),
+}));
+
+export const fieldsRelations = relations(fields, ({one, many}) => ({
+	user: one(users, {
+		fields: [fields.owner],
+		references: [users.id]
+	}),
+	reservations: many(reservations),
+}));
 
 export const mpPaymentsRelations = relations(mpPayments, ({one}) => ({
 	reservation: one(reservations, {
@@ -22,24 +48,6 @@ export const reservationsRelations = relations(reservations, ({one, many}) => ({
 		fields: [reservations.ownerId],
 		references: [users.id]
 	}),
-}));
-
-export const usersRelations = relations(users, ({one, many}) => ({
-	mpPayments: many(mpPayments),
-	fields: many(fields),
-	reservations: many(reservations),
-	usersInAuth: one(usersInAuth, {
-		fields: [users.id],
-		references: [usersInAuth.id]
-	}),
-}));
-
-export const fieldsRelations = relations(fields, ({one, many}) => ({
-	user: one(users, {
-		fields: [fields.owner],
-		references: [users.id]
-	}),
-	reservations: many(reservations),
 }));
 
 export const usersInAuthRelations = relations(usersInAuth, ({many}) => ({

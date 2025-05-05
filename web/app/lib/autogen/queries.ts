@@ -14,6 +14,10 @@ export function getAllFields(supabase: SupabaseClient<Database>, opts: any = und
 	return useQuerySupabase(supabase.from("fields").select("*"), opts);
 }
 
+export function getNearbyFields(supabase: SupabaseClient<Database>, lat: number, long: number, limit?: number, opts: any = undefined) {
+	return useQuerySupabase(supabase.rpc("nearby_fields", { lat, long, lim: limit || 5 }));
+}
+
 export function getAllFieldsByOwner(supabase: SupabaseClient<Database>, ownerId: string, opts: any = undefined) {
 	return useQuerySupabase(supabase.from("fields").select("*").eq("owner", ownerId), opts);
 }
