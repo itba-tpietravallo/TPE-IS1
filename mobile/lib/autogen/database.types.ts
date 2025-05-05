@@ -163,21 +163,21 @@ export type Database = {
           field_id: string
           id: string
           owner_id: string
-          payments_id: number | null
+          payment_id: number | null
         }
         Insert: {
           date_time: string
           field_id: string
           id?: string
           owner_id: string
-          payments_id?: number | null
+          payment_id?: number | null
         }
         Update: {
           date_time?: string
           field_id?: string
           id?: string
           owner_id?: string
-          payments_id?: number | null
+          payment_id?: number | null
         }
         Relationships: [
           {
