@@ -14,7 +14,13 @@ export function getAllFields(supabase: SupabaseClient<Database>, opts: any = und
 	return useQuerySupabase(supabase.from("fields").select("*"), opts);
 }
 
-export function getNearbyFields(supabase: SupabaseClient<Database>, lat: number, long: number, limit?: number, opts: any = undefined) {
+export function getNearbyFields(
+	supabase: SupabaseClient<Database>,
+	lat: number,
+	long: number,
+	limit?: number,
+	opts: any = undefined,
+) {
 	return useQuerySupabase(supabase.rpc("nearby_fields", { lat, long, lim: limit || 5 }));
 }
 
@@ -75,18 +81,15 @@ export function getUsername(supabase: SupabaseClient<Database>, userId: string, 
 				.from("users")
 				.select("full_name, username")
 				.eq("id", userId)
-				.single()
-			
+				.single();
+
 			if (error || !data.username) {
 				console.error("Error fetching username:", error, data);
 				const base_username = data?.full_name?.toLowerCase().split(" ").join("_")! || "user";
 				const similar = await supabase.from("users").select("username").like("username", base_username);
-				const def = typeof similar.count === 'number' ? `${base_username}_${similar.count || 0}` : base_username;
-				await supabase
-					.from("users")
-					.update({ username: def })
-					.eq("id", userId)
-					.throwOnError();
+				const def =
+					typeof similar.count === "number" ? `${base_username}_${similar.count || 0}` : base_username;
+				await supabase.from("users").update({ username: def }).eq("id", userId).throwOnError();
 				username = def;
 			} else {
 				console.log("Username already exists:", data.username);
@@ -94,7 +97,7 @@ export function getUsername(supabase: SupabaseClient<Database>, userId: string, 
 			}
 
 			return username;
-		}
+		},
 	});
 }
 
