@@ -6,7 +6,7 @@ import { ProfilePictureAvatar } from "~/components/profile-picture";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader } from "~/components/ui/card";
 import { authenticateUser } from "~/lib/auth.server";
 import { FieldsPreviewGrid } from "./_index";
-import { getAllFieldsByOwner } from "@lib/autogen/queries";
+import { getAllFieldsByOwner, getUsername } from "@lib/autogen/queries";
 
 type Field = {
 	avatar_url: string;
@@ -39,6 +39,7 @@ export default function Index() {
 	const { user, avatar_url, email, phone, full_name, env } = useLoaderData<typeof loader>();
 	const supabase = createBrowserClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
 	const { data: fields } = getAllFieldsByOwner(supabase, user.id);
+	const { data: username } = getUsername(supabase, user.id, { enabled: !!user.id });
 
 	return (
 		<>
@@ -64,6 +65,10 @@ export default function Index() {
 									<li className="flex flex-row items-center gap-2">
 										<span className="text-lg font-bold">Email:</span>
 										<span className="text-lg">{email}</span>
+									</li>
+									<li className="flex flex-row items-center gap-2">
+										<span className="text-lg font-bold">Nombre de usuario:</span>
+										<span className="text-lg">{username || "(no vinculado)"}</span>
 									</li>
 									<li className="flex flex-row items-center gap-2">
 										<span className="text-lg font-bold">Telefono:</span>

@@ -37,6 +37,7 @@ export const usersTable = pgTable(
 			.references((): AnyPgColumn => authUsers.id),
 		full_name: varchar({ length: 255 }).notNull(),
 		avatar_url: text(),
+		username: varchar({ length: 255 }).unique().notNull(),
 	},
 	(table) => [
 		// INSERT, UPDATE, DELETE are disallowed by default.
