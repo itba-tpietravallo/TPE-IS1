@@ -117,7 +117,7 @@ export const reservationsTable = pgTable(
 		owner_id: uuid()
 			.notNull()
 			.references(() => usersTable.id, { onDelete: "cascade" }),
-		payment_id: bigint({ mode: "number" }).default(sql`NULL`),
+		payments_id: bigint({ mode: "number" }).default(sql`NULL`),
 	},
 	(table) => [
 		pgPolicy("reservations - select authenticated", {
@@ -228,6 +228,7 @@ export const teamsTable = pgTable(
 		pgPolicy("teams - update authenticated", {
 			for: "update",
 			withCheck: sql`true`,
+			using: sql`true`,
 			to: authenticatedRole, // only allow authenticated users to select from the table
 			as: "permissive",
 		}),
