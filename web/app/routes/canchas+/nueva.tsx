@@ -21,10 +21,11 @@ import { createBrowserClient } from "@supabase/ssr";
 import { useLoaderData } from "@remix-run/react";
 import { authenticateUser } from "~/lib/auth.server";
 import { User } from "@supabase/supabase-js";
-import { DollarSign } from "lucide-react";
+import { DollarSign, Icon } from "lucide-react";
 import { getAllSports, insertNewField } from "@/lib/autogen/queries";
 import { APIProvider, Map, AdvancedMarker, Pin, InfoWindow } from "@vis.gl/react-google-maps";
 import debounce from "lodash.debounce";
+import { url } from "node:inspector";
 
 export async function loader(args: LoaderFunctionArgs) {
 	const env = {
@@ -432,7 +433,15 @@ function AddressSection({
 					>
 						{latitude !== null && longitude !== null && (
 							<AdvancedMarker position={{ lat: latitude, lng: longitude }}>
-								<Pin />
+								{/* <img
+									src="/matchpointpelota-logo.png" // Assumes the image is in the public root
+									alt="Matchpoint Logo"
+									style={{ width: "30px", height: "30px", objectFit: "contain" }} // Adjust size as needed
+								/>
+								esto es para que desp pongamos una imagen mas linda como marker. El logo solo no queda bien, desp hago una imagen
+								*/}
+
+								<Pin> </Pin>
 							</AdvancedMarker>
 						)}
 						{showErrorPopup && (
@@ -628,5 +637,6 @@ export default NewField;
 // - que el ususario pueda mover el pin
 // - guardar la nueva lat y lng del pin si es que el usuario lo mueve
 // - no se muestra error si el input no es correcto. Por ejemplo si pones LOLA es la altura no pasa nada. podria decir un error
+//estaria bueno que el marker fuese el logito de matchpoint
 //fuera del tema mapa:
 // los errores  dejan el setFormError(false); y no se actualiza. osea q si hubo un error en algun lado nunca mas te habilita a subr creo
