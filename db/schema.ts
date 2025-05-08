@@ -240,7 +240,7 @@ export const tournamentsTable = pgTable(
   "tournaments",
   {
     id: uuid().primaryKey().defaultRandom().notNull(),
-    name: text().primaryKey().notNull(),
+    name: text().notNull(),
     fieldId: uuid()
       .notNull()
       .references(() => fieldsTable.id, { onDelete: "cascade" }),
