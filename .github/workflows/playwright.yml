@@ -42,15 +42,15 @@ jobs:
                   path: |
                       'node_modules'
                       'web/node_modules'
-                  key: "${{ runner.os }}-playwright-node-${{ hashFiles('package-lock.json') }}"
+                  key: "${{ runner.os }}-playwright-node-${{ hashFiles('web/package-lock.json') }}"
                   restore-keys: |
                       ${{ runner.os }}-playwright-
 
             - name: Install dependencies
               if: steps.node-cache.outputs.cache-hit != 'true'
               run: |
-                  npm ci
-                  cd web && npm ci && cd ..
+                  npm i
+                  cd web && npm i && cd ..
 
             - name: Install Playwright Browsers
               if: steps.playwright-cache.outputs.cache-hit != 'true'
@@ -58,6 +58,9 @@ jobs:
 
             - name: Run Playwright tests
               run: npx playwright test
+              env: 
+                TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
+                TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
 
             - uses: actions/upload-artifact@v4
               if: ${{ !cancelled() }}

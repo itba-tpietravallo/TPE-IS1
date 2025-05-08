@@ -163,21 +163,21 @@ export type Database = {
           field_id: string
           id: string
           owner_id: string
-          payment_id: number | null
+          payments_id: number | null
         }
         Insert: {
           date_time: string
           field_id: string
           id?: string
           owner_id: string
-          payment_id?: number | null
+          payments_id?: number | null
         }
         Update: {
           date_time?: string
           field_id?: string
           id?: string
           owner_id?: string
-          payment_id?: number | null
+          payments_id?: number | null
         }
         Relationships: [
           {
@@ -259,21 +259,65 @@ export type Database = {
         }
         Relationships: []
       }
+      tournaments: {
+        Row: {
+          cantPlayers: number
+          deadline: string
+          description: string | null
+          fieldId: string
+          id: string
+          name: string
+          price: number
+          startDate: string
+        }
+        Insert: {
+          cantPlayers: number
+          deadline: string
+          description?: string | null
+          fieldId: string
+          id?: string
+          name: string
+          price: number
+          startDate: string
+        }
+        Update: {
+          cantPlayers?: number
+          deadline?: string
+          description?: string | null
+          fieldId?: string
+          id?: string
+          name?: string
+          price?: number
+          startDate?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tournaments_fieldId_fields_id_fk"
+            columns: ["fieldId"]
+            isOneToOne: false
+            referencedRelation: "fields"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
           avatar_url: string | null
           full_name: string
           id: string
+          username: string
         }
         Insert: {
           avatar_url?: string | null
           full_name: string
           id: string
+          username: string
         }
         Update: {
           avatar_url?: string | null
           full_name?: string
           id?: string
+          username?: string
         }
         Relationships: []
       }
@@ -800,15 +844,21 @@ export type Database = {
         Returns: boolean
       }
       nearby_fields: {
-        Args:
-          | { lat: number; long: number }
-          | { lat: number; long: number; lim: number }
+        Args: { lat: number; long: number; lim: number }
         Returns: {
           id: string
           owner: string
+          name: string
+          location: unknown
+          street_number: string
+          street: string
+          neighborhood: string
+          sports: string[]
+          description: string
+          city: string
           avatar_url: string
           images: string[]
-          name: string
+          price: number
           lat: number
           long: number
           dist_meters: number

@@ -13,6 +13,7 @@ import { dehydrate, QueryClient } from "@tanstack/react-query"; // React Query
 import { getAllFields } from "@lib/autogen/queries"; // Database Queries
 import type { Database } from "@lib/autogen/database.types"; // Database Types
 import { createSupabaseServerClient } from "@lib/supabase.server";
+import { fetchQueryInitialData, prefetchQuery } from "@supabase-cache-helpers/postgrest-react-query";
 
 type FieldPreviewProps = {
 	id: string;
@@ -31,7 +32,9 @@ export async function loader(args: LoaderFunctionArgs) {
 	const queryClient = new QueryClient();
 
 	const { supabaseClient } = createSupabaseServerClient(args.request);
-	await queryClient.prefetchQuery(["getAllFields"], () => getAllFields(supabaseClient));
+	// fix: comment this out as useContext is not defined on the server
+	// need to expose query as part of the db queries file
+	// await queryClient.prefetchQuery(["getAllFields"], () => getAllFields(supabaseClient));
 	// @todo fetchQueryInitialData
 
 	return {

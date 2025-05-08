@@ -22,11 +22,17 @@ export default defineConfig({
 	webServer: {
 		command: "cd web && npm run dev",
 		port: 5173,
-		reuseExistingServer: !process.env.CI,
+		reuseExistingServer: false,
 		env: {
 			TEST_USER_EMAIL: process.env.TEST_USER_EMAIL!,
 			TEST_USER_PASSWORD: process.env.TEST_USER_PASSWORD!,
 		},
+		timeout: 10000, // 10 seconds
+	},
+	use: {
+		baseURL: "http://localhost:5173",
+		trace: "on-first-retry",
+		actionTimeout: 5000,
 	},
 	testDir: "./web/tests",
 	/* Run tests in files in parallel */
@@ -40,14 +46,6 @@ export default defineConfig({
 	/* Reporter to use. See https://playwright.dev/docs/test-reporters */
 	reporter: "html",
 	/* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
-	use: {
-		/* Base URL to use in actions like `await page.goto('/')`. */
-		// baseURL: 'http://127.0.0.1:3000',
-
-		/* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-		trace: "on-first-retry",
-	},
-
 	/* Configure projects for major browsers */
 	projects: [
 		{

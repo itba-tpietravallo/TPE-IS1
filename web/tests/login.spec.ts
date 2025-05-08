@@ -5,7 +5,7 @@ const TEST_USER_EMAIL = process.env.TEST_USER_EMAIL || "";
 const TEST_USER_PASSWORD = process.env.TEST_USER_PASSWORD || "";
 
 test("email login", async ({ page }) => {
-	await page.goto(`${BASE_URL}/login`);
+	await page.goto(`${BASE_URL}/login`, { timeout: 5000 });
 
 	// Expect a title "to contain" a substring.
 	const emailField = await page.getByPlaceholder("Your email address");
@@ -19,7 +19,7 @@ test("email login", async ({ page }) => {
 
 	await page.getByRole("button", { name: "Sign in", exact: true }).click();
 
-	await page.getByText("Perfil").waitFor({ state: "visible" });
+	await page.getByText("Perfil").waitFor({ state: "visible", timeout: 5000 });
 
 	await page.waitForTimeout(1000);
 });

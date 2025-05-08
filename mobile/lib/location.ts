@@ -1,8 +1,10 @@
 // location.ts
 import { useState, useEffect } from 'react';
 import * as Location from 'expo-location';
+import { getNearbyFields } from './autogen/queries';
+import { supabase } from '@lib/supabase';
 
-export function useLocation() {
+function useLocation() {
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -21,7 +23,20 @@ export function useLocation() {
     getCurrentLocation();
   }, []);
 
-  return { location, errorMsg };
+  return { location, errorMsg } as { location: Location.LocationObject, errorMsg: null } | { location: null, errorMsg: string };
 }
 
 
+export function getNearbyFieldsByLoc() {
+
+      const { location, errorMsg } = useLocation();
+  
+      // errorMsg is null if location is granted
+      if (errorMsg != null) {
+          throw new Error("could not retrieve coords");
+      }
+  
+      const { data } = getNearbyFields(supabase, location?.coords.latitude, location?.coords.longitude, 10, { enabled: !!location });
+
+      return {data};
+}
