@@ -13,7 +13,6 @@ import {
 } from "react-native";
 import { ScreenHeight, ScreenWidth } from "@rneui/themed/dist/config";
 import PopUpTorneo from "@components/PopUpTorneo";
-import { getAllFields, getAllSports } from "@lib/autogen/queries"; // Database Queries
 
 type Torneo = {
 	name: string;
