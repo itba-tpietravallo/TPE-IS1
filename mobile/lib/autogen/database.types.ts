@@ -259,24 +259,65 @@ export type Database = {
         }
         Relationships: []
       }
+      tournaments: {
+        Row: {
+          cantPlayers: number
+          deadline: string
+          description: string | null
+          fieldId: string
+          id: string
+          name: string
+          price: number
+          startDate: string
+        }
+        Insert: {
+          cantPlayers: number
+          deadline: string
+          description?: string | null
+          fieldId: string
+          id?: string
+          name: string
+          price: number
+          startDate: string
+        }
+        Update: {
+          cantPlayers?: number
+          deadline?: string
+          description?: string | null
+          fieldId?: string
+          id?: string
+          name?: string
+          price?: number
+          startDate?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tournaments_fieldId_fields_id_fk"
+            columns: ["fieldId"]
+            isOneToOne: false
+            referencedRelation: "fields"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
           avatar_url: string | null
           full_name: string
           id: string
-          username: string | null
+          username: string
         }
         Insert: {
           avatar_url?: string | null
           full_name: string
           id: string
-          username?: string | null
+          username: string
         }
         Update: {
           avatar_url?: string | null
           full_name?: string
           id?: string
-          username?: string | null
+          username?: string
         }
         Relationships: []
       }
