@@ -16,7 +16,7 @@ import SelectDropdown from "react-native-select-dropdown";
 
 import { supabase } from "@/lib/supabase";
 import { router } from "expo-router";
-import { getAllSports } from "@lib/autogen/queries";
+import { getAllSports, getUserSession } from "@lib/autogen/queries";
 
 export default function PostTeam() {
 	const [teamName, setTeamName] = useState("");
@@ -28,6 +28,8 @@ export default function PostTeam() {
 	const [availability, setAvailability] = useState(0);
 	const [isPublishing, setIsPublishing] = useState(false); // Estado para controlar el color del botón "Publicar"
 
+	const { data: user } = getUserSession(supabase);
+
 	const handlePostTeam = async () => {
 		await supabase.from("teams").insert([
 			{
@@ -36,7 +38,7 @@ export default function PostTeam() {
 				description: description,
 				images: null,
 				//availability: availability, // Disponibilidad ingresada
-				players: members, // Miembros como una lista separada por comas
+				players: [user?.full_name!], // Cuando crea el equipo automaticamente se une el creador
 			},
 		]);
 		router.push("/(tabs)/teams");
@@ -52,19 +54,19 @@ export default function PostTeam() {
 		router.push("/(tabs)/teams");
 	};
 
-	const addMember = () => {
-		if (newMember.trim() === "") {
-			Alert.alert("Error", "Por favor ingresa un nombre válido.");
-			return;
-		}
-		setMembers([...members, newMember]);
-		setNewMember("");
-	};
+	// const addMember = () => {
+	// 	if (newMember.trim() === "") {
+	// 		Alert.alert("Error", "Por favor ingresa un nombre válido.");
+	// 		return;
+	// 	}
+	// 	setMembers([...members, newMember]);
+	// 	setNewMember("");
+	// };
 
-	const removeMember = (index: number): void => {
-		const updatedMembers: string[] = members.filter((_, i: number) => i !== index);
-		setMembers(updatedMembers);
-	};
+	// const removeMember = (index: number): void => {
+	// 	const updatedMembers: string[] = members.filter((_, i: number) => i !== index);
+	// 	setMembers(updatedMembers);
+	// };
 
 	return (
 		<KeyboardAvoidingView style={styles.container} behavior={Platform.OS === "ios" ? "padding" : undefined}>
@@ -117,7 +119,7 @@ export default function PostTeam() {
 
 				{/* Miembros del Equipo */}
 				{/* Habria que cambiar esto para invitar usuarios a unirse en vez de meterlos al equipo */}
-				<Text style={styles.label}>Miembros Iniciales (opcional):</Text>
+				{/* <Text style={styles.label}>Miembros Iniciales (opcional):</Text>
 				<View style={styles.memberInputContainer}>
 					<TextInput
 						style={[styles.input, styles.memberInput]}
@@ -128,9 +130,9 @@ export default function PostTeam() {
 					<TouchableOpacity style={styles.addButton} onPress={addMember}>
 						<Text style={styles.addButtonText}>Agregar</Text>
 					</TouchableOpacity>
-				</View>
+				</View> */}
 
-				<View>
+				{/* <View>
 					{members.length > 0 && (
 						<View style={{ display: "flex", flexDirection: "column", gap: 5 }}>
 							{members.map((item, index) => (
@@ -153,17 +155,17 @@ export default function PostTeam() {
 							))}
 						</View>
 					)}
-				</View>
+				</View> */}
 
 				{/* Disponibilidad */}
-				<Text style={[styles.label, styles.spacing]}>¿Cuántas personas estás buscando? (obligatorio)</Text>
+				{/* <Text style={[styles.label, styles.spacing]}>¿Cuántas personas estás buscando? (obligatorio)</Text>
 				<TextInput
 					style={styles.input}
 					placeholder="Número de personas"
 					value={availability.toString()}
 					onChangeText={(text) => setAvailability(parseInt(text) || 0)}
 					keyboardType="numeric"
-				/>
+				/> */}
 
 				{/* Descripción */}
 				<TextInput

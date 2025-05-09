@@ -6,12 +6,8 @@ import { Session } from "@supabase/supabase-js";
 import Icon from "react-native-vector-icons/FontAwesome6";
 import { Player } from "../app/(tabs)/teams.tsx";
 import PlayerPreview from "./PlayerPreview.tsx";
-
-// type User = {
-// 	id: string;
-// 	full_name: string;
-// 	avatar_url: string;
-// };
+import { getUsername } from "@lib/autogen/queries.ts";
+import { getUserSession } from "@/lib/autogen/queries";
 
 type PropsPopUpTeam = {
 	onClose: () => void;
@@ -24,46 +20,31 @@ type PropsPopUpTeam = {
 };
 
 function PopUpTeam(props: PropsPopUpTeam) {
-	//const [members, setMembers] = useState<string[]>([]);
-	const [name, setName] = useState(props.name);
+	const { data: user } = getUserSession(supabase);
 
-	{/* VERSION 1 */}
-	const handleJoinTeam = async () => {
-		const newName = "EQUIPO";
+	const [ players, setPlayers ] = useState<string[]>(props.players)
+ 
+	const handleJoinTeam = async () => {          //@TODO: AVECES EN TEAMS TIRA UN ERROR 
+
+		if(players.includes(user?.full_name!)){
+			console.log("User already joined")
+			return;
+		};
+
+		const updatedMembers = [...players, user?.full_name!];
 	  
 		const { data, error } = await supabase
 		  .from("teams")
-		  .update({ name: newName })
+		  .update({ players: updatedMembers })
 		  .eq("team_id", props.team_id);
 	  
 		if (error) {
 		  console.error("Error al guardar:", error.message);
 		} else {
+		  setPlayers(updatedMembers)
 		  console.log("Guardado exitosamente:", data);
 		}
 	};
-
-	{/* VERSION 2 */}
-	// const handleJoinTeam = () => {
-	// 	console.log(props.team_id);
-	// 	setName("EQUIPO");
-	// };
-
-	// useEffect(() => {
-	// 	supabase
-	// 		.from("teams")
-	// 		.update({
-	// 			name: name,
-	// 		})
-	// 		.eq("team_id", props.team_id)
-	// 		.then(({ data, error }) => {
-	// 			if (error) {
-	// 				console.error("Error al guardar:", error.message);
-	// 			} else {
-	// 				console.log("Guardado exitosamente:", data);
-	// 			}
-	// 		});
-	// }, [name]);
 
 	return (
 		<View style={styles.modalView}>
@@ -82,7 +63,7 @@ function PopUpTeam(props: PropsPopUpTeam) {
 				{/* Miembros del Equipo */}
 				<ScrollView style={styles.scrollArea}>
 					<View style={{ width: "100%" }}>
-						{props.players.map((member) => (
+						{players.map((member) => (
 							<View key={member} style={styles.row}>
 								<View style={{ height: 60, width: 30 }}></View>
 								{/* <Image
