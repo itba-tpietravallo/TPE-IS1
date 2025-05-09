@@ -1,58 +1,15 @@
 import { supabase } from "@lib/supabase";
 import React, { useState } from "react";
-import {
-	StyleSheet,
-	Text,
-	Touchable,
-	TouchableOpacity,
-	View,
-	Modal,
-	ScrollView,
-	Image,
-	ImageBackground,
-} from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View, Modal, ScrollView, Image, ImageBackground } from "react-native";
 import { ScreenHeight, ScreenWidth } from "@rneui/themed/dist/config";
-import PopUpTorneo from "@components/PopUpTorneo";
-
-type Torneo = {
-	name: string;
-	location: string;
-	date: Date;
-	description: string;
-	price: string;
-	deadline: Date;
-	cantPlayers: number;
-};
-
-const mockTorneos: Torneo[] = [
-	{
-		name: "Torneo 1",
-		location: "Las Heras 1946",
-		date: new Date("2025-05-10"),
-		description: "Torneo de fútbol",
-		price: "1234",
-		deadline: new Date("2025-05-08"),
-		cantPlayers: 5,
-	},
-	{
-		name: "Torneo 2",
-		location: "Av. Corrientes 1234",
-		date: new Date("2025-05-15"),
-		description: "Torneo de tenis",
-		price: "1500",
-		deadline: new Date("2025-05-12"),
-		cantPlayers: 2,
-	},
-];
+import { getAllTournaments, getFieldById } from "@lib/autogen/queries"; // Database Queries
+import TournamentPost from "@components/tournamentPost";
 
 function TorneosFeed() {
 	const [isModalVisible, setIsModalVisible] = useState(false);
-	const [selectedTorneo, setSelectedTorneo] = useState<Torneo | null>(null);
+	const [selectedTorneo, setSelectedTorneo] = useState<string>("");
 
-	const handleTorneoPress = (torneo: Torneo) => {
-		setSelectedTorneo(torneo);
-		setIsModalVisible(true);
-	};
+	const { data: torneos } = getAllTournaments(supabase);
 
 	return (
 		<View
@@ -69,40 +26,20 @@ function TorneosFeed() {
 				showsHorizontalScrollIndicator={false}
 				showsVerticalScrollIndicator={false}
 			>
-				{mockTorneos.map((torneo, index) => (
-					<TouchableOpacity key={index} onPress={() => handleTorneoPress(torneo)}>
-						<ImageBackground
-							style={styles.container}
-							imageStyle={{ borderRadius: 15, opacity: 0.9 }}
-							source={require("@/assets/images/no-imagen.jpeg")}
-						>
-							<View style={styles.topContent}>
-								<Text style={styles.title}>{torneo.name}</Text>
-								<Text style={styles.text}>{torneo.location}</Text>
-							</View>
-						</ImageBackground>
-					</TouchableOpacity>
+				{torneos?.map((torneo, index) => (
+					<TournamentPost
+						key={index}
+						name={torneo.name}
+						fieldId={torneo.fieldId}
+						sport={torneo.sport}
+						startDate={new Date(torneo.startDate)}
+						description={torneo.description || ""}
+						price={torneo.price}
+						deadline={new Date(torneo.deadline)}
+						cantPlayers={torneo.cantPlayers}
+					/>
 				))}
 			</ScrollView>
-			{selectedTorneo && (
-				<Modal
-					style={{ justifyContent: "center", alignItems: "center" }}
-					visible={isModalVisible}
-					transparent={true}
-					onRequestClose={() => setIsModalVisible(false)}
-				>
-					<PopUpTorneo
-						onClose={() => setIsModalVisible(false)}
-						name={selectedTorneo.name}
-						location={selectedTorneo.location}
-						date={selectedTorneo.date}
-						description={selectedTorneo.description}
-						price={selectedTorneo.price}
-						deadline={selectedTorneo.deadline}
-						cantPlayers={selectedTorneo.cantPlayers}
-					/>
-				</Modal>
-			)}
 		</View>
 	);
 }

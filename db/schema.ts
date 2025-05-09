@@ -244,6 +244,7 @@ export const tournamentsTable = pgTable(
     fieldId: uuid()
       .notNull()
       .references(() => fieldsTable.id, { onDelete: "cascade" }),
+    sport: text().notNull(),
     startDate: timestamp({ withTimezone: true }).notNull(),
     description: text(),
     price: integer().notNull(),
@@ -252,10 +253,9 @@ export const tournamentsTable = pgTable(
   },
   (table) => [
     pgPolicy("tournaments - select authenticated", {
-      for: "all",
+      for: "select",
       using: sql`true`,
-      withCheck: sql``,
-      to: authenticatedRole,
+      to: authenticatedRole, // only allow authenticated users to select from the table
       as: "permissive",
     }),
   ]

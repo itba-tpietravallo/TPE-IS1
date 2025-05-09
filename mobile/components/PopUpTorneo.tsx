@@ -1,10 +1,11 @@
 import React, { useState } from "react";
-import { StyleSheet, Text, View, TouchableOpacity, TextInput, Modal, Image } from "react-native";
+import { StyleSheet, Text, View, TouchableOpacity, TextInput, Modal, Image, ScrollView } from "react-native";
 import { ScreenHeight, ScreenWidth } from "@rneui/themed/dist/config";
 
 interface PopUpReservaProps {
 	onClose: () => void;
 	name: string;
+	sport: string;
 	location: string;
 	date: Date;
 	description: string;
@@ -57,7 +58,6 @@ function PopUpTorneo({ onClose, name, location, date, description, price, deadli
 							<View style={styles.infoContainer}>
 								<Text style={styles.modalTitle}>Inscripción</Text>
 								<TextInput style={styles.input} placeholder="Nombre del equipo" />
-								<TextInput style={styles.input} placeholder="Nombre de contacto" />
 								<TextInput
 									style={styles.input}
 									placeholder="Teléfono de contacto"
@@ -68,7 +68,22 @@ function PopUpTorneo({ onClose, name, location, date, description, price, deadli
 									placeholder="Mail de contacto"
 									keyboardType="email-address"
 								/>
-								<TextInput style={styles.input} placeholder="Nombre de jugadores" />
+								<Text style={styles.label}>Jugadores:</Text>
+								<ScrollView
+									style={{ maxHeight: ScreenHeight * 0.4 }}
+									horizontal={false}
+									contentContainerStyle={{ flexDirection: "column" }}
+									showsHorizontalScrollIndicator={false}
+									showsVerticalScrollIndicator={false}
+								>
+									{Array.from({ length: cantPlayers }).map((_, index) => (
+										<TextInput
+											key={index}
+											style={styles.input}
+											placeholder={"Usuario jugador " + (index + 1)}
+										/>
+									))}
+								</ScrollView>
 							</View>
 							<TouchableOpacity
 								style={styles.button}
@@ -112,6 +127,7 @@ const styles = StyleSheet.create({
 	closeIcon: {
 		width: 20,
 		height: 20,
+		paddingBottom: 5,
 	},
 	infoContainer: {
 		width: "100%",
@@ -120,7 +136,7 @@ const styles = StyleSheet.create({
 	title: {
 		fontSize: 22,
 		fontWeight: "bold",
-		marginBottom: 15,
+		padding: 15,
 		textAlign: "center",
 		color: "#333",
 	},
@@ -129,10 +145,12 @@ const styles = StyleSheet.create({
 		fontWeight: "bold",
 		color: "#555",
 		marginRight: 5,
+		paddingBottom: 5,
 	},
 	value: {
 		color: "#333",
 		flexShrink: 1,
+		paddingBottom: 5,
 	},
 	descriptionContainer: {
 		marginBottom: 15,
