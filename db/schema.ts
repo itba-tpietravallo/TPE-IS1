@@ -250,10 +250,24 @@ export const tournamentsTable = pgTable(
     price: integer().notNull(),
     deadline: timestamp({ withTimezone: true }).notNull(),
     cantPlayers: integer().notNull(),
+    players: text().array(),
   },
   (table) => [
     pgPolicy("tournaments - select authenticated", {
       for: "select",
+      using: sql`true`,
+      to: authenticatedRole, // only allow authenticated users to select from the table
+      as: "permissive",
+    }),
+    pgPolicy("tournaments - insert authenticated", {
+      for: "insert",
+      withCheck: sql`true`,
+      to: authenticatedRole, // only allow authenticated users to select from the table
+      as: "permissive",
+    }),
+    pgPolicy("tournaments - update authenticated", {
+      for: "update",
+      withCheck: sql`true`,
       using: sql`true`,
       to: authenticatedRole, // only allow authenticated users to select from the table
       as: "permissive",
