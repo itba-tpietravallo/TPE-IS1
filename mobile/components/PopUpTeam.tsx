@@ -8,6 +8,7 @@ import { Player } from "../app/(tabs)/teams.tsx";
 import PlayerPreview from "./PlayerPreview.tsx";
 import { getUsername } from "@lib/autogen/queries.ts";
 import { getUserSession } from "@/lib/autogen/queries";
+import { router } from "expo-router";
 
 type PropsPopUpTeam = {
 	onClose: () => void;
@@ -77,6 +78,7 @@ function PopUpTeam(props: PropsPopUpTeam) {
 				if (error) {
 					console.error("Error al eliminar:", error.message);
 				} else {
+					router.push("/(tabs)/teams");
 					Alert.alert("Equipo eliminado", "Equipo eliminado con éxito");
 				}
 			}
