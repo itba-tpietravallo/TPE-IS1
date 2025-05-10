@@ -4,39 +4,40 @@ import * as Location from 'expo-location';
 import { getNearbyFields } from './autogen/queries';
 import { supabase } from '@lib/supabase';
 
-function useLocation() {
+export function useLocation() {
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
-    async function getCurrentLocation() {
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        setErrorMsg('Permission to access location was denied');
-        return;
-      }
+    let isMounted = true;
 
-      let loc = await Location.getCurrentPositionAsync({});
-      setLocation(loc);
-    }
+    const getCurrentLocation = async () => {
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== "granted") {
+          if (isMounted) setErrorMsg("Permission to access location was denied");
+          return;
+        }
+
+        const loc = await Location.getCurrentPositionAsync({});
+        if (isMounted) setLocation(loc);
+      } catch (err) {
+        if (isMounted) setErrorMsg("Error getting location");
+      }
+    };
 
     getCurrentLocation();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  return { location, errorMsg } as { location: Location.LocationObject, errorMsg: null } | { location: null, errorMsg: string };
+   return { location, errorMsg } as { location: Location.LocationObject, errorMsg: null } | { location: null, errorMsg: string };
 }
 
 
-export function getNearbyFieldsByLoc() {
-
-      const { location, errorMsg } = useLocation();
-  
-      // errorMsg is null if location is granted
-      if (errorMsg != null) {
-          throw new Error("could not retrieve coords");
-      }
-  
-      const { data } = getNearbyFields(supabase, location?.coords.latitude, location?.coords.longitude, 10, { enabled: !!location });
-
-      return {data};
+export function getNearbyFieldsByLoc(lat: number, long:number) {
+  const { data } = getNearbyFields(supabase, lat, long, 10, { enabled: !!location });
+  return {data};
 }
