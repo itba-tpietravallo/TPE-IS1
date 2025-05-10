@@ -192,7 +192,7 @@ export function getUserSession(
           return (
             await supabase
               .from("users")
-              .select("id, full_name, avatar_url")
+              .select("id, full_name, avatar_url, username")
               .eq("id", id!)
               .single()
               .throwOnError()

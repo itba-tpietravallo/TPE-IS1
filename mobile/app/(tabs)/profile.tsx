@@ -8,12 +8,6 @@ import Icon from "react-native-vector-icons/FontAwesome6";
 
 import { getUserSession } from "@/lib/autogen/queries";
 
-type User = {
-	id: string;
-	full_name: string;
-	avatar_url: string;
-};
-
 export default function Index() {
 	const [userId, setUserId] = useState<string | null>(null);
 
@@ -34,8 +28,15 @@ export default function Index() {
 					style={{ width: 100, height: 100 }}
 					borderRadius={100}
 				/>
-				<Text style={{ fontSize: 25, fontWeight: "bold", paddingTop: 20, textAlign: "center" }}>
+				<Text
+					style={{ fontSize: 25, fontWeight: "bold", paddingTop: 20, textAlign: "center", color: "#223332" }}
+				>
 					{user?.full_name}
+				</Text>
+				<Text
+					style={{ fontSize: 16, fontWeight: "bold", paddingTop: 20, textAlign: "center", color: "#223332" }}
+				>
+					USUARIO: {user?.username}
 				</Text>
 			</View>
 
@@ -107,6 +108,8 @@ const itemStyles = StyleSheet.create({
 const menuItems = [
 	{ label: "Mi actividad", icon: "money-check", action: () => router.push("/(tabs)/profileMenu/paymentActivity") },
 	{ label: "Mis reservas", icon: "calendar-check", action: () => router.push("/(tabs)/profileMenu/reservations") },
+	{ label: "Mis equipos", icon: "user-group", action: () => router.push("/(tabs)/profileMenu/teams") },
+	// { label: "Mis torneos", icon: "medal", action: () => router.push("/(tabs)/profileMenu/teams") },
 ];
 
 export function ProfileMenuList() {
