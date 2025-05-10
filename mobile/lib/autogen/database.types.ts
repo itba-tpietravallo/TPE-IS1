@@ -267,7 +267,9 @@ export type Database = {
           fieldId: string
           id: string
           name: string
+          players: string[] | null
           price: number
+          sport: string
           startDate: string
         }
         Insert: {
@@ -277,7 +279,9 @@ export type Database = {
           fieldId: string
           id?: string
           name: string
+          players?: string[] | null
           price: number
+          sport: string
           startDate: string
         }
         Update: {
@@ -287,7 +291,9 @@ export type Database = {
           fieldId?: string
           id?: string
           name?: string
+          players?: string[] | null
           price?: number
+          sport?: string
           startDate?: string
         }
         Relationships: [
