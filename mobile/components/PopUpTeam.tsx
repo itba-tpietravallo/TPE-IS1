@@ -23,13 +23,16 @@ function PopUpTeam(props: PropsPopUpTeam) {
 	const { data: user } = getUserSession(supabase);
 
 	const [ players, setPlayers ] = useState<string[]>(props.players)
- 
-	const handleJoinTeam = async () => {          //@TODO: AVECES EN TEAMS TIRA UN ERROR 
 
+	function userAlreadyOnTeam(username: string){
 		if(players.includes(user?.full_name!)){
 			console.log("User already joined")
-			return;
+			return true;
 		};
+		return false;
+	}
+ 
+	const handleJoinTeam = async () => {          //@TODO: AVECES EN TEAMS TIRA UN ERROR (update creo que ya se arreglo pero dejo esto aca por las dudas)
 
 		const updatedMembers = [...players, user?.full_name!];
 	  
@@ -45,6 +48,42 @@ function PopUpTeam(props: PropsPopUpTeam) {
 		  console.log("Guardado exitosamente:", data);
 		}
 	};
+
+	const handleLeaveTeam = async () => {          //@TODO: AVECES EN TEAMS TIRA UN ERROR 
+
+		const updatedMembers = players.filter(player => player !== user?.full_name)
+	  
+		const { data, error } = await supabase
+		  .from("teams")
+		  .update({ players: updatedMembers })
+		  .eq("team_id", props.team_id);
+	  
+		if (error) {
+		  console.error("Error al guardar:", error.message);
+		} else {
+		  setPlayers(updatedMembers)
+		  console.log("Guardado exitosamente:", data);
+		}
+	};
+
+	useEffect(() => {
+		const deleteTeamIfEmpty = async () => {
+			if (players.length === 0) {
+				const { error } = await supabase
+					.from("teams")
+					.delete()
+					.eq("team_id", props.team_id);
+
+				if (error) {
+					console.error("Error al eliminar:", error.message);
+				} else {
+					Alert.alert("Equipo eliminado", "Equipo eliminado con éxito");
+				}
+			}
+  		};
+
+ 		deleteTeamIfEmpty();
+	}, [players]);
 
 	return (
 		<View style={styles.modalView}>
@@ -87,10 +126,19 @@ function PopUpTeam(props: PropsPopUpTeam) {
 				<Text style={styles.description}>{props.description}</Text>
 			</View>
 
-			{/* Unirse a un equipo */}
-			<TouchableOpacity style={[styles.joinTeamButton]} onPress={handleJoinTeam}>
-				<Text style={styles.buttonText}>Join Team</Text>
-			</TouchableOpacity>
+			{/* Boton Join team */}
+			{!userAlreadyOnTeam(user?.full_name!) && (
+				<TouchableOpacity style={[styles.joinTeamButton]} onPress={handleJoinTeam}>
+					<Text style={styles.buttonText}>Join Team</Text>
+				</TouchableOpacity>
+			)}
+
+			{/* Boton leave team */}
+			{userAlreadyOnTeam(user?.full_name!) && (
+				<TouchableOpacity style={[styles.leaveTeamButton]} onPress={handleLeaveTeam}>
+					<Text style={styles.buttonText}>Leave Team</Text>
+				</TouchableOpacity>
+			)}
 		</View>
 	);
 }
@@ -182,6 +230,14 @@ const styles = StyleSheet.create({
 	},
 	joinTeamButton: {
 		backgroundColor: "#f18f04",
+		width: "100%",
+		padding: 17,
+		alignItems: "center",
+		justifyContent: "center",
+		marginTop: 10,
+	},
+	leaveTeamButton: {
+		backgroundColor: "#c7c7c7",
 		width: "100%",
 		padding: 17,
 		alignItems: "center",
