@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { StyleSheet, Text, View, TouchableOpacity, TextInput, Modal, Image, ScrollView } from "react-native";
 import { ScreenHeight, ScreenWidth } from "@rneui/themed/dist/config";
+import { supabase } from "@lib/supabase";
 
 interface PopUpReservaProps {
 	onClose: () => void;
@@ -12,10 +13,33 @@ interface PopUpReservaProps {
 	price: string;
 	deadline: Date;
 	cantPlayers: Number;
+	players: string[];
 }
 
-function PopUpTorneo({ onClose, name, location, date, description, price, deadline, cantPlayers }: PopUpReservaProps) {
+function PopUpTorneo({
+	onClose,
+	name,
+	location,
+	date,
+	description,
+	price,
+	deadline,
+	cantPlayers,
+	players,
+}: PopUpReservaProps) {
 	const [isModalVisible, setIsModalVisible] = useState(false);
+
+	const handleSignTeam = async (team: string) => {
+		// quiero agregar un player a un torneo que esta en el parametro como team
+		const updatedPTeams = [...players, team];
+		const { data, error } = await supabase.from("tournaments").update({ players: updatedPTeams }).eq("name", name);
+		if (error) {
+			console.error("Error al guardar:", error.message);
+		} else {
+			console.log("Guardado exitosamente:", data);
+		}
+	};
+
 	return (
 		<View style={styles.modalContainer}>
 			<View style={styles.modal}>
@@ -57,7 +81,11 @@ function PopUpTorneo({ onClose, name, location, date, description, price, deadli
 							</TouchableOpacity>
 							<View style={styles.infoContainer}>
 								<Text style={styles.modalTitle}>Inscripción</Text>
-								<TextInput style={styles.input} placeholder="Nombre del equipo" />
+								<TextInput
+									style={styles.input}
+									placeholder="Nombre del equipo"
+									onChangeText={(text) => handleSignTeam(text)}
+								/>
 								<TextInput
 									style={styles.input}
 									placeholder="Teléfono de contacto"

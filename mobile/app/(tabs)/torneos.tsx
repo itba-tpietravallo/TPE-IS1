@@ -37,6 +37,7 @@ function TorneosFeed() {
 						price={torneo.price}
 						deadline={new Date(torneo.deadline)}
 						cantPlayers={torneo.cantPlayers}
+						players={torneo.players || []}
 					/>
 				))}
 			</ScrollView>

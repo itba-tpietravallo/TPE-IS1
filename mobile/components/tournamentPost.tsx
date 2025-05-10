@@ -16,8 +16,19 @@ interface props {
 	price: number;
 	deadline: Date;
 	cantPlayers: number;
+	players: string[];
 }
-function TournamentPost({ name, fieldId, sport, startDate, description, price, deadline, cantPlayers }: props) {
+function TournamentPost({
+	name,
+	fieldId,
+	sport,
+	startDate,
+	description,
+	price,
+	deadline,
+	cantPlayers,
+	players,
+}: props) {
 	const [isModalVisible, setIsModalVisible] = useState(false);
 	const handleCloseModal = () => {
 		setIsModalVisible(false);
@@ -72,6 +83,7 @@ function TournamentPost({ name, fieldId, sport, startDate, description, price, d
 						price={price.toString()}
 						deadline={deadline}
 						cantPlayers={cantPlayers}
+						players={players}
 					/>
 				</View>
 			</Modal>
