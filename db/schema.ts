@@ -211,26 +211,11 @@ export const teamsTable = pgTable(
     players: text().array().notNull(), //Solucion provisoria | @TODO: convertir a uuid y hacer reference a usersTable
   },
   (table) => [
-    // INSERT, UPDATE, DELETE are disallowed by default.
-    // This table is managed via Supabase triggers on auth.users.
-    // Do not grant users insert/delete pr`ivileges on this table.
     pgPolicy("teams - select authenticated", {
-      for: "select",
+      for: "all",
       using: sql`true`,
-      to: authenticatedRole, // only allow authenticated users to select from the table
-      as: "permissive",
-    }),
-    pgPolicy("teams - insert authenticated", {
-      for: "insert",
-      withCheck: sql`true`,
-      to: authenticatedRole, // only allow authenticated users to select from the table
-      as: "permissive",
-    }),
-    pgPolicy("teams - update authenticated", {
-      for: "update",
-      withCheck: sql`true`,
-      using: sql`true`,
-      to: authenticatedRole, // only allow authenticated users to select from the table
+      withCheck: sql``,
+      to: authenticatedRole,
       as: "permissive",
     }),
   ]
@@ -244,6 +229,7 @@ export const tournamentsTable = pgTable(
     fieldId: uuid()
       .notNull()
       .references(() => fieldsTable.id, { onDelete: "cascade" }),
+    sport: text().notNull(),
     startDate: timestamp({ withTimezone: true }).notNull(),
     description: text(),
     price: integer().notNull(),
@@ -252,10 +238,9 @@ export const tournamentsTable = pgTable(
   },
   (table) => [
     pgPolicy("tournaments - select authenticated", {
-      for: "all",
+      for: "select",
       using: sql`true`,
-      withCheck: sql``,
-      to: authenticatedRole,
+      to: authenticatedRole, // only allow authenticated users to select from the table
       as: "permissive",
     }),
   ]
