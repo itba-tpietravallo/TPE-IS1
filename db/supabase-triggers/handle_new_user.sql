@@ -2,11 +2,12 @@
 
 CREATE OR REPLACE FUNCTION handle_new_user() RETURNS trigger AS $$
 BEGIN
-    INSERT INTO public.users (id, full_name, avatar_url)
+    INSERT INTO public.users (id, full_name, avatar_url, email)
     VALUES (
         new.id, 
         new.raw_user_meta_data->>'full_name', 
-        new.raw_user_meta_data->>'avatar_url'
+        new.raw_user_meta_data->>'avatar_url',
+        new.raw_user_meta_data->>'email'
     )
     ON CONFLICT (id) DO NOTHING;  -- This will ignore the insert if the id already exists
     RETURN NEW;
