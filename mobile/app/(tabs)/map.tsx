@@ -6,6 +6,7 @@ import {
   ActivityIndicator,
   Modal,
   Image,
+  Platform,
 } from "react-native";
 import MapView, { Marker, Region, Callout } from "react-native-maps";
 import { useLocation, getNearbyFieldsByLoc } from "@lib/location";
@@ -13,21 +14,16 @@ import PopUpReserva from "@components/PopUpReserva";
 
 type Field = {
   id: string;
-  owner: string;
   name: string;
-  location: unknown;
-  street_number: string;
   street: string;
+  street_number: string;
   neighborhood: string;
-  sports: string[];
   description: string;
-  city: string;
-  avatar_url: string;
+  sports: string[]
   images: string[];
   price: number;
   lat: number;
   long: number;
-  dist_meters: number;
 };
 
 export default function Map() {
@@ -82,33 +78,32 @@ export default function Map() {
             }}
             onRegionChange={onRegionChange}
           >
+            <YourLocationMarker
+              lat={location.coords.latitude}
+              long={location.coords.longitude}
+            />
+
             {data.map((field: Field) => (
               <Marker
                 key={field.id}
                 coordinate={{
-                  latitude: field.long,
-                  longitude: field.lat,
+                  latitude: field.lat,
+                  longitude: field.long,
                 }}
+                title={field.name}
+                onPress={
+                  Platform.OS === "android"
+                    ? () => handleMarkerPress(field)
+                    : undefined
+                }
               >
-                <Callout onPress={() => handleMarkerPress(field)}>
-                  <View style={styles.callout}>
-                    <Text>{field.name}</Text>
-                    <Image
-                      style={styles.image}
-                      source={require("@/assets/images/arrow_open.png")}
-                    />
-                  </View>
-                </Callout>
+                <CustomMarkerView
+                  field={field}
+                  onPress={() => handleMarkerPress(field)}
+                  styles={styles}
+                />
               </Marker>
             ))}
-            <Marker
-              coordinate={{
-                latitude: location.coords.latitude,
-                longitude: location.coords.longitude,
-              }}
-              title="Your Location"
-              pinColor="blue"
-            />
           </MapView>
 
           {/* show modal only when selectedField stops being null */}
@@ -126,6 +121,59 @@ export default function Map() {
       )}
     </View>
   );
+}
+
+function YourLocationMarker({ lat, long }: { lat: number; long: number }) {
+  return (
+    <Marker
+      coordinate={{
+        latitude: lat,
+        longitude: long,
+      }}
+      title="You"
+      pinColor="blue"
+    >
+      <View style={{ alignItems: "center" }}>
+        <Image
+          source={require("@/assets/images/person.png")}
+          style={{ width: 30, height: 30 }}
+        />
+        {Platform.OS !== "android" && (
+          <Text style={styles.youMarker}>Tu ubicación</Text>
+        )}
+      </View>
+    </Marker>
+  );
+}
+
+function CustomMarkerView({
+  field,
+  onPress,
+  styles,
+}: {
+  field: Field;
+  onPress: () => void;
+  styles: any;
+}) {
+  if (Platform.OS === "android") {
+    return (
+      // On Android, the Callout component does not behave reliably, so we've limited its usage.
+      // When a user taps a marker, it opens directly without displaying the field’s name as a tooltip.
+      <></>
+    );
+  } else {
+    return (
+      <Callout onPress={onPress}>
+        <View style={styles.callout}>
+          <Text>{field.name}</Text>
+          <Image
+            style={styles.image}
+            source={require("@/assets/images/arrow_open.png")}
+          />
+        </View>
+      </Callout>
+    );
+  }
 }
 
 function FieldModal({
@@ -146,9 +194,9 @@ function FieldModal({
     >
       <View style={styles.centeredView}>
         <PopUpReserva
+          fieldId={field.id}
           onClose={onClose}
           name={field.name}
-          fieldId={field.id}
           location={`${field.street} ${field.street_number}, ${field.neighborhood}`}
           sport={field.sports}
           images={field.images}
@@ -166,15 +214,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#fff",
-  },
-  centered: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  text: {
-    fontSize: 16,
-    color: "#333",
   },
   errorText: {
     fontSize: 16,
@@ -199,5 +238,14 @@ const styles = StyleSheet.create({
   callout: {
     flexDirection: "row",
     alignItems: "center",
+  },
+  youMarker: {
+    fontSize: 12,
+    marginTop: 2,
+    backgroundColor: "white",
+    paddingHorizontal: 4,
+    borderRadius: 4,
+    overflow: "hidden",
+    textAlign: "center",
   },
 });
