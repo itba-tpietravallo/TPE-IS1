@@ -2,9 +2,8 @@ import { json } from "@remix-run/node";
 import { Resend } from "resend";
 import { PaymentConfirmationEmail } from "../../../../../email/react-email-starter/emails/PaymentConfirmationEmail";
 
-const resend = new Resend(process.env.RESEND_PAYMENT_MAILER);
-
 export const action = async ({ request }: { request: Request }) => {
+	const resend = new Resend(process.env.RESEND_PAYMENT_MAILER);
 	const body = await request.json();
 
 	try {
