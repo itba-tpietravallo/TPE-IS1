@@ -868,8 +868,8 @@ export type Database = {
           avatar_url: string
           images: string[]
           price: number
-          lat: number
           long: number
+          lat: number
           dist_meters: number
         }[]
       }
