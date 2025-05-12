@@ -7,9 +7,7 @@ import { supabase } from "./supabase";
 
 WebBrowser.maybeCompleteAuthSession(); // required for web only
 
-const redirectTo = makeRedirectUri({
-	scheme: "matchpoint://",
-});
+const redirectTo = makeRedirectUri({ scheme: "matchpointapp://", preferLocalhost: true, path: "/" });
 
 export const createSessionFromUrl = async (url: string) => {
 	const { params, errorCode } = QueryParams.getQueryParams(url);
@@ -29,6 +27,10 @@ export const createSessionFromUrl = async (url: string) => {
 };
 
 export const performOAuth = async (provider: "google" | "facebook") => {
+	console.log("performOAuth", provider);
+	console.log("redirectTo", redirectTo);
+	// console.log("linking", Linking.useURL());
+
 	const { data, error } = await supabase.auth.signInWithOAuth({
 		provider: provider,
 		options: {
