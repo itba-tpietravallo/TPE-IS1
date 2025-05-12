@@ -18,3 +18,4 @@ mobile/lib/autogen/*
 
 # Codegeneration
 **/autogen/*
+.vercel

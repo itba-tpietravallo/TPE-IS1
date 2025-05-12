@@ -7,6 +7,7 @@ import { MercadoPagoConfig, MerchantOrder, Payment, PaymentRefund } from "mercad
 import createHmac from "create-hmac";
 
 import { mpPaymentsTable } from "@/../../db/schema";
+import { Database } from "@lib/autogen/database.types";
 
 type NotificationType = {
 	action: string;
@@ -98,7 +99,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
 async function processMercadoPagoNotification(
 	data: NotificationType,
-	supabaseClient: SupabaseClient,
+	supabaseClient: SupabaseClient<Database>,
 	user_id: string,
 	reservation_id: string,
 	amount: number,
@@ -118,13 +119,15 @@ async function processMercadoPagoNotification(
 			`
 			id,
 			fields (
+				name,
 				users!owner (
 					full_name,
 					mp_oauth_authorization (
 						access_token
 					)
 				)
-			)
+			),
+			date_time
 		`,
 		)
 		.eq("id", reservation_id)
@@ -136,7 +139,7 @@ async function processMercadoPagoNotification(
 		!res.data ||
 		!res.data.fields ||
 		!res.data.fields.users ||
-		!res.data?.fields.users.mp_oauth_authorization.access_token
+		!res.data?.fields.users.mp_oauth_authorization?.access_token
 	) {
 		return new Response("Reservation not found", {
 			status: 404,
@@ -155,11 +158,11 @@ async function processMercadoPagoNotification(
 				user_id: user_id,
 				reservation_id: reservation_id,
 				status: data.action,
-				last_updated: new Date(),
+				last_updated: new Date().toISOString(),
 				transaction_amount: amount,
 				net_received_amount: merchant_fee,
 				total_paid_amount: amount,
-			} as typeof mpPaymentsTable.$inferInsert);
+			});
 
 			if (error) {
 				console.error("Error inserting notification:", error);
@@ -182,6 +185,37 @@ async function processMercadoPagoNotification(
 					status: 500,
 					statusText: "Error updating reservation",
 				});
+			}
+
+			try {
+				const player_info = (
+					await supabaseClient
+						.from("users")
+						.select("full_name, email")
+						.eq("id", user_id)
+						.throwOnError()
+						.single()
+				).data;
+
+				if (!player_info)
+					throw new Response("Player info not found", {
+						status: 500,
+						statusText: "Player info not found",
+					});
+
+				await fetch(new URL("/api/v1/send-email", "https://matchpointapp.com.ar/").toString(), {
+					method: "POST",
+					body: JSON.stringify({
+						player_email: player_info.email,
+						player_name: player_info.full_name,
+						amount: amount,
+						payment_id: Number(data.data.id),
+						field_name: res.data.fields.name,
+						reservation_date: res.data.date_time,
+					}),
+				});
+			} catch (error: any) {
+				console.error(error.message);
 			}
 
 			break;
