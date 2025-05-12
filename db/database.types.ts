@@ -849,7 +849,7 @@ export type Database = {
           id: string
           owner: string
           name: string
-          location: unknown
+          location: unknown | null
           street_number: string
           street: string
           neighborhood: string

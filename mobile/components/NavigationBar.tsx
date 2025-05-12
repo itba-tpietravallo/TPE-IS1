@@ -16,6 +16,9 @@ function NavigationBar() {
 			<TouchableOpacity style={styles.button} onPress={() => router.push("/(tabs)/torneos")}>
 				<Image style={styles.image} source={require("@/assets/images/torneo.png")} />
 			</TouchableOpacity>
+			<TouchableOpacity style={styles.button} onPress={() => router.push("/(tabs)/map")}>
+				<Image style={styles.image} source={require("@/assets/images/map.png")} />
+			</TouchableOpacity>
 		</View>
 	);
 }
