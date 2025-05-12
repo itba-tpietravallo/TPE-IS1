@@ -8,17 +8,6 @@
 		"dotenv": "^16.5.0",
 		"husky": "^9.1.7",
 		"prettier": "^3.5.3",
-		"prettier-plugin-tailwindcss": "^0.6.11",
-		"react-email": "^4.0.13"
-	},
-	"dependencies": {
-		"@react-email/components": "^0.0.39",
-		"@react-email/render": "1.1.0",
-		"@remix-run/dev": "^1.0.0",
-		"@remix-run/node": "^2.16.6",
-		"@remix-run/react": "^2.16.6",
-		"react": "^19.1.0",
-		"resend": "^4.5.1",
-		"vercel": "^41.7.4"
+		"prettier-plugin-tailwindcss": "^0.6.11"
 	}
 }
