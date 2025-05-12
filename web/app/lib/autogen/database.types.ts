@@ -309,18 +309,21 @@ export type Database = {
       users: {
         Row: {
           avatar_url: string | null
+          email: string | null
           full_name: string
           id: string
           username: string
         }
         Insert: {
           avatar_url?: string | null
+          email?: string | null
           full_name: string
           id: string
           username: string
         }
         Update: {
           avatar_url?: string | null
+          email?: string | null
           full_name?: string
           id?: string
           username?: string

@@ -38,6 +38,7 @@ export const usersTable = pgTable(
 		full_name: varchar({ length: 255 }).notNull(),
 		avatar_url: text(),
 		username: text().notNull(),
+		email: text().notNull().unique(),
 	},
 	(table) => [
 		// INSERT, UPDATE, DELETE are disallowed by default.
