@@ -32,19 +32,17 @@ export default function PostTeam() {
 	const isFormComplete = teamName.trim() !== "" && sport.length != 0;
 
 	const handlePostTeam = async () => {
-		if (isFormComplete) {
-			await supabase.from("teams").insert([
-				{
-					name: teamName,
-					sport: sport,
-					description: description,
-					images: null,
-					//availability: availability, // Disponibilidad ingresada
-					players: [user?.full_name!], // Cuando crea el equipo automaticamente se une el creador
-				},
-			]);
-			router.push("/(tabs)/teams");
-		}
+		await supabase.from("teams").insert([
+			{
+				name: teamName,
+				sport: sport,
+				description: description,
+				images: null,
+				//availability: availability, // Disponibilidad ingresada
+				players: [user?.full_name!], // Cuando crea el equipo automaticamente se une el creador
+			},
+		]);
+		router.push("/(tabs)/teams");
 	};
 
 	const handleCancel = () => {

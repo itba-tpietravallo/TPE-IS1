@@ -37,6 +37,10 @@ function TeamsFeed() {
 	const [selectedSport, setSelectedSport] = useState<string>("");
 
 	const handleSportPress = (sportName: string) => {
+		if (selectedSport === sportName) {
+			setSelectedSport("");
+			return;
+		}
 		setSelectedSport(sportName);
 	};
 

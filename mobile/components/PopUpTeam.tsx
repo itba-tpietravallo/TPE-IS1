@@ -23,57 +23,56 @@ type PropsPopUpTeam = {
 function PopUpTeam(props: PropsPopUpTeam) {
 	const { data: user } = getUserSession(supabase);
 
-	const [ players, setPlayers ] = useState<string[]>(props.players)
+	const [players, setPlayers] = useState<string[]>(props.players);
 
-	function userAlreadyOnTeam(username: string){
-		if(players.includes(user?.full_name!)){
-			console.log("User already joined")
+	function userAlreadyOnTeam(username: string) {
+		if (players.includes(user?.full_name!)) {
+			console.log("User already joined");
 			return true;
-		};
+		}
 		return false;
 	}
- 
-	const handleJoinTeam = async () => {          //@TODO: AVECES EN TEAMS TIRA UN ERROR (update creo que ya se arreglo pero dejo esto aca por las dudas)
+
+	const handleJoinTeam = async () => {
+		//@TODO: AVECES EN TEAMS TIRA UN ERROR (update creo que ya se arreglo pero dejo esto aca por las dudas)
 
 		const updatedMembers = [...players, user?.full_name!];
-	  
+
 		const { data, error } = await supabase
-		  .from("teams")
-		  .update({ players: updatedMembers })
-		  .eq("team_id", props.team_id);
-	  
+			.from("teams")
+			.update({ players: updatedMembers })
+			.eq("team_id", props.team_id);
+
 		if (error) {
-		  console.error("Error al guardar:", error.message);
+			console.error("Error al guardar:", error.message);
 		} else {
-		  setPlayers(updatedMembers)
-		  console.log("Guardado exitosamente:", data);
+			setPlayers(updatedMembers);
+			console.log("Guardado exitosamente:", data);
 		}
 	};
 
-	const handleLeaveTeam = async () => {          //@TODO: AVECES EN TEAMS TIRA UN ERROR 
+	const handleLeaveTeam = async () => {
+		//@TODO: AVECES EN TEAMS TIRA UN ERROR
 
-		const updatedMembers = players.filter(player => player !== user?.full_name)
-	  
+		const updatedMembers = players.filter((player) => player !== user?.full_name);
+
 		const { data, error } = await supabase
-		  .from("teams")
-		  .update({ players: updatedMembers })
-		  .eq("team_id", props.team_id);
-	  
+			.from("teams")
+			.update({ players: updatedMembers })
+			.eq("team_id", props.team_id);
+
 		if (error) {
-		  console.error("Error al guardar:", error.message);
+			console.error("Error al guardar:", error.message);
 		} else {
-		  setPlayers(updatedMembers)
-		  console.log("Guardado exitosamente:", data);
+			setPlayers(updatedMembers);
+			console.log("Guardado exitosamente:", data);
 		}
 	};
 
 	useEffect(() => {
 		const deleteTeamIfEmpty = async () => {
 			if (players.length === 0) {
-				const { error } = await supabase
-					.from("teams")
-					.delete()
-					.eq("team_id", props.team_id);
+				const { error } = await supabase.from("teams").delete().eq("team_id", props.team_id);
 
 				if (error) {
 					console.error("Error al eliminar:", error.message);
@@ -82,9 +81,9 @@ function PopUpTeam(props: PropsPopUpTeam) {
 					Alert.alert("Equipo eliminado", "Equipo eliminado con éxito");
 				}
 			}
-  		};
+		};
 
- 		deleteTeamIfEmpty();
+		deleteTeamIfEmpty();
 	}, [players]);
 
 	return (
