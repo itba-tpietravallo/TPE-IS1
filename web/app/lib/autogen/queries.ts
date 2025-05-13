@@ -58,14 +58,6 @@ export function getAllSports(
   return useQuerySupabase(supabase.from("sports").select("name"), opts);
 }
 
-export function insertNewField(
-  supabase: SupabaseClient<Database>,
-  field: Database["public"]["Tables"]["fields"]["Insert"],
-  opts: any = {}
-) {
-  return useQuerySupabase(supabase.from("fields").insert(field), opts);
-}
-
 export function getAllReservationsForFieldById(
   supabase: SupabaseClient<Database>,
   fieldId: string,
