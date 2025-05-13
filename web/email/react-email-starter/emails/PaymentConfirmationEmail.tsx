@@ -49,7 +49,7 @@ export function PaymentConfirmationEmail({
 							<Text className="text-[20px]">Hola {player_name}!</Text>
 							<Text className="text-[15px]">
 								Tu reserva de la cancha <strong>{field_name}</strong> para el día{" "}
-								<strong>{date}</strong> a las <strong>{time}</strong> fue realizada con éxito.
+								<strong>{date}</strong> fue realizada con éxito.
 							</Text>
 							<br />
 							<Section>
