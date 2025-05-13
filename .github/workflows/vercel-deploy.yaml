@@ -21,8 +21,8 @@ jobs:
         needs: [Database-Changes]
         runs-on: ubuntu-latest
         defaults:
-          run:
-              working-directory: ./web
+            run:
+                working-directory: ./web
         steps:
             - name: Checkout Repository
               uses: actions/checkout@v4
@@ -37,7 +37,7 @@ jobs:
               id: cache-modules
               with:
                   path: |
-                    node_modules
+                      node_modules
                   key: node_modules-${{ runner.os }}-deploy-${{hashFiles('web/package-lock.json')}}
                   restore-keys: node_modules-${{ runner.os }}-deploy-
 
@@ -49,7 +49,7 @@ jobs:
               run: npx vercel pull --yes --environment=${{ steps.extract_branch.outputs.branch == 'main' && 'production' || 'preview' }} --token=${{ secrets.VERCEL_TOKEN }}
 
             - name: Build Project Artifacts
-              run: npx vercel build --target=${{ steps.extract_branch.outputs.branch == 'main' && 'production' || 'preview' }} --token=${{ secrets.VERCEL_TOKEN }}
+              run: npx vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
               timeout-minutes: 2
 
             - name: Deploy Project Artifacts to Vercel

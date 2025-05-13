@@ -1,4 +1,4 @@
-name: Database schema 
+name: Database schema
 
 env:
     SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
@@ -11,8 +11,8 @@ jobs:
     Deploy-Production:
         runs-on: ubuntu-latest
         defaults:
-          run:
-              working-directory: ./db
+            run:
+                working-directory: ./db
         steps:
             - name: Checkout Repository
               uses: actions/checkout@v4
