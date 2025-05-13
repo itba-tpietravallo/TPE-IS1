@@ -1,46 +1,43 @@
-name: Vercel Production Deployment
+name: Vercel Deployment
 env:
     VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
     VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
 on:
     workflow_dispatch:
     push:
         paths:
             - "web/**"
+            - "db/**"
         branches:
             - main
 
 jobs:
-    Deploy-Production:
+    Database-Changes:
+        uses: ./.github/workflows/db-types.yaml
+        secrets: inherit
+    Deploy:
+        needs: [Database-Changes]
         runs-on: ubuntu-latest
         defaults:
-            run:
-                working-directory: ./web
+          run:
+              working-directory: ./web
         steps:
             - name: Checkout Repository
               uses: actions/checkout@v4
-              
-            - uses: dorny/paths-filter@v3
-              id: db-changes
-              with:
-                  filters: |
-                      db:
-                        - 'db/**'
 
-            - name: Run Database Types Generation
-              if: steps.db-changes.outputs.db == 'true'
-              uses: ./.github/actions/database-types
-              with:
-                SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-                SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
-                
+            - name: Extract branch name
+              shell: bash
+              run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+              id: extract_branch
+
             - name: Cache node modules
               uses: actions/cache@v3
               id: cache-modules
               with:
                   path: |
-                    web/node_modules
-                    ~/.npm
+                    node_modules
                   key: node_modules-${{ runner.os }}-deploy-${{hashFiles('web/package-lock.json')}}
                   restore-keys: node_modules-${{ runner.os }}-deploy-
 
@@ -49,14 +46,14 @@ jobs:
               run: npm install --global vercel@latest
 
             - name: Pull Vercel Environment Information
-              run: npx vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+              run: npx vercel pull --yes --environment=${{ steps.extract_branch.outputs.branch == 'main' && 'production' || 'preview' }} --token=${{ secrets.VERCEL_TOKEN }}
 
             - name: Build Project Artifacts
-              run: npx vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+              run: npx vercel build --target=${{ steps.extract_branch.outputs.branch == 'main' && 'production' || 'preview' }} --token=${{ secrets.VERCEL_TOKEN }}
               timeout-minutes: 2
 
             - name: Deploy Project Artifacts to Vercel
               run: |
-                  msg=`npx vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}`
-                  echo "::notice title={[Production] Deployed on Vercel}::$msg"
+                  msg=`npx vercel deploy --prebuilt --target=${{ steps.extract_branch.outputs.branch == 'main' && 'production' || 'preview' }} --token=${{ secrets.VERCEL_TOKEN }}`
+                  echo "::notice title={[${{ steps.extract_branch.outputs.branch == 'main' && 'Production' || 'Preview' }}] Deployed on Vercel}::$msg"
               timeout-minutes: 2
