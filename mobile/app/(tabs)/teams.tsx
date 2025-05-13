@@ -116,6 +116,7 @@ function TeamsFeed() {
 							sport={team.sport}
 							players={team.players}
 							description={team.description || ""}
+							images={team.images || []}
 						/>
 					))}
 
