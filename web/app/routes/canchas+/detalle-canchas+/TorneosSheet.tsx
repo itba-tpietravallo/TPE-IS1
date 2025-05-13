@@ -13,7 +13,7 @@ import { getAllUsers, getAllTournaments } from "@lib/autogen/queries";
 import { useLoaderData, useNavigate } from "@remix-run/react";
 import { createBrowserClient } from "@supabase/ssr";
 import { LoaderFunctionArgs } from "@remix-run/node";
-import { getAllTournamentsForFieldById, getFieldById } from "@db/queries";
+import { getAllTournamentsForFieldById, getFieldById } from "@lib/autogen/queries";
 import { set, useForm, UseFormReturn } from "react-hook-form";
 import { Label } from "~/components/ui/label";
 import { useState, useMemo, useEffect } from "react";
