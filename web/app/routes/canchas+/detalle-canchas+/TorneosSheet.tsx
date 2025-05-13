@@ -9,11 +9,10 @@ import {
 	SheetClose,
 } from "~/components/ui/sheet";
 import { Button } from "~/components/ui/button";
-import { getAllUsers, getAllTournaments } from "@lib/autogen/queries";
 import { useLoaderData, useNavigate } from "@remix-run/react";
 import { createBrowserClient } from "@supabase/ssr";
 import { LoaderFunctionArgs } from "@remix-run/node";
-import { getAllTournamentsForFieldById, getFieldById } from "@db/queries";
+import { getAllTournamentsForFieldById, getFieldById } from "@lib/autogen/queries";
 import { set, useForm, UseFormReturn } from "react-hook-form";
 import { Label } from "~/components/ui/label";
 import { useState, useMemo, useEffect } from "react";
@@ -86,7 +85,7 @@ function BasicBox({
 		/>
 	);
 }
-export function TournamentForm({ fieldId, onClose }: { fieldId: string; onClose?: () => void }) {
+export function TournamentForm({ fieldId, onClose = () => {} }: { fieldId: string; onClose?: () => void }) {
 	const { env, URL_ORIGIN, id } = useLoaderData<typeof loader>();
 	const supabase = createBrowserClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
 	const field = getFieldById(supabase, fieldId || "");
@@ -298,21 +297,34 @@ export function TorneosSheet({ fieldId, tournaments }: TorneosSheetProps) {
 					Ver torneos
 				</Button>
 			</SheetTrigger>
-			<SheetContent>
+			<SheetContent className="flex flex-col items-center">
 				<SheetHeader>
-					<SheetTitle>Torneos de {field.data?.name}</SheetTitle>
+					<SheetTitle className="p-6 font-bold text-[#d97e01]">Torneos de {field.data?.name}</SheetTitle>
 				</SheetHeader>
 				{tournaments.length > 0 ? (
-					<div className="flex flex-col items-center justify-center space-y-12 bg-[#f2f4f3]">
+					<div className="flex flex-col items-center justify-center space-y-5">
 						{tournaments.map((tournament) => (
-							<div key={tournament.id} className="w-full rounded-lg bg-white p-4 shadow-md">
+							<div key={tournament.id} className="w-full rounded-lg p-4 shadow-md">
 								<h2 className="text-lg font-bold">{tournament.name}</h2>
 								<p>Fecha de inicio: {new Date(tournament.startDate).toLocaleDateString()}</p>
+								{/* <p className="text-sm text-gray-600">
+									Equipos inscriptos: {tournament.players?.length || 0}
+								</p> */}
+								<p className="pt-3 text-sm text-gray-600">Inscriptos:</p>
+								{tournament.players?.length > 0 ? (
+									<ul className="mt-2 list-disc pl-5 text-sm text-gray-500">
+										{tournament.players.map((player: string, index: number) => (
+											<li key={index}>{player}</li>
+										))}
+									</ul>
+								) : (
+									<p className="text-sm text-gray-500">No hay equipos inscriptos.</p>
+								)}
 							</div>
 						))}
 					</div>
 				) : (
-					<div className="flex flex-col items-center justify-center space-y-12 bg-[#f2f4f3]">
+					<div className="flex flex-col items-center justify-center space-y-12">
 						<p className="text-lg font-bold">No hay torneos disponibles</p>
 					</div>
 				)}
