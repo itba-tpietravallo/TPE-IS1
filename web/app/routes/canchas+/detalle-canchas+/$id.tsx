@@ -32,6 +32,7 @@ export default function FieldDetailPage() {
 
 	// Isn't this an infinite loop?
 	// -- Tomas Pietravallo (2024-04-28)
+	// It wasnt but caused other issues 2024-05-13
 	useEffect(() => {
 		setName(field?.name);
 		setDescription(field?.description);

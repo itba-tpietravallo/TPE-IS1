@@ -98,37 +98,37 @@ export function MySheet(props: SheetProps) {
 		}
 	};
 
-	useEffect(() => {
-		supabase
-			.from("fields")
-			.update({
-				name: name,
-			})
-			.eq("id", id)
-			.then(({ data, error }) => {
-				if (error) {
-					console.error("Error al guardar:", error.message);
-				} else {
-					console.log("Guardado exitosamente:", data);
-				}
-			});
-	}, [name]);
+	// useEffect(() => {
+	// 	supabase
+	// 		.from("fields")
+	// 		.update({
+	// 			name: name,
+	// 		})
+	// 		.eq("id", id)
+	// 		.then(({ data, error }) => {
+	// 			if (error) {
+	// 				console.error("Error al guardar:", error.message);
+	// 			} else {
+	// 				console.log("Guardado exitosamente:", data);
+	// 			}
+	// 		});
+	// }, [name]);
 
-	useEffect(() => {
-		supabase
-			.from("fields")
-			.update({
-				description: description,
-			})
-			.eq("id", id)
-			.then(({ data, error }) => {
-				if (error) {
-					console.error("Error al guardar:", error.message);
-				} else {
-					console.log("Guardado exitosamente:", data);
-				}
-			});
-	}, [description]);
+	// useEffect(() => {
+	// 	supabase
+	// 		.from("fields")
+	// 		.update({
+	// 			description: description,
+	// 		})
+	// 		.eq("id", id)
+	// 		.then(({ data, error }) => {
+	// 			if (error) {
+	// 				console.error("Error al guardar:", error.message);
+	// 			} else {
+	// 				console.log("Guardado exitosamente:", data);
+	// 			}
+	// 		});
+	// }, [description]);
 
 	return (
 		<Sheet>
