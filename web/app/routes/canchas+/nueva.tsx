@@ -25,7 +25,7 @@ import { DollarSign, Icon } from "lucide-react";
 import { getAllSports } from "@/lib/autogen/queries";
 import { APIProvider, Map, AdvancedMarker, Pin, InfoWindow } from "@vis.gl/react-google-maps";
 import debounce from "lodash.debounce";
-import { url } from "node:inspector";
+
 import { Database } from "@lib/autogen/database.types";
 
 export async function loader(args: LoaderFunctionArgs) {
