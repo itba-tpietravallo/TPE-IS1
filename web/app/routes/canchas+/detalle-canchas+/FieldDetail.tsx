@@ -27,6 +27,7 @@ import { createBrowserClient } from "@supabase/ssr";
 import { LoaderFunctionArgs } from "@remix-run/node";
 
 import { getAllUsers } from "@lib/autogen/queries";
+import { TorneosSheet } from "./TorneosSheet";
 
 let globalName = "";
 let globalDescription = "";
@@ -232,14 +233,16 @@ type FieldProps = {
 	description: string;
 	setDescription: (e: string) => void;
 	reservations: Reservation[];
+	tournaments: any[];
 };
 
 type Users = {
 	id: string;
 	full_name: string;
 };
+
 export function FieldDetail(props: FieldProps) {
-	const { imgSrc, name, setName, location, price, description, setDescription, reservations } = props;
+	const { imgSrc, name, setName, location, price, description, setDescription, reservations, tournaments } = props;
 	const { env, URL_ORIGIN, id } = useLoaderData<typeof loader>();
 	const supabase = createBrowserClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
 	const { data: users } = getAllUsers(supabase);
@@ -249,7 +252,10 @@ export function FieldDetail(props: FieldProps) {
 			<div className="flex h-full flex-row items-center justify-center space-x-12">
 				<Card className="w-full max-w-3xl bg-[#223332] p-10 shadow-lg">
 					<CardHeader className="space-y-5">
-						<CardTitle className="text-5xl font-bold text-[#f2f4f3]">{name}</CardTitle>
+						<div className="flex flex-row items-center justify-between">
+							<CardTitle className="text-5xl font-bold text-[#f2f4f3]">{name}</CardTitle>
+							<TorneosSheet fieldId={id || ""} tournaments={tournaments} />
+						</div>
 						<div className="flex flex-row">
 							<MapPin className="my-auto h-6 w-6 text-gray-400" />
 							<CardDescription className="text-2xl text-gray-400">{location}</CardDescription>

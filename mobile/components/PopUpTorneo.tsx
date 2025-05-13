@@ -43,7 +43,7 @@ function PopUpTorneo({
 	return (
 		<View style={styles.modalContainer}>
 			<View style={styles.modal}>
-				<TouchableOpacity style={styles.closeButton} onPress={onClose}>
+				<TouchableOpacity style={styles.closeButton} onPress={() => onClose()}>
 					<Image style={styles.closeIcon} source={require("@/assets/images/close.png")} />
 				</TouchableOpacity>
 				<View style={styles.infoContainer}>
@@ -151,6 +151,7 @@ const styles = StyleSheet.create({
 		top: 10,
 		right: 10,
 		padding: 8,
+		zIndex: 100,
 	},
 	closeIcon: {
 		width: 20,

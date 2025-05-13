@@ -1,9 +1,7 @@
-import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
+import type { MetaFunction } from "@remix-run/node";
 import { Button } from "../components/ui/button";
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "@remix-run/react";
-import { __DANGEROUS_createSupabaseServerClient_BYPASS_RLS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED } from "@/lib/supabase.server";
-import { MercadoPagoConfig, MerchantOrder, Payment, PaymentRefund } from "mercadopago";
 
 export const meta: MetaFunction = () => {
 	return [
@@ -78,7 +76,7 @@ export default function Index() {
 							</div>
 							<div className="mt-1 flex flex-col items-center justify-center gap-4 text-center sm:flex-row sm:gap-9">
 								<Button
-									onClick={() => navigate("https://storage.googleapis.com/matchpointapp-android-apks/universal.apk")}
+									onClick={() => window.location.replace("https://storage.googleapis.com/matchpointapp-android-apks/universal.apk")}
 									className="w-full bg-black text-[#F2F4F3] hover:bg-[#f18f01]/50 sm:w-auto"
 									size={"xl"}
 								>

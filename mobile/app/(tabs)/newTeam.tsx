@@ -26,22 +26,25 @@ export default function PostTeam() {
 	const [members, setMembers] = useState<string[]>([]);
 	const [newMember, setNewMember] = useState("");
 	const [availability, setAvailability] = useState(0);
-	const [isPublishing, setIsPublishing] = useState(false); // Estado para controlar el color del botón "Publicar"
 
 	const { data: user } = getUserSession(supabase);
 
+	const isFormComplete = teamName.trim() !== "" && sport.length != 0;
+
 	const handlePostTeam = async () => {
-		await supabase.from("teams").insert([
-			{
-				name: teamName,
-				sport: sport,
-				description: description,
-				images: null,
-				//availability: availability, // Disponibilidad ingresada
-				players: [user?.full_name!], // Cuando crea el equipo automaticamente se une el creador
-			},
-		]);
-		router.push("/(tabs)/teams");
+		if (isFormComplete) {
+			await supabase.from("teams").insert([
+				{
+					name: teamName,
+					sport: sport,
+					description: description,
+					images: null,
+					//availability: availability, // Disponibilidad ingresada
+					players: [user?.full_name!], // Cuando crea el equipo automaticamente se une el creador
+				},
+			]);
+			router.push("/(tabs)/teams");
+		}
 	};
 
 	const handleCancel = () => {
@@ -71,18 +74,20 @@ export default function PostTeam() {
 	return (
 		<KeyboardAvoidingView style={styles.container} behavior={Platform.OS === "ios" ? "padding" : undefined}>
 			<ScrollView contentContainerStyle={styles.scrollContainer}>
-				<Text style={styles.title}>Publicar un Equipo</Text>
+				<Text style={styles.title}>Publicar un equipo</Text>
 
 				{/* Nombre del Equipo */}
+				<Text style={styles.label}>Nombre*</Text>
 				<TextInput
 					style={styles.input}
-					placeholder="Nombre del Equipo (obligatorio)"
+					placeholder="Nombre del equipo"
+					placeholderTextColor="#888"
 					value={teamName}
 					onChangeText={setTeamName}
 				/>
 
 				{/* Deporte */}
-				<Text style={styles.label}>Deporte:</Text>
+				<Text style={styles.label}>Deporte*</Text>
 				<SelectDropdown
 					defaultValue={(sports ?? [])[0] || ""}
 					onSelect={(itemValue, index) => setSport(itemValue)}
@@ -168,14 +173,18 @@ export default function PostTeam() {
 				/> */}
 
 				{/* Descripción */}
+				<Text style={styles.label}>Descripción</Text>
 				<TextInput
 					style={[styles.input, styles.textArea]}
-					placeholder="Descripción del Equipo (opcional)"
+					placeholder="Descripción del equipo"
+					placeholderTextColor="#888"
 					value={description}
 					onChangeText={setDescription}
 					multiline
 					numberOfLines={4}
 				/>
+
+				<Text style={{ color: "#464545" }}>* Indica que el campo es obligatorio.</Text>
 
 				{/* Botones */}
 				<View style={styles.buttonContainer}>
@@ -183,8 +192,9 @@ export default function PostTeam() {
 						<Text style={styles.buttonText}>Cancelar</Text>
 					</TouchableOpacity>
 					<TouchableOpacity
-						style={[styles.button, isPublishing ? styles.publishingButton : styles.publishButton]}
+						style={[styles.button, styles.publishButton, !isFormComplete && styles.disabledButton]}
 						onPress={handlePostTeam}
+						disabled={!isFormComplete}
 					>
 						<Text style={styles.buttonText}>Publicar</Text>
 					</TouchableOpacity>
@@ -205,8 +215,9 @@ const styles = StyleSheet.create({
 		backgroundColor: "#f2f4f3",
 	},
 	title: {
-		fontSize: 24,
+		fontSize: 28,
 		fontWeight: "bold",
+		marginTop: 20,
 		marginBottom: 20,
 		textAlign: "center",
 		color: "#f18f01",
@@ -227,9 +238,10 @@ const styles = StyleSheet.create({
 		color: "#223332",
 	},
 	label: {
-		fontSize: 16,
+		fontSize: 18,
 		fontWeight: "bold",
 		marginBottom: 5,
+		marginTop: 20,
 		color: "#223332",
 	},
 	picker: {
@@ -287,10 +299,10 @@ const styles = StyleSheet.create({
 		backgroundColor: "black",
 	},
 	publishButton: {
-		backgroundColor: "black",
+		backgroundColor: "#f18f01",
 	},
-	publishingButton: {
-		backgroundColor: "#f18f01", // Cambia a naranja cuando se presiona
+	disabledButton: {
+		backgroundColor: "#ccc", // Gray background to show it's disabled
 	},
 	buttonText: {
 		color: "#fff",
@@ -314,9 +326,9 @@ const styles = StyleSheet.create({
 	},
 	// HOTFIX:
 	dropdownButtonStyle: {
-		width: 250,
+		width: 200,
 		height: 40,
-		backgroundColor: "#C7CCCC",
+		backgroundColor: "#223332",
 		borderRadius: 12,
 		flexDirection: "row",
 		justifyContent: "center",
@@ -329,9 +341,9 @@ const styles = StyleSheet.create({
 	},
 	dropdownButtonTxtStyle: {
 		flex: 1,
-		fontSize: 18,
+		fontSize: 16,
 		fontWeight: "500",
-		color: "#151E26",
+		color: "#FFFFFF",
 	},
 	dropdownButtonArrowStyle: {
 		fontSize: 28,

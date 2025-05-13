@@ -22,10 +22,11 @@ import { useLoaderData } from "@remix-run/react";
 import { authenticateUser } from "~/lib/auth.server";
 import { User } from "@supabase/supabase-js";
 import { DollarSign, Icon } from "lucide-react";
-import { getAllSports, insertNewField } from "@/lib/autogen/queries";
+import { getAllSports } from "@/lib/autogen/queries";
 import { APIProvider, Map, AdvancedMarker, Pin, InfoWindow } from "@vis.gl/react-google-maps";
 import debounce from "lodash.debounce";
 import { url } from "node:inspector";
+import { Database } from "@lib/autogen/database.types";
 
 export async function loader(args: LoaderFunctionArgs) {
 	const env = {
@@ -77,7 +78,7 @@ export async function getCoordinates(
 export function NewField() {
 	const { user, URL_ORIGIN, env } = useLoaderData<typeof loader>();
 
-	const supabase = createBrowserClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
+	const supabase = createBrowserClient<Database>(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
 	const [formError, setFormError] = useState(false);
 
 	const [geocodingError, setGeocodingError] = useState<string | null>(null);
@@ -160,7 +161,11 @@ export function NewField() {
 			const uploadedImageUrls: string[] = [];
 
 			for (const file of files) {
-				const filePath = `fields/${Date.now()}-${file.name}`;
+				const filePath = `fields/${Date.now()}-${file.name}`
+					.split("")
+					.filter((c) => !c.match(/[^a-zA-Z0-9_-]/))
+					.join("");
+				console.log("Uploading file to Supabase Storage:", filePath);
 
 				const { error: uploadError } = await supabase.storage.from("venues").upload(filePath, file);
 
@@ -183,7 +188,7 @@ export function NewField() {
 			// 	.catch(() => null);
 
 			// if (!locationData || locationData.status != "OK") {
-			setFormError(true);
+			// setFormError(true);
 			// 	setLatitude(null);
 			// 	setLongitude(null);
 			// 	throw new Error(`The coordinates could not be retrieved from address ${direction}.`);
@@ -222,18 +227,18 @@ export function NewField() {
 				? data.sports.map((s: any) => (typeof s === "string" ? s : s.value || s.label))
 				: [];
 
-			const { error: insertError } = await insertNewField(supabase, {
+			const { error: insertError } = await supabase.from("fields").insert({
 				owner: user.user.id,
 				name: data.name,
 				street: data.street,
 				street_number: data.street_number,
-				neighborhood: data.neighbourhood,
+				neighborhood: data.neighbourhood || "",
 				city: data.city,
 				sports: sportsArray,
 				images: uploadedImageUrls,
 				price: Number(data.price),
 				location: `POINT(${currentLat} ${currentLng})`,
-				description: data.description,
+				description: data.description || "",
 				avatar_url: user.avatar_url,
 			});
 

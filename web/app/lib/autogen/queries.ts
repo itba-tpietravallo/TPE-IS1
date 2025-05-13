@@ -58,14 +58,6 @@ export function getAllSports(
   return useQuerySupabase(supabase.from("sports").select("name"), opts);
 }
 
-export function insertNewField(
-  supabase: SupabaseClient<Database>,
-  field: Database["public"]["Tables"]["fields"]["Insert"],
-  opts: any = {}
-) {
-  return useQuerySupabase(supabase.from("fields").insert(field), opts);
-}
-
 export function getAllReservationsForFieldById(
   supabase: SupabaseClient<Database>,
   fieldId: string,
@@ -229,4 +221,15 @@ export function getAllTournaments(
   opts: any = undefined
 ) {
   return useQuerySupabase(supabase.from("tournaments").select("*"), opts);
+}
+
+export function getAllTournamentsForFieldById(
+  supabase: SupabaseClient<Database>,
+  fieldId: string,
+  opts: any = undefined
+) {
+  return useQuerySupabase(
+    supabase.from("tournaments").select("*").eq("fieldId", fieldId),
+    opts
+  );
 }

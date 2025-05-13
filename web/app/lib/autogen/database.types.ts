@@ -267,9 +267,7 @@ export type Database = {
           fieldId: string
           id: string
           name: string
-          players: string[] | null
           price: number
-          sport: string
           startDate: string
         }
         Insert: {
@@ -279,9 +277,7 @@ export type Database = {
           fieldId: string
           id?: string
           name: string
-          players?: string[] | null
           price: number
-          sport: string
           startDate: string
         }
         Update: {
@@ -291,9 +287,7 @@ export type Database = {
           fieldId?: string
           id?: string
           name?: string
-          players?: string[] | null
           price?: number
-          sport?: string
           startDate?: string
         }
         Relationships: [
@@ -309,21 +303,18 @@ export type Database = {
       users: {
         Row: {
           avatar_url: string | null
-          email: string | null
           full_name: string
           id: string
           username: string
         }
         Insert: {
           avatar_url?: string | null
-          email?: string | null
           full_name: string
           id: string
           username: string
         }
         Update: {
           avatar_url?: string | null
-          email?: string | null
           full_name?: string
           id?: string
           username?: string
@@ -858,7 +849,7 @@ export type Database = {
           id: string
           owner: string
           name: string
-          location: unknown
+          location: unknown | null
           street_number: string
           street: string
           neighborhood: string
@@ -868,8 +859,8 @@ export type Database = {
           avatar_url: string
           images: string[]
           price: number
-          long: number
           lat: number
+          long: number
           dist_meters: number
         }[]
       }

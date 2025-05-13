@@ -4,7 +4,7 @@ import { createBrowserClient } from "@supabase/ssr";
 import { useEffect, useState } from "react";
 import { FieldDetail } from "./FieldDetail";
 
-import { getAllReservationsForFieldById, getFieldById } from "@lib/autogen/queries";
+import { getAllReservationsForFieldById, getFieldById, getAllTournamentsForFieldById } from "@lib/autogen/queries";
 
 export function loader(args: LoaderFunctionArgs) {
 	const env = {
@@ -25,6 +25,7 @@ export default function FieldDetailPage() {
 	const supabase = createBrowserClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
 	const { data: field } = getFieldById(supabase, id || "");
 	const { data: reservations } = getAllReservationsForFieldById(supabase, id || "");
+	const { data: tournaments } = getAllTournamentsForFieldById(supabase, id || "");
 
 	const [name, setName] = useState(field?.name);
 	const [description, setDescription] = useState(field?.description);
@@ -47,6 +48,7 @@ export default function FieldDetailPage() {
 			setDescription={setDescription}
 			setName={setName}
 			reservations={reservations || []}
+			tournaments={tournaments || []}
 		/>
 	);
 }

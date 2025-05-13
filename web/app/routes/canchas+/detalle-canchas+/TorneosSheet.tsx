@@ -1,0 +1,332 @@
+import {
+	Sheet,
+	SheetTrigger,
+	SheetContent,
+	SheetHeader,
+	SheetTitle,
+	SheetDescription,
+	SheetFooter,
+	SheetClose,
+} from "~/components/ui/sheet";
+import { Button } from "~/components/ui/button";
+import { getAllUsers, getAllTournaments } from "@lib/autogen/queries";
+import { useLoaderData, useNavigate } from "@remix-run/react";
+import { createBrowserClient } from "@supabase/ssr";
+import { LoaderFunctionArgs } from "@remix-run/node";
+import { getAllTournamentsForFieldById, getFieldById } from "@db/queries";
+import { set, useForm, UseFormReturn } from "react-hook-form";
+import { Label } from "~/components/ui/label";
+import { useState, useMemo, useEffect } from "react";
+import {
+	Form,
+	FormControl,
+	FormDescription,
+	FormField,
+	FormItem,
+	FormLabel,
+	FormMessage,
+} from "../../../components/ui/form";
+import clsx from "clsx";
+
+import { Input } from "../../../components/ui/input";
+import { Textarea } from "../../../components/ui/textarea";
+import MultipleSelector, { Option } from "../../../components/ui/multiselector";
+import { DollarSign, Icon } from "lucide-react";
+import { on } from "events";
+
+export function loader(args: LoaderFunctionArgs) {
+	const env = {
+		SUPABASE_URL: process.env.SUPABASE_URL!,
+		SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY!,
+	};
+
+	return {
+		env,
+		URL_ORIGIN: new URL(args.request.url).origin,
+		id: args.params.id,
+	};
+}
+
+type BasicBoxProps = {
+	section: string;
+	label: string;
+	placeholder: string;
+	description: string;
+	box_specifications: string;
+	label_specifications?: string;
+	form: UseFormReturn<any, any, any>;
+};
+
+function BasicBox({
+	section,
+	label,
+	placeholder,
+	description,
+	box_specifications,
+	label_specifications,
+	form,
+}: BasicBoxProps) {
+	const inputId = `input-${section}`; //para q el formlabel se pueda asociar con el input
+	return (
+		<FormField
+			control={form.control}
+			name={section}
+			render={({ field }) => (
+				<FormItem>
+					<FormLabel htmlFor={inputId} className={clsx(`${label_specifications}`, "text-[#223332]")}>
+						{label}
+					</FormLabel>
+					<FormControl>
+						<Input id={inputId} placeholder={placeholder} className={box_specifications} {...field} />
+					</FormControl>
+					<FormDescription>{description}</FormDescription>
+					<FormMessage />
+				</FormItem>
+			)}
+		/>
+	);
+}
+export function TournamentForm({ fieldId, onClose }: { fieldId: string; onClose?: () => void }) {
+	const { env, URL_ORIGIN, id } = useLoaderData<typeof loader>();
+	const supabase = createBrowserClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
+	const field = getFieldById(supabase, fieldId || "");
+	const [formError, setFormError] = useState(false);
+
+	const form = useForm({
+		defaultValues: {
+			name: "",
+			sport: "",
+			startDate: "",
+			description: "",
+			price: "",
+			deadline: "",
+			cantPlayers: "",
+		},
+	});
+
+	const options = useMemo(
+		() =>
+			(field.data?.sports || [])?.map((sport) => ({
+				label: sport,
+				value: sport,
+			})),
+		[field.data?.sports],
+	);
+
+	const onSubmit = async (data: any) => {
+		await supabase.from("tournaments").insert([
+			{
+				name: data.name,
+				fieldId: fieldId,
+				sport: data.sport,
+				startDate: data.startDate,
+				description: data.description,
+				price: data.price,
+				deadline: data.deadline,
+				cantPlayers: data.cantPlayers,
+			},
+		]);
+		onClose();
+	};
+
+	return (
+		<div className="flex flex-col items-center justify-center space-y-12 bg-[#f2f4f3] p-5">
+			<Form {...form}>
+				<div className="max-h-[400px] w-full space-y-5 overflow-y-auto">
+					<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+						<BasicBox
+							section="name"
+							label="Nombre"
+							placeholder=""
+							description=""
+							box_specifications="col-span-3"
+							label_specifications="text-base font-sans text-[#223332]"
+							form={form}
+						/>
+						<SelectFormSection form={form} options={options} />
+
+						<DescriptionSection
+							placeholder="Información adicional sobre la cancha y servicios. Por ejemplo, cantidad de jugadores, días y horarios de apertura."
+							box_specifications="w-[800px] h-[200px] text-lg px-4"
+							form={form}
+						/>
+
+						<PriceSection form={form} />
+						<div className="flex flex-col">
+							<Label htmlFor="startDate" className="h-8 px-2 text-sm text-[#223332]">
+								Fecha de inicio
+							</Label>
+							<Input type="date" id="startDate" className="col-span-3" {...form.register("startDate")} />
+						</div>
+						<div className="flex flex-col">
+							<Label htmlFor="deadline" className="h-8 px-2 text-sm text-[#223332]">
+								Fecha de limite de inscripción
+							</Label>
+							<Input type="date" id="deadline" className="col-span-3" {...form.register("deadline")} />
+						</div>
+						<div className="flex flex-col">
+							<Label htmlFor="cant" className="h-8 px-2 text-sm text-[#223332]">
+								Cantidad de jugadores
+							</Label>
+							<Input
+								type="number"
+								id="cantPlayers"
+								className="col-span-3"
+								{...form.register("cantPlayers")}
+							/>
+						</div>
+						<div className="flex w-full items-center justify-center">
+							<Button
+								data-color={formError}
+								disabled={formError}
+								className="mb-11 mt-5 h-10 w-full bg-[#223332] text-base hover:bg-[#f18f01]/80 data-[color=true]:bg-[#c92626]"
+								type="submit"
+							>
+								{formError ? "Se encontró un error, porfavor vuelva a intentar" : "Publicar"}
+							</Button>
+						</div>
+					</form>
+				</div>
+			</Form>
+		</div>
+	);
+}
+
+type DescriptionSectionProps = {
+	placeholder: string;
+	box_specifications: string;
+	form: UseFormReturn<any, any, any>;
+};
+
+function DescriptionSection({ placeholder, box_specifications, form }: DescriptionSectionProps) {
+	const inputId = "input-placeholder";
+	return (
+		<FormField
+			control={form.control}
+			name="description"
+			render={({ field }) => (
+				<FormItem>
+					<FormLabel htmlFor={inputId} className="font-sans text-base text-[#223332]">
+						Descripción
+					</FormLabel>
+					<FormControl>
+						<Textarea id={inputId} placeholder={placeholder} className={box_specifications} {...field} />
+					</FormControl>
+					<FormMessage />
+				</FormItem>
+			)}
+		/>
+	);
+}
+
+function PriceSection({ form }: { form: UseFormReturn<any, any, any> }) {
+	const inputId = "input-form"; //para q el formlabel se pueda asociar con el input
+	return (
+		<FormField
+			control={form.control}
+			name="price"
+			render={({ field }) => (
+				<FormItem>
+					<FormLabel
+						htmlFor={inputId}
+						className={clsx("font-sans text-base text-[#223332]", "text-[#223332]")}
+					>
+						Precio
+					</FormLabel>
+					<FormControl>
+						<div className="relative w-full">
+							<span className="absolute left-3 top-1/2 -translate-y-1/2 text-black">
+								<DollarSign className="h-4 w-4" />
+							</span>
+							<Input id={inputId} className="w-6/6 h-10 pl-8 pr-4 text-lg" {...field} />
+						</div>
+					</FormControl>
+					<FormMessage />
+				</FormItem>
+			)}
+		/>
+	);
+}
+
+function SelectFormSection({ form, options }: { form: UseFormReturn<any, any, any>; options: Option[] }) {
+	return (
+		<FormField
+			control={form.control}
+			name="sports"
+			render={({ field }) => (
+				<FormItem>
+					<div className="flex flex-col">
+						<FormLabel className="h-8 px-2 text-sm text-[#223332]">Deporte</FormLabel>
+						<div className="w-full">
+							<MultipleSelector
+								value={field.value || []}
+								onChange={(val) => field.onChange(val)}
+								options={options}
+								creatable
+								emptyIndicator={
+									<p className="text-center text-lg leading-10 text-gray-600 dark:text-gray-400">
+										Ningún resultado encontrado.
+									</p>
+								}
+							/>
+						</div>
+					</div>
+				</FormItem>
+			)}
+		/>
+	);
+}
+
+type TorneosSheetProps = {
+	fieldId: string;
+	tournaments: any[];
+};
+
+export function TorneosSheet({ fieldId, tournaments }: TorneosSheetProps) {
+	const { env, URL_ORIGIN, id } = useLoaderData<typeof loader>();
+	const supabase = createBrowserClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
+	const field = getFieldById(supabase, fieldId || "");
+	const [showForm, setShowForm] = useState(false);
+
+	return (
+		<Sheet>
+			<SheetTrigger asChild>
+				<Button
+					variant="outline"
+					className="ml-4 bg-[#d97e01] text-sm font-medium hover:bg-white hover:text-[#d97e01]"
+				>
+					Ver torneos
+				</Button>
+			</SheetTrigger>
+			<SheetContent>
+				<SheetHeader>
+					<SheetTitle>Torneos de {field.data?.name}</SheetTitle>
+				</SheetHeader>
+				{tournaments.length > 0 ? (
+					<div className="flex flex-col items-center justify-center space-y-12 bg-[#f2f4f3]">
+						{tournaments.map((tournament) => (
+							<div key={tournament.id} className="w-full rounded-lg bg-white p-4 shadow-md">
+								<h2 className="text-lg font-bold">{tournament.name}</h2>
+								<p>Fecha de inicio: {new Date(tournament.startDate).toLocaleDateString()}</p>
+							</div>
+						))}
+					</div>
+				) : (
+					<div className="flex flex-col items-center justify-center space-y-12 bg-[#f2f4f3]">
+						<p className="text-lg font-bold">No hay torneos disponibles</p>
+					</div>
+				)}
+				<div className="p-4">
+					<Button
+						variant="outline"
+						className="bg-[#223332] text-sm font-medium text-white hover:bg-[#d97e01] hover:text-[#223332]"
+						onClick={() => setShowForm(!showForm)}
+					>
+						Agregar Torneo
+					</Button>
+					{showForm && <TournamentForm fieldId={fieldId} onClose={() => setShowForm(false)} />}
+				</div>
+			</SheetContent>
+		</Sheet>
+	);
+}
