@@ -297,7 +297,7 @@ export function TorneosSheet({ fieldId, tournaments }: TorneosSheetProps) {
 					Ver torneos
 				</Button>
 			</SheetTrigger>
-			<SheetContent className="flex flex-col items-center">
+			<SheetContent className="w-full flex-col items-center space-y-5 overflow-y-auto">
 				<SheetHeader>
 					<SheetTitle className="p-6 font-bold text-[#d97e01]">Torneos de {field.data?.name}</SheetTitle>
 				</SheetHeader>
