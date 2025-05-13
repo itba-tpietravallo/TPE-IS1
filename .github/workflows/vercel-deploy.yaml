@@ -37,8 +37,8 @@ jobs:
               id: cache-modules
               with:
                   path: |
-                      node_modules
-                  key: node_modules-${{ runner.os }}-deploy-${{hashFiles('web/package-lock.json')}}
+                    **/node_modules
+                  key: node_modules-${{ runner.os }}-deploy-${{hashFiles('package-lock.json')}}
                   restore-keys: node_modules-${{ runner.os }}-deploy-
 
             - name: Install Vercel CLI
