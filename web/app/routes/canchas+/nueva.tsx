@@ -30,8 +30,12 @@ import { Database } from "@lib/autogen/database.types";
 
 export async function loader(args: LoaderFunctionArgs) {
 	const env = {
-		SUPABASE_URL: process.env.SUPABASE_URL!,
-		SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY!,
+		SUPABASE_URL:
+			process.env.VERCEL_ENV === "production" ? process.env.PROD_SUPABASE_URL! : process.env.DEV_SUPABASE_URL!,
+		SUPABASE_ANON_KEY:
+			process.env.VERCEL_ENV === "production"
+				? process.env.PROD_SUPABASE_ANON_KEY!
+				: process.env.DEV_SUPABASE_ANON_KEY!,
 	};
 
 	const user = (await authenticateUser(args.request)) as { user: User; avatar_url: string };
@@ -40,6 +44,9 @@ export async function loader(args: LoaderFunctionArgs) {
 		env,
 		URL_ORIGIN: new URL(args.request.url).origin,
 		user,
+		headers: {
+			"Access-Control-Allow-Origin": "*",
+		},
 	};
 }
 
@@ -161,23 +168,23 @@ export function NewField() {
 			const uploadedImageUrls: string[] = [];
 
 			for (const file of files) {
-				const filePath = `fields/${Date.now()}-${file.name}`
-					.split("")
-					.filter((c) => !c.match(/[^a-zA-Z0-9_-]/))
-					.join("");
-				console.log("Uploading file to Supabase Storage:", filePath);
+				let headers = new Headers();
+				const { downloadURL, signedPUTURL } = (await (
+					await fetch(new URL("/api/v1/storage/upload", "http://localhost:5173").toString(), {
+						method: "POST",
+						body: JSON.stringify({ fileName: file.name }),
+						headers,
+					})
+				).json()) as { signedPUTURL: string; downloadURL: string };
+				headers = new Headers();
+				headers.append("Content-Type", "application/octet-stream");
+				await fetch(signedPUTURL, {
+					method: "PUT",
+					headers,
+					body: file,
+				});
 
-				const { error: uploadError } = await supabase.storage.from("venues").upload(filePath, file);
-
-				if (uploadError) {
-					throw new Error(`Error uploading ${file.name}: ${uploadError.message}`);
-				}
-
-				const { data: publicUrlData } = supabase.storage.from("venues").getPublicUrl(filePath);
-
-				if (publicUrlData?.publicUrl) {
-					uploadedImageUrls.push(publicUrlData.publicUrl);
-				}
+				uploadedImageUrls.push(downloadURL);
 			}
 
 			// //const apiKey = "AIzaSyBw6wwGh_tfBhOikkUtc8uibxX1GPbr1ew";

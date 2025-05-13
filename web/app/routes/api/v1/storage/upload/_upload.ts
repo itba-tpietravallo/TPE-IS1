@@ -1,0 +1,58 @@
+import { Storage } from "@google-cloud/storage";
+
+import { ActionFunctionArgs } from "@remix-run/node";
+
+const BUCKET_ID = `matchpointapp-images`;
+const PROJECT_ID = `tpe-is1-itba-matchpoint`;
+const FOLDER = process.env.VERCEL_ENV == "production" ? `user-data` : `user-data-dev`;
+
+function uuidv4() {
+	return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, (c) =>
+		(+c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (+c / 4)))).toString(16),
+	);
+}
+
+export const action = async ({ request }: ActionFunctionArgs) => {
+	let { fileName } = (await request.json()) || ({ fileName: "" } as { fileName: string });
+
+	if (!fileName) {
+		return new Response("File name is required", { status: 400 });
+	}
+
+	const options = {
+		version: "v4",
+		action: "write",
+		expires: Date.now() + 15 * 60 * 1000, // 15 minutes
+		contentType: "application/octet-stream",
+	} as const;
+
+	const credentials = atob(process.env.GCP_PRODUCTION_API_KEY || "");
+	const credentialsObject = JSON.parse(credentials);
+
+	const storage = new Storage({
+		projectId: PROJECT_ID,
+		credentials: credentialsObject,
+	});
+
+	const ext = fileName.split(".")[fileName.split(".").length - 1] || "jpg";
+
+	fileName = `${FOLDER}/${uuidv4()}.${ext}`;
+
+	const [url] = await storage.bucket(BUCKET_ID).file(fileName).getSignedUrl(options);
+
+	return new Response(
+		JSON.stringify({ signedPUTURL: url, downloadURL: `https://storage.googleapis.com/${BUCKET_ID}/${fileName}` }),
+		{
+			status: 200,
+			statusText: "OK",
+			headers: {
+				"Content-Type": "application/json",
+				"Cache-Control": "no-cache",
+			},
+		},
+	);
+};
+
+export const loader = async ({ request }: ActionFunctionArgs) => {
+	return new Response("Method not allowed", { status: 405, statusText: "Method not allowed" });
+};
