@@ -28,8 +28,12 @@ type Field = {
 
 export async function loader({ request }: LoaderFunctionArgs) {
 	const env = {
-		SUPABASE_URL: process.env.SUPABASE_URL!,
-		SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY!,
+		SUPABASE_URL:
+			process.env.VERCEL_ENV === "production" ? process.env.PROD_SUPABASE_URL! : process.env.DEV_SUPABASE_URL!,
+		SUPABASE_ANON_KEY:
+			process.env.VERCEL_ENV === "production"
+				? process.env.PROD_SUPABASE_ANON_KEY!
+				: process.env.DEV_SUPABASE_ANON_KEY!,
 	};
 
 	return { ...(await authenticateUser(request)), env };
