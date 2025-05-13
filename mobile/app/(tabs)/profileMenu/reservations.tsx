@@ -97,14 +97,15 @@ export default function Index() {
 				{reservations.length > 0 ? (
 					<FlatList
 						data={reservations}
-						scrollEnabled={false}
+						scrollEnabled={true}
+						style={{ maxHeight: 500 }}
 						keyExtractor={(item) => item.id.toString()}
 						renderItem={({ item }) => (
 							<View
 								style={{
 									flexDirection: "row",
 									justifyContent: "space-between",
-									padding: 15,
+									padding: 20,
 								}}
 							>
 								<Text>
