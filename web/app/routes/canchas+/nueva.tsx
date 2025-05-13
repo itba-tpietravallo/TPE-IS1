@@ -170,7 +170,7 @@ export function NewField() {
 			for (const file of files) {
 				let headers = new Headers();
 				const { downloadURL, signedPUTURL } = (await (
-					await fetch(new URL("/api/v1/storage/upload", "http://localhost:5173").toString(), {
+					await fetch(new URL("/api/v1/storage/upload", "https://matchpointapp.com.ar").toString(), {
 						method: "POST",
 						body: JSON.stringify({ fileName: file.name }),
 						headers,
