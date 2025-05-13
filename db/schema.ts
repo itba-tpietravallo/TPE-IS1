@@ -28,6 +28,8 @@ const authUsers = authSchema.table("users", {
 });
 // END NOTICE: WARNING
 
+// NOTE: This table MUST NOT have any non-nullable columns aside from those explicitly set on the handle_new_user() trigger.
+// This means ONLY id, full_name, avatar_url and email can be non-nullable.
 export const usersTable = pgTable(
 	"users",
 	{
@@ -37,7 +39,7 @@ export const usersTable = pgTable(
 			.references((): AnyPgColumn => authUsers.id),
 		full_name: varchar({ length: 255 }).notNull(),
 		avatar_url: text(),
-		username: text().notNull(),
+		username: text(),
 		email: text().notNull().unique(),
 	},
 	(table) => [
