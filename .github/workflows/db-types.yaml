@@ -28,6 +28,7 @@ jobs:
               with:
                   path: |
                     **/node_modules
+                    ~/.npm
                   key: node_modules-${{ runner.os }}-db-${{hashFiles('package-lock.json')}}
                   restore-keys: node_modules-${{ runner.os }}-db-
 

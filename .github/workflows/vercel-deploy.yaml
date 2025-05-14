@@ -10,8 +10,6 @@ on:
         paths:
             - "web/**"
             - "db/**"
-        branches:
-            - main
 
 jobs:
     Database-Changes:
@@ -38,6 +36,7 @@ jobs:
               with:
                   path: |
                     **/node_modules
+                    ~/.npm
                   key: node_modules-${{ runner.os }}-deploy-${{hashFiles('package-lock.json')}}
                   restore-keys: node_modules-${{ runner.os }}-deploy-
 
