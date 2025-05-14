@@ -10,8 +10,61 @@ import type { Database } from "./database.types";
 import { useQuery, UseQueryOptions } from "@tanstack/react-query";
 import { useQuery as useQuerySupabase } from "@supabase-cache-helpers/postgrest-react-query";
 
+export const queries = {
+	getAllFields: (supabase: SupabaseClient<Database>) => 
+		supabase.from("fields").select("*"),
+
+	getNearbyFields: (supabase: SupabaseClient<Database>, lat: number, long: number, limit?: number) =>
+		supabase.rpc("nearby_fields", { lat, long, lim: limit || 5 }),
+
+	getAllFieldsByOwner: (supabase: SupabaseClient<Database>, ownerId: string) =>
+		supabase.from("fields").select("*").eq("owner", ownerId),
+
+	getFieldById: (supabase: SupabaseClient<Database>, fieldId: string) =>
+		supabase.from("fields").select("*").eq("id", fieldId).single(),
+
+	getAllSports: (supabase: SupabaseClient<Database>) =>
+		supabase.from("sports").select("name"),
+
+	getAllReservationsForFieldById: (supabase: SupabaseClient<Database>, fieldId: string) =>
+		supabase.from("reservations").select("*").eq("field_id", fieldId),
+
+	getAllReservationTimeSlots: (supabase: SupabaseClient<Database>, fieldId: string) =>
+		supabase.from("reservations").select("date_time").eq("field_id", fieldId),
+
+	getAllTeams: (supabase: SupabaseClient<Database>) =>
+		supabase.from("teams").select("team_id, name, sport, description, images, players"),
+
+	getTeamMembers: (supabase: SupabaseClient<Database>, teamId: string) =>
+		supabase.from("teams").select("players").eq("team_id", teamId).single(),
+
+	getAllUsers: (supabase: SupabaseClient<Database>) =>
+		supabase.from("users").select("id, full_name, avatar_url"),
+
+	getUserAvatar: (supabase: SupabaseClient<Database>, user_name: string) =>
+		supabase.from("users").select("avatar_url").eq("full_name", user_name).single(),
+
+	getUsername: (supabase: SupabaseClient<Database>, userId: string) =>
+		supabase.from("users").select("full_name, username").eq("id", userId).single(),
+
+	getUserSession: (supabase: SupabaseClient<Database>, userId: string) =>
+		supabase.from("users").select("id, full_name, avatar_url, username").eq("id", userId).single(),
+
+	getLastUserPayments: (supabase: SupabaseClient<Database>, userId: string) =>
+		supabase.from("mp_payments")
+			.select("payment_id, last_updated, status, transaction_amount")
+			.eq("user_id", userId)
+			.order("last_updated", { ascending: false }),
+
+	getAllTournaments: (supabase: SupabaseClient<Database>) =>
+		supabase.from("tournaments").select("*"),
+
+	getAllTournamentsForFieldById: (supabase: SupabaseClient<Database>, fieldId: string) =>
+		supabase.from("tournaments").select("*").eq("fieldId", fieldId),
+};
+
 export function getAllFields(supabase: SupabaseClient<Database>, opts: any = undefined) {
-	return useQuerySupabase(supabase.from("fields").select("*"), opts);
+	return useQuerySupabase(queries.getAllFields(supabase), opts);
 }
 
 export function getNearbyFields(
@@ -21,19 +74,19 @@ export function getNearbyFields(
 	limit?: number,
 	opts: any = undefined,
 ) {
-	return useQuerySupabase(supabase.rpc("nearby_fields", { lat, long, lim: limit || 5 }));
+	return useQuerySupabase(queries.getNearbyFields(supabase, lat, long, limit), opts);
 }
 
 export function getAllFieldsByOwner(supabase: SupabaseClient<Database>, ownerId: string, opts: any = undefined) {
-	return useQuerySupabase(supabase.from("fields").select("*").eq("owner", ownerId), opts);
+	return useQuerySupabase(queries.getAllFieldsByOwner(supabase, ownerId), opts);
 }
 
 export function getFieldById(supabase: SupabaseClient<Database>, fieldId: string, opts: any = undefined) {
-	return useQuerySupabase(supabase.from("fields").select("*").eq("id", fieldId).single(), opts);
+	return useQuerySupabase(queries.getFieldById(supabase, fieldId), opts);
 }
 
 export function getAllSports(supabase: SupabaseClient<Database>, opts: any = undefined) {
-	return useQuerySupabase(supabase.from("sports").select("name"), opts);
+	return useQuerySupabase(queries.getAllSports(supabase), opts);
 }
 
 export function getAllReservationsForFieldById(
@@ -41,27 +94,27 @@ export function getAllReservationsForFieldById(
 	fieldId: string,
 	opts: any = undefined,
 ) {
-	return useQuerySupabase(supabase.from("reservations").select("*").eq("field_id", fieldId), opts);
+	return useQuerySupabase(queries.getAllReservationsForFieldById(supabase, fieldId), opts);
 }
 
 export function getAllReservationTimeSlots(supabase: SupabaseClient<Database>, fieldId: string, opts: any = undefined) {
-	return useQuerySupabase(supabase.from("reservations").select("date_time").eq("field_id", fieldId), opts);
+	return useQuerySupabase(queries.getAllReservationTimeSlots(supabase, fieldId), opts);
 }
 
 export function getAllTeams(supabase: SupabaseClient<Database>, opts: any = undefined) {
-	return useQuerySupabase(supabase.from("teams").select("team_id, name, sport, description, images, players"), opts);
+	return useQuerySupabase(queries.getAllTeams(supabase), opts);
 }
 
 export function getTeamMembers(supabase: SupabaseClient<Database>, teamId: string, opts: any = undefined) {
-	return useQuerySupabase(supabase.from("teams").select("players").eq("team_id", teamId).single(), opts);
+	return useQuerySupabase(queries.getTeamMembers(supabase, teamId), opts);
 }
 
 export function getAllUsers(supabase: SupabaseClient<Database>, opts: any = undefined) {
-	return useQuerySupabase(supabase.from("users").select("id, full_name, avatar_url"), opts);
+	return useQuerySupabase(queries.getAllUsers(supabase), opts);
 }
 
 export function getUserAvatar(supabase: SupabaseClient<Database>, user_name: string, opts: any = undefined) {
-	return useQuerySupabase(supabase.from("users").select("avatar_url").eq("full_name", user_name).single(), opts);
+	return useQuerySupabase(queries.getUserAvatar(supabase, user_name), opts);
 }
 
 export function getUsername(supabase: SupabaseClient<Database>, userId: string, opts: any = undefined) {
@@ -69,11 +122,7 @@ export function getUsername(supabase: SupabaseClient<Database>, userId: string, 
 		queryKey: [userId, "username"],
 		queryFn: async () => {
 			let username: string;
-			const { data, error } = await supabase
-				.from("users")
-				.select("full_name, username")
-				.eq("id", userId)
-				.single();
+			const { data, error } = await queries.getUsername(supabase, userId);
 
 			if (error || !data.username) {
 				console.error("Error fetching username:", error, data);
@@ -94,45 +143,30 @@ export function getUsername(supabase: SupabaseClient<Database>, userId: string, 
 }
 
 export function getUserSession(supabase: SupabaseClient<Database>, opts: any = undefined) {
-	return (
-		useQuery(
-			{
-				queryKey: ["user_session"],
-				queryFn: async () => {
-					const id = (await supabase.auth.getSession()).data.session?.user.id;
-					return (
-						await supabase
-							.from("users")
-							.select("id, full_name, avatar_url, username")
-							.eq("id", id!)
-							.single()
-							.throwOnError()
-					).data;
-				},
+	return useQuery(
+		{
+			queryKey: ["user_session"],
+			queryFn: async () => {
+				const id = (await supabase.auth.getSession()).data.session?.user.id;
+				return (await queries.getUserSession(supabase, id!).throwOnError()).data;
 			},
-			opts,
-		) ?? {}
-	);
+		},
+		opts,
+	) ?? {};
 }
 
 export function getLastUserPayments(supabase: SupabaseClient<Database>, userId: string, opts: any = undefined) {
 	return useQuery({
 		queryKey: [userId, "payments"],
 		queryFn: async () => {
-			const { data, error } = await supabase
-				.from("mp_payments")
-				.select("payment_id, last_updated, status, transaction_amount")
-				.eq("user_id", userId)
-				.order("last_updated", { ascending: false })
-				.throwOnError();
-
+			const { data, error } = await queries.getLastUserPayments(supabase, userId).throwOnError();
 			return data;
 		},
 	});
 }
 
 export function getAllTournaments(supabase: SupabaseClient<Database>, opts: any = undefined) {
-	return useQuerySupabase(supabase.from("tournaments").select("*"), opts);
+	return useQuerySupabase(queries.getAllTournaments(supabase), opts);
 }
 
 export function getAllTournamentsForFieldById(
@@ -140,5 +174,5 @@ export function getAllTournamentsForFieldById(
 	fieldId: string,
 	opts: any = undefined,
 ) {
-	return useQuerySupabase(supabase.from("tournaments").select("*").eq("fieldId", fieldId), opts);
+	return useQuerySupabase(queries.getAllTournamentsForFieldById(supabase, fieldId), opts);
 }
