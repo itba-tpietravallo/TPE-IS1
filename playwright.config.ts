@@ -10,8 +10,8 @@ import fs from "fs";
 
 try {
 	// File exists then load it
-	if (fs.existsSync(path.resolve(__dirname, ".env"))) {
-		console.log(dotenv.config({ path: path.resolve(__dirname, ".env") }));
+	if (fs.existsSync(path.resolve(__dirname, "./web/.env"))) {
+		console.log(dotenv.config({ path: path.resolve(__dirname, "./web/.env") }));
 	}
 } catch (e) {}
 
@@ -22,17 +22,17 @@ export default defineConfig({
 	webServer: {
 		command: "cd web && npm run dev",
 		port: 5173,
-		reuseExistingServer: false,
+		reuseExistingServer: !process.env.CI,
 		env: {
 			TEST_USER_EMAIL: process.env.TEST_USER_EMAIL!,
 			TEST_USER_PASSWORD: process.env.TEST_USER_PASSWORD!,
 		},
-		timeout: 10000, // 10 seconds
+		timeout: 30000, // 30 seconds
 	},
 	use: {
 		baseURL: "http://localhost:5173",
 		trace: "on-first-retry",
-		actionTimeout: 5000,
+		actionTimeout: 10000, // 10 seconds
 	},
 	testDir: "./web/tests",
 	/* Run tests in files in parallel */
@@ -48,9 +48,14 @@ export default defineConfig({
 	/* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
 	/* Configure projects for major browsers */
 	projects: [
+		{ name: "setup", testMatch: /.*\.setup\.ts/ },
 		{
 			name: "chromium",
-			use: { ...devices["Desktop Chrome"] },
+			use: {
+				...devices["Desktop Chrome"],
+				storageState: path.resolve(__dirname, "./web/tests/.auth/user.json"),
+			},
+			dependencies: ["setup"],
 		},
 
 		// {
@@ -83,11 +88,4 @@ export default defineConfig({
 		//   use: { ...devices['Desktop Chrome'], channel: 'chrome' },
 		// },
 	],
-
-	/* Run your local dev server before starting the tests */
-	// webServer: {
-	//   command: 'npm run start',
-	//   url: 'http://127.0.0.1:3000',
-	//   reuseExistingServer: !process.env.CI,
-	// },
 });
