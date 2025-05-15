@@ -50,7 +50,7 @@ jobs:
                         
             - name: Load web env
               run: |
-                cat "./web/.env" >> ${{ env }}
+                cat "./web/.env" >> "$GITHUB_ENV"
 
             - name: Install dependencies
               if: steps.node-cache.outputs.cache-hit != 'true'
