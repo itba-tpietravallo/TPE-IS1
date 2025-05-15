@@ -84,7 +84,7 @@ export function FieldPreview(props: FieldPreviewProps & { className?: string }) 
 						</CardDescription>
 					</div>
 					<CardContent className="flex justify-center">
-						<img src={img} className="h-32 w-full rounded-lg object-cover" />
+						{img && img != "" && <img src={img} className="h-32 w-full rounded-lg object-cover" />}
 					</CardContent>
 				</Card>
 			</Link>

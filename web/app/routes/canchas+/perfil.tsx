@@ -36,11 +36,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
 				: process.env.DEV_SUPABASE_ANON_KEY!,
 	};
 
-	return { ...(await authenticateUser(request)), env };
+	return { ...(await authenticateUser(request)), env, URL_ORIGIN: new URL(request.url).origin };
 }
 
 export default function Index() {
-	const { user, avatar_url, email, phone, full_name, env } = useLoaderData<typeof loader>();
+	const { user, avatar_url, email, phone, full_name, env, URL_ORIGIN } = useLoaderData<typeof loader>();
 	const supabase = createBrowserClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
 	const { data: fields } = getAllFieldsByOwner(supabase, user.id);
 	const { data: username } = getUsername(supabase, user.id, { enabled: !!user.id });
@@ -86,7 +86,7 @@ export default function Index() {
 									</li>
 								</ul>
 								<Link
-									to={"https://matchpointapp.com.ar/api/v1/payments/oauth/mercadopago"}
+									to={`${new URL("/api/v1/payments/oauth/mercadopago", URL_ORIGIN)}`}
 									className="h-fit w-fit cursor-pointer rounded border border-blue-600 bg-blue-300 p-2 px-4 text-lg leading-none text-black shadow-sm"
 								>
 									Vincular a Mercado Pago
@@ -113,7 +113,7 @@ export default function Index() {
 											name: field.name,
 											location: `${field.street} ${field.street_number}, ${field.neighborhood}, ${field.city}`,
 											price: field.price,
-											img: (field.images || [])[0] || "undefined_image",
+											img: (field.images || [])[0] || "",
 										}))}
 									/>
 								)}
