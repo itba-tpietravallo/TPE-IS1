@@ -4,15 +4,14 @@
 // This file is automatically copied to /web and /mobile in CI.
 // ===============================================================
 
-import { PostgrestError, PostgrestMaybeSingleResponse, PostgrestSingleResponse, SupabaseClient } from "@supabase/supabase-js";
+import { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "./database.types";
 
 import { useQuery, UseQueryOptions } from "@tanstack/react-query";
 import { useQuery as useQuerySupabase } from "@supabase-cache-helpers/postgrest-react-query";
 
 export const queries = {
-	getAllFields: (supabase: SupabaseClient<Database>) => 
-		supabase.from("fields").select("*"),
+	getAllFields: (supabase: SupabaseClient<Database>) => supabase.from("fields").select("*"),
 
 	getNearbyFields: (supabase: SupabaseClient<Database>, lat: number, long: number, limit?: number) =>
 		supabase.rpc("nearby_fields", { lat, long, lim: limit || 5 }),
@@ -23,8 +22,7 @@ export const queries = {
 	getFieldById: (supabase: SupabaseClient<Database>, fieldId: string) =>
 		supabase.from("fields").select("*").eq("id", fieldId).single(),
 
-	getAllSports: (supabase: SupabaseClient<Database>) =>
-		supabase.from("sports").select("name"),
+	getAllSports: (supabase: SupabaseClient<Database>) => supabase.from("sports").select("name"),
 
 	getAllReservationsForFieldById: (supabase: SupabaseClient<Database>, fieldId: string) =>
 		supabase.from("reservations").select("*").eq("field_id", fieldId),
@@ -38,8 +36,7 @@ export const queries = {
 	getTeamMembers: (supabase: SupabaseClient<Database>, teamId: string) =>
 		supabase.from("teams").select("players").eq("team_id", teamId).single(),
 
-	getAllUsers: (supabase: SupabaseClient<Database>) =>
-		supabase.from("users").select("id, full_name, avatar_url"),
+	getAllUsers: (supabase: SupabaseClient<Database>) => supabase.from("users").select("id, full_name, avatar_url"),
 
 	getUserAvatar: (supabase: SupabaseClient<Database>, user_name: string) =>
 		supabase.from("users").select("avatar_url").eq("full_name", user_name).single(),
@@ -51,19 +48,19 @@ export const queries = {
 		supabase.from("users").select("id, full_name, avatar_url, username").eq("id", userId).single(),
 
 	getLastUserPayments: (supabase: SupabaseClient<Database>, userId: string) =>
-		supabase.from("mp_payments")
+		supabase
+			.from("mp_payments")
 			.select("payment_id, last_updated, status, transaction_amount")
 			.eq("user_id", userId)
 			.order("last_updated", { ascending: false }),
 
-	getAllTournaments: (supabase: SupabaseClient<Database>) =>
-		supabase.from("tournaments").select("*"),
+	getAllTournaments: (supabase: SupabaseClient<Database>) => supabase.from("tournaments").select("*"),
 
 	getAllTournamentsForFieldById: (supabase: SupabaseClient<Database>, fieldId: string) =>
 		supabase.from("tournaments").select("*").eq("fieldId", fieldId),
 };
 
-export function getAllFields(supabase: SupabaseClient<Database>, opts?: Omit<UseQueryOptions<PostgrestMaybeSingleResponse<any>, PostgrestError>, 'queryKey' | 'queryFn'>) {
+export function getAllFields(supabase: SupabaseClient<Database>, opts: any = undefined) {
 	return useQuerySupabase(queries.getAllFields(supabase), opts);
 }
 
@@ -72,52 +69,52 @@ export function getNearbyFields(
 	lat: number,
 	long: number,
 	limit?: number,
-	opts?: Omit<UseQueryOptions<PostgrestMaybeSingleResponse<any>, PostgrestError>, 'queryKey' | 'queryFn'>,
+	opts: any = undefined,
 ) {
 	return useQuerySupabase(queries.getNearbyFields(supabase, lat, long, limit), opts);
 }
 
-export function getAllFieldsByOwner(supabase: SupabaseClient<Database>, ownerId: string, opts?: Omit<UseQueryOptions<PostgrestMaybeSingleResponse<any>, PostgrestError>, 'queryKey' | 'queryFn'>) {
+export function getAllFieldsByOwner(supabase: SupabaseClient<Database>, ownerId: string, opts: any = undefined) {
 	return useQuerySupabase(queries.getAllFieldsByOwner(supabase, ownerId), opts);
 }
 
-export function getFieldById(supabase: SupabaseClient<Database>, fieldId: string, opts?: Omit<UseQueryOptions<PostgrestMaybeSingleResponse<any>, PostgrestError>, 'queryKey' | 'queryFn'>) {
+export function getFieldById(supabase: SupabaseClient<Database>, fieldId: string, opts: any = undefined) {
 	return useQuerySupabase(queries.getFieldById(supabase, fieldId), opts);
 }
 
-export function getAllSports(supabase: SupabaseClient<Database>, opts?: Omit<UseQueryOptions<PostgrestMaybeSingleResponse<any>, PostgrestError>, 'queryKey' | 'queryFn'>) {
+export function getAllSports(supabase: SupabaseClient<Database>, opts: any = undefined) {
 	return useQuerySupabase(queries.getAllSports(supabase), opts);
 }
 
 export function getAllReservationsForFieldById(
 	supabase: SupabaseClient<Database>,
 	fieldId: string,
-	opts?: Omit<UseQueryOptions<PostgrestMaybeSingleResponse<any>, PostgrestError>, 'queryKey' | 'queryFn'>,
+	opts: any = undefined,
 ) {
 	return useQuerySupabase(queries.getAllReservationsForFieldById(supabase, fieldId), opts);
 }
 
-export function getAllReservationTimeSlots(supabase: SupabaseClient<Database>, fieldId: string, opts?: Omit<UseQueryOptions<PostgrestMaybeSingleResponse<any>, PostgrestError>, 'queryKey' | 'queryFn'>) {
+export function getAllReservationTimeSlots(supabase: SupabaseClient<Database>, fieldId: string, opts: any = undefined) {
 	return useQuerySupabase(queries.getAllReservationTimeSlots(supabase, fieldId), opts);
 }
 
-export function getAllTeams(supabase: SupabaseClient<Database>, opts?: Omit<UseQueryOptions<PostgrestMaybeSingleResponse<any>, PostgrestError>, 'queryKey' | 'queryFn'>) {
+export function getAllTeams(supabase: SupabaseClient<Database>, opts: any = undefined) {
 	return useQuerySupabase(queries.getAllTeams(supabase), opts);
 }
 
-export function getTeamMembers(supabase: SupabaseClient<Database>, teamId: string, opts?: Omit<UseQueryOptions<PostgrestMaybeSingleResponse<any>, PostgrestError>, 'queryKey' | 'queryFn'>) {
+export function getTeamMembers(supabase: SupabaseClient<Database>, teamId: string, opts: any = undefined) {
 	return useQuerySupabase(queries.getTeamMembers(supabase, teamId), opts);
 }
 
-export function getAllUsers(supabase: SupabaseClient<Database>, opts?: Omit<UseQueryOptions<PostgrestMaybeSingleResponse<any>, PostgrestError>, 'queryKey' | 'queryFn'>) {
+export function getAllUsers(supabase: SupabaseClient<Database>, opts: any = undefined) {
 	return useQuerySupabase(queries.getAllUsers(supabase), opts);
 }
 
-export function getUserAvatar(supabase: SupabaseClient<Database>, user_name: string, opts?: Omit<UseQueryOptions<PostgrestMaybeSingleResponse<any>, PostgrestError>, 'queryKey' | 'queryFn'>) {
+export function getUserAvatar(supabase: SupabaseClient<Database>, user_name: string, opts: any = undefined) {
 	return useQuerySupabase(queries.getUserAvatar(supabase, user_name), opts);
 }
 
-export function getUsername(supabase: SupabaseClient<Database>, userId: string, opts?: Omit<UseQueryOptions<PostgrestMaybeSingleResponse<any>, PostgrestError>, 'queryKey' | 'queryFn'>) {
+export function getUsername(supabase: SupabaseClient<Database>, userId: string, opts: any = undefined) {
 	return useQuery({
 		queryKey: [userId, "username"],
 		queryFn: async () => {
@@ -142,20 +139,22 @@ export function getUsername(supabase: SupabaseClient<Database>, userId: string, 
 	});
 }
 
-export function getUserSession(supabase: SupabaseClient<Database>, opts?: Omit<UseQueryOptions<PostgrestMaybeSingleResponse<any>, PostgrestError>, 'queryKey' | 'queryFn'>) {
-	return useQuery(
-		{
-			queryKey: ["user_session"],
-			queryFn: async () => {
-				const id = (await supabase.auth.getSession()).data.session?.user.id;
-				return (await queries.getUserSession(supabase, id!).throwOnError()).data;
+export function getUserSession(supabase: SupabaseClient<Database>, opts: any = undefined) {
+	return (
+		useQuery(
+			{
+				queryKey: ["user_session"],
+				queryFn: async () => {
+					const id = (await supabase.auth.getSession()).data.session?.user.id;
+					return (await queries.getUserSession(supabase, id!).throwOnError()).data;
+				},
 			},
-		},
-		opts,
-	) ?? {};
+			opts,
+		) ?? {}
+	);
 }
 
-export function getLastUserPayments(supabase: SupabaseClient<Database>, userId: string, opts?: Omit<UseQueryOptions<PostgrestMaybeSingleResponse<any>, PostgrestError>, 'queryKey' | 'queryFn'>) {
+export function getLastUserPayments(supabase: SupabaseClient<Database>, userId: string, opts: any = undefined) {
 	return useQuery({
 		queryKey: [userId, "payments"],
 		queryFn: async () => {
@@ -165,14 +164,14 @@ export function getLastUserPayments(supabase: SupabaseClient<Database>, userId: 
 	});
 }
 
-export function getAllTournaments(supabase: SupabaseClient<Database>, opts?: Omit<UseQueryOptions<PostgrestMaybeSingleResponse<any>, PostgrestError>, 'queryKey' | 'queryFn'>) {
+export function getAllTournaments(supabase: SupabaseClient<Database>, opts: any = undefined) {
 	return useQuerySupabase(queries.getAllTournaments(supabase), opts);
 }
 
 export function getAllTournamentsForFieldById(
 	supabase: SupabaseClient<Database>,
 	fieldId: string,
-	opts?: Omit<UseQueryOptions<PostgrestMaybeSingleResponse<any>, PostgrestError>, 'queryKey' | 'queryFn'>,
+	opts: any = undefined,
 ) {
 	return useQuerySupabase(queries.getAllTournamentsForFieldById(supabase, fieldId), opts);
 }

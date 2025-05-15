@@ -11,8 +11,7 @@ import { useQuery, UseQueryOptions } from "@tanstack/react-query";
 import { useQuery as useQuerySupabase } from "@supabase-cache-helpers/postgrest-react-query";
 
 export const queries = {
-	getAllFields: (supabase: SupabaseClient<Database>) => 
-		supabase.from("fields").select("*"),
+	getAllFields: (supabase: SupabaseClient<Database>) => supabase.from("fields").select("*"),
 
 	getNearbyFields: (supabase: SupabaseClient<Database>, lat: number, long: number, limit?: number) =>
 		supabase.rpc("nearby_fields", { lat, long, lim: limit || 5 }),
@@ -23,8 +22,7 @@ export const queries = {
 	getFieldById: (supabase: SupabaseClient<Database>, fieldId: string) =>
 		supabase.from("fields").select("*").eq("id", fieldId).single(),
 
-	getAllSports: (supabase: SupabaseClient<Database>) =>
-		supabase.from("sports").select("name"),
+	getAllSports: (supabase: SupabaseClient<Database>) => supabase.from("sports").select("name"),
 
 	getAllReservationsForFieldById: (supabase: SupabaseClient<Database>, fieldId: string) =>
 		supabase.from("reservations").select("*").eq("field_id", fieldId),
@@ -38,8 +36,7 @@ export const queries = {
 	getTeamMembers: (supabase: SupabaseClient<Database>, teamId: string) =>
 		supabase.from("teams").select("players").eq("team_id", teamId).single(),
 
-	getAllUsers: (supabase: SupabaseClient<Database>) =>
-		supabase.from("users").select("id, full_name, avatar_url"),
+	getAllUsers: (supabase: SupabaseClient<Database>) => supabase.from("users").select("id, full_name, avatar_url"),
 
 	getUserAvatar: (supabase: SupabaseClient<Database>, user_name: string) =>
 		supabase.from("users").select("avatar_url").eq("full_name", user_name).single(),
@@ -51,13 +48,13 @@ export const queries = {
 		supabase.from("users").select("id, full_name, avatar_url, username").eq("id", userId).single(),
 
 	getLastUserPayments: (supabase: SupabaseClient<Database>, userId: string) =>
-		supabase.from("mp_payments")
+		supabase
+			.from("mp_payments")
 			.select("payment_id, last_updated, status, transaction_amount")
 			.eq("user_id", userId)
 			.order("last_updated", { ascending: false }),
 
-	getAllTournaments: (supabase: SupabaseClient<Database>) =>
-		supabase.from("tournaments").select("*"),
+	getAllTournaments: (supabase: SupabaseClient<Database>) => supabase.from("tournaments").select("*"),
 
 	getAllTournamentsForFieldById: (supabase: SupabaseClient<Database>, fieldId: string) =>
 		supabase.from("tournaments").select("*").eq("fieldId", fieldId),
@@ -143,16 +140,18 @@ export function getUsername(supabase: SupabaseClient<Database>, userId: string, 
 }
 
 export function getUserSession(supabase: SupabaseClient<Database>, opts: any = undefined) {
-	return useQuery(
-		{
-			queryKey: ["user_session"],
-			queryFn: async () => {
-				const id = (await supabase.auth.getSession()).data.session?.user.id;
-				return (await queries.getUserSession(supabase, id!).throwOnError()).data;
+	return (
+		useQuery(
+			{
+				queryKey: ["user_session"],
+				queryFn: async () => {
+					const id = (await supabase.auth.getSession()).data.session?.user.id;
+					return (await queries.getUserSession(supabase, id!).throwOnError()).data;
+				},
 			},
-		},
-		opts,
-	) ?? {};
+			opts,
+		) ?? {}
+	);
 }
 
 export function getLastUserPayments(supabase: SupabaseClient<Database>, userId: string, opts: any = undefined) {
