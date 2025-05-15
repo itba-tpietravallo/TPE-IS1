@@ -47,6 +47,9 @@ export const queries = {
 	getUserSession: (supabase: SupabaseClient<Database>, userId: string) =>
 		supabase.from("users").select("id, full_name, avatar_url, username").eq("id", userId).single(),
 
+	getUserAuthSession: (supabase: SupabaseClient<Database>) => 
+		supabase.auth.getSession().then((res) => res.data.session),
+
 	getLastUserPayments: (supabase: SupabaseClient<Database>, userId: string) =>
 		supabase
 			.from("mp_payments")
@@ -145,23 +148,28 @@ export function getUserSession(supabase: SupabaseClient<Database>, opts: any = u
 			{
 				queryKey: ["user_session"],
 				queryFn: async () => {
-					const id = (await supabase.auth.getSession()).data.session?.user.id;
-					return (await queries.getUserSession(supabase, id!).throwOnError()).data;
+					const session = await queries.getUserAuthSession(supabase);
+					// Using getOwnPropertyDescriptor to avoid supabase's getter which logs non-applicable warnings
+					const id = Object.getOwnPropertyDescriptor(session, "user")?.value?.id as string;
+					return (await queries.getUserSession(supabase, id).throwOnError()).data;
 				},
 			},
-			opts,
-		) ?? {}
+		)
 	);
 }
 
-export function getLastUserPayments(supabase: SupabaseClient<Database>, userId: string, opts: any = undefined) {
+export function getUserAuthSession(supabase: SupabaseClient<Database>, opts: any = undefined) {
 	return useQuery({
-		queryKey: [userId, "payments"],
+		queryKey: ["user_auth_session"],
 		queryFn: async () => {
-			const { data, error } = await queries.getLastUserPayments(supabase, userId).throwOnError();
-			return data;
-		},
+			const session = await queries.getUserAuthSession(supabase);
+			return session;
+		}
 	});
+}
+
+export function getLastUserPayments(supabase: SupabaseClient<Database>, userId: string, opts: any = undefined) {
+	return useQuerySupabase(queries.getLastUserPayments(supabase, userId), opts);
 }
 
 export function getAllTournaments(supabase: SupabaseClient<Database>, opts: any = undefined) {

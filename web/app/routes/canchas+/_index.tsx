@@ -10,7 +10,7 @@ import { createBrowserClient } from "@supabase/ssr"; // Supabase Client
 
 import { dehydrate, QueryClient } from "@tanstack/react-query"; // React Query
 
-import { queries, getAllFieldsByOwner } from "@lib/autogen/queries"; // Database Queries
+import { queries, getAllFieldsByOwner, getUserAuthSession } from "@lib/autogen/queries"; // Database Queries
 import type { Database } from "@lib/autogen/database.types"; // Database Types
 import { createSupabaseServerClient } from "@lib/supabase.server";
 import { fetchQueryInitialData, prefetchQuery } from "@supabase-cache-helpers/postgrest-react-query";
@@ -34,7 +34,11 @@ export async function loader(args: LoaderFunctionArgs) {
 	};
 
 	const { supabaseClient } = createSupabaseServerClient(args.request);
-	const userId = (await supabaseClient.auth.getSession()).data.session?.user.id!;
+	const session = await queries.getUserAuthSession(supabaseClient);
+	// Using getOwnPropertyDescriptor to avoid supabase's getter which logs non-applicable warnings
+	const userId = Object.getOwnPropertyDescriptor(Object.getOwnPropertyDescriptor(session, "user")?.value || {}, "id")
+		?.value as string;
+
 	const [key, initialData] = (await fetchQueryInitialData(
 		queries.getAllFieldsByOwner(supabaseClient, userId),
 	)) as any;
