@@ -47,7 +47,7 @@ export const queries = {
 	getUserSession: (supabase: SupabaseClient<Database>, userId: string) =>
 		supabase.from("users").select("id, full_name, avatar_url, username").eq("id", userId).single(),
 
-	getUserAuthSession: (supabase: SupabaseClient<Database>) => 
+	getUserAuthSession: (supabase: SupabaseClient<Database>) =>
 		supabase.auth.getSession().then((res) => res.data.session),
 
 	getLastUserPayments: (supabase: SupabaseClient<Database>, userId: string) =>
@@ -143,19 +143,15 @@ export function getUsername(supabase: SupabaseClient<Database>, userId: string, 
 }
 
 export function getUserSession(supabase: SupabaseClient<Database>, opts: any = undefined) {
-	return (
-		useQuery(
-			{
-				queryKey: ["user_session"],
-				queryFn: async () => {
-					const session = await queries.getUserAuthSession(supabase);
-					// Using getOwnPropertyDescriptor to avoid supabase's getter which logs non-applicable warnings
-					const id = Object.getOwnPropertyDescriptor(session, "user")?.value?.id as string;
-					return (await queries.getUserSession(supabase, id).throwOnError()).data;
-				},
-			},
-		)
-	);
+	return useQuery({
+		queryKey: ["user_session"],
+		queryFn: async () => {
+			const session = await queries.getUserAuthSession(supabase);
+			// Using getOwnPropertyDescriptor to avoid supabase's getter which logs non-applicable warnings
+			const id = Object.getOwnPropertyDescriptor(session, "user")?.value?.id as string;
+			return (await queries.getUserSession(supabase, id).throwOnError()).data;
+		},
+	});
 }
 
 export function getUserAuthSession(supabase: SupabaseClient<Database>, opts: any = undefined) {
@@ -164,7 +160,7 @@ export function getUserAuthSession(supabase: SupabaseClient<Database>, opts: any
 		queryFn: async () => {
 			const session = await queries.getUserAuthSession(supabase);
 			return session;
-		}
+		},
 	});
 }
 
