@@ -1,4 +1,5 @@
 name: Playwright Tests
+
 on:
     workflow_call:
     workflow_dispatch:
@@ -53,6 +54,10 @@ jobs:
                   npm i
                   cd web && npm i && cd ..
 
+            - name: Load web env
+              run: |
+                cat ./web/.env >> $GITHUB_ENV
+
             - name: Install Playwright Browsers
               if: steps.playwright-cache.outputs.cache-hit != 'true'
               run: npx playwright install --with-deps
@@ -60,8 +65,8 @@ jobs:
             - name: Run Playwright tests
               run: npx playwright test
               env:
-                  TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
-                  TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+                  TEST_USER_EMAIL: ${{ env.TEST_USER_EMAIL }}
+                  TEST_USER_PASSWORD: ${{ env.TEST_USER_PASSWORD }}
 
             - uses: actions/upload-artifact@v4
               if: ${{ !cancelled() }}
