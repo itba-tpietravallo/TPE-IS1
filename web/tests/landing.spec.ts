@@ -2,22 +2,27 @@ import { test, expect } from "@playwright/test";
 
 const BASE_URL = "http://localhost:5173";
 
-test("has title", async ({ page }) => {
-	await page.goto(`${BASE_URL}/`);
+test.describe("Landing page", () => {
+	// Set this test suite to run in a logged out state
+	test.use({ storageState: { cookies: [], origins: [] } });
 
-	// Expect a title "to contain" a substring.
-	await expect(page).toHaveTitle(/MatchPoint/);
-});
+	test("has title", async ({ page }) => {
+		await page.goto(`${BASE_URL}/`);
 
-test("publish field login redirection", async ({ page }) => {
-	await page.goto(`${BASE_URL}/`);
+		// Expect a title "to contain" a substring.
+		await expect(page).toHaveTitle(/MatchPoint/);
+	});
 
-	// Click the get started link.
-	const button = await page.getByText("Publicá tu cancha");
-	await expect(button).toBeVisible();
-	await button.click();
+	test("publish field login redirection", async ({ page }) => {
+		await page.goto(`${BASE_URL}/`);
 
-	// Wait for the login page to load.
-	await page.getByText("Welcome to MatchPoint").waitFor({ state: "visible" });
-	await expect(new URL(await page.url()).pathname).toBe("/login");
+		// Click the get started link.
+		const button = await page.getByText("Publicá tu cancha");
+		await expect(button).toBeVisible();
+		await button.click();
+
+		// Wait for the login page to load.
+		await page.getByText("Welcome to MatchPoint").waitFor({ state: "visible" });
+		await expect(new URL(await page.url()).pathname).toBe("/login");
+	});
 });

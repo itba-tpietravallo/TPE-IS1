@@ -11,7 +11,7 @@ import fs from "fs";
 try {
 	// File exists then load it
 	if (fs.existsSync(path.resolve(__dirname, "./web/.env"))) {
-		console.log(dotenv.config({ path: path.resolve(__dirname, "./web/.env") }));
+		dotenv.config({ path: path.resolve(__dirname, "./web/.env") });
 	}
 } catch (e) {}
 
