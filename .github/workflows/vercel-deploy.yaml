@@ -15,8 +15,12 @@ jobs:
     Database-Changes:
         uses: ./.github/workflows/db-types.yaml
         secrets: inherit
-    Deploy:
+    Browser-Tests:
         needs: [Database-Changes]
+        uses: ./.github/workflows/playwright.yml
+        secrets: inherit
+    Deploy:
+        needs: [Browser-Tests]
         runs-on: ubuntu-latest
         defaults:
             run:
@@ -35,8 +39,8 @@ jobs:
               id: cache-modules
               with:
                   path: |
-                    **/node_modules
-                    ~/.npm
+                      **/node_modules
+                      ~/.npm
                   key: node_modules-${{ runner.os }}-deploy-${{hashFiles('package-lock.json')}}
                   restore-keys: node_modules-${{ runner.os }}-deploy-
 

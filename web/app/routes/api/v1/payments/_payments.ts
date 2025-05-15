@@ -39,7 +39,9 @@ export async function action({
 		refresh_token: `${request.headers.get("refresh_token")}`,
 	});
 
-	if (error || data.user === null || data.session === null) {
+	const user = (await supabaseClient.auth.getUser()).data.user;
+
+	if (error || user === null || error) {
 		return new Response("Unauthorized access", {
 			status: 401,
 			statusText: `Unauthorized access. ${request.headers.get("Authorization")}`,
@@ -57,7 +59,7 @@ export async function action({
 
 	const { processor, userId } = reqBody;
 
-	if (userId !== data.user.id) {
+	if (userId !== user.id) {
 		return new Response("Authorization mismatch", {
 			status: 400,
 			statusText: "Authorization mismatch",
@@ -67,7 +69,7 @@ export async function action({
 	switch (processor) {
 		case "mercado-pago-redirect": {
 			return await getMercadoPagoRedirectURL(
-				data.user,
+				user,
 				reqBody,
 				__DANGEROUS_createSupabaseServerClient_BYPASS_RLS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED(request)
 					.supabaseClient,

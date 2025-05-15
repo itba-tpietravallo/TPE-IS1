@@ -30,17 +30,20 @@ export function LoginCard() {
 
 	useEffect(() => {
 		supabase.auth.onAuthStateChange((event, session) => {
-			if (event === "SIGNED_IN" && session?.user.app_metadata.provider === "email") {
-				// Redirect to the path specified in the query string
-				const path = new URLSearchParams(window.location.search).get("path");
-				if (path) {
-					window.location.href = path;
-				} else {
-					window.location.href = "/canchas";
+			supabase.auth.getUser().then(({ data, error }) => {
+				if (error) return;
+				if (event === "SIGNED_IN" && data.user.app_metadata.provider === "email") {
+					// Redirect to the path specified in the query string
+					const path = new URLSearchParams(window.location.search).get("path");
+					if (path) {
+						window.location.href = path;
+					} else {
+						window.location.href = "/canchas";
+					}
+				} else if (event === "SIGNED_OUT") {
+					// Handle sign out event if needed
 				}
-			} else if (event === "SIGNED_OUT") {
-				// Handle sign out event if needed
-			}
+			});
 		});
 	}, []);
 

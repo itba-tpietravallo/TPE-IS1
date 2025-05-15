@@ -1,19 +1,21 @@
 name: Playwright Tests
+
 on:
+    workflow_call:
     workflow_dispatch:
-    push:
-        branches: [main, dev]
-        paths:
-            - "web/tests/**"
-            - "playwright.config.ts"
+    # push:
+    #     branches: [main, dev]
+    #     paths:
+    #         - "web/tests/**"
+    #         - "playwright.config.ts"
     pull_request:
         branches: [main, dev]
         paths:
             - "web/**"
 
 jobs:
-    test:
-        timeout-minutes: 60
+    Test:
+        timeout-minutes: 5
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
@@ -45,6 +47,10 @@ jobs:
                   key: "${{ runner.os }}-playwright-node-${{ hashFiles('web/package-lock.json') }}"
                   restore-keys: |
                       ${{ runner.os }}-playwright-
+                        
+            - name: Load web env
+              run: |
+                cat ./web/.env | grep '^[^#]' >> "$GITHUB_ENV"
 
             - name: Install dependencies
               if: steps.node-cache.outputs.cache-hit != 'true'
@@ -58,9 +64,9 @@ jobs:
 
             - name: Run Playwright tests
               run: npx playwright test
-              env: 
-                TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
-                TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+              env:
+                  TEST_USER_EMAIL: ${{ env.TEST_USER_EMAIL }}
+                  TEST_USER_PASSWORD: ${{ env.TEST_USER_PASSWORD }}
 
             - uses: actions/upload-artifact@v4
               if: ${{ !cancelled() }}

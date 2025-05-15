@@ -28,6 +28,8 @@ import { LoaderFunctionArgs } from "@remix-run/node";
 
 import { getAllUsers } from "@lib/autogen/queries";
 import { TorneosSheet } from "./TorneosSheet";
+import { DeleteFieldButton } from "./DeleteFieldButton";
+import type { UseQueryResult } from "@tanstack/react-query";
 
 let globalName = "";
 let globalDescription = "";
@@ -238,6 +240,7 @@ type FieldProps = {
 	setDescription: (e: string) => void;
 	reservations: Reservation[];
 	tournaments: any[];
+	dependantQueries?: UseQueryResult[];
 };
 
 type Users = {
@@ -259,6 +262,11 @@ export function FieldDetail(props: FieldProps) {
 						<div className="flex flex-row items-center justify-between">
 							<CardTitle className="text-5xl font-bold text-[#f2f4f3]">{name}</CardTitle>
 							<TorneosSheet fieldId={id || ""} tournaments={tournaments} />
+							<DeleteFieldButton
+								supabase={supabase}
+								fieldId={id || ""}
+								dependantQueries={props?.dependantQueries}
+							/>
 						</div>
 						<div className="flex flex-row">
 							<MapPin className="my-auto h-6 w-6 text-gray-400" />

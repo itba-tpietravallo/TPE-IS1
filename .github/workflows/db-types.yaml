@@ -1,4 +1,4 @@
-name: Database schema
+name: Database
 
 env:
     SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
@@ -8,7 +8,7 @@ on:
     workflow_call:
 
 jobs:
-    Database-Changes:
+    Update-Types:
         runs-on: ubuntu-latest
         defaults:
             run:

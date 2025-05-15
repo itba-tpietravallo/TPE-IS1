@@ -10,7 +10,7 @@ import { createBrowserClient } from "@supabase/ssr"; // Supabase Client
 
 import { dehydrate, QueryClient } from "@tanstack/react-query"; // React Query
 
-import { getAllFields } from "@lib/autogen/queries"; // Database Queries
+import { queries, getAllFieldsByOwner, getUserAuthSession } from "@lib/autogen/queries"; // Database Queries
 import type { Database } from "@lib/autogen/database.types"; // Database Types
 import { createSupabaseServerClient } from "@lib/supabase.server";
 import { fetchQueryInitialData, prefetchQuery } from "@supabase-cache-helpers/postgrest-react-query";
@@ -33,18 +33,21 @@ export async function loader(args: LoaderFunctionArgs) {
 				: process.env.DEV_SUPABASE_ANON_KEY!,
 	};
 
-	const queryClient = new QueryClient();
-
 	const { supabaseClient } = createSupabaseServerClient(args.request);
-	// fix: comment this out as useContext is not defined on the server
-	// need to expose query as part of the db queries file
-	// await queryClient.prefetchQuery(["getAllFields"], () => getAllFields(supabaseClient));
-	// @todo fetchQueryInitialData
+	const session = await queries.getUserAuthSession(supabaseClient);
+	// Using getOwnPropertyDescriptor to avoid supabase's getter which logs non-applicable warnings
+	const userId = Object.getOwnPropertyDescriptor(Object.getOwnPropertyDescriptor(session, "user")?.value || {}, "id")
+		?.value as string;
+
+	const [key, initialData] = (await fetchQueryInitialData(
+		queries.getAllFieldsByOwner(supabaseClient, userId),
+	)) as any;
 
 	return {
 		env,
 		URL_ORIGIN: new URL(args.request.url).origin,
-		dehydratedState: dehydrate(queryClient),
+		userId,
+		initialData,
 	};
 }
 
@@ -81,7 +84,7 @@ export function FieldPreview(props: FieldPreviewProps & { className?: string }) 
 						</CardDescription>
 					</div>
 					<CardContent className="flex justify-center">
-						<img src={img} className="h-32 w-full rounded-lg object-cover" />
+						{img && img != "" && <img src={img} className="h-32 w-full rounded-lg object-cover" />}
 					</CardContent>
 				</Card>
 			</Link>
@@ -90,15 +93,15 @@ export function FieldPreview(props: FieldPreviewProps & { className?: string }) 
 }
 
 export default function () {
-	const { URL_ORIGIN, env } = useLoaderData<typeof loader>();
+	const { URL_ORIGIN, env, initialData, userId } = useLoaderData<typeof loader>();
 	const supabase = createBrowserClient<Database>(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
 
-	const { data } = getAllFields(supabase);
+	const allFieldsQuery = getAllFieldsByOwner(supabase, userId, { initialData, enabled: !!userId });
 
-	const fields = data?.map((user, i) => ({
+	const fields = allFieldsQuery.data?.map((user, i) => ({
 		id: user.id,
 		name: user.name,
-		img: user.images[0],
+		img: (user.images || [])[0],
 		price: user.price,
 		location: `${user.street} ${user.street_number}`,
 	}))!;
