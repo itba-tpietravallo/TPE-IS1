@@ -1,0 +1,14 @@
+{
+  "name": "infra",
+  "version": "1.0.0",
+  "description": "Internal IaC",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "sst": "3.14.25"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "8.10.149"
+  }
+}

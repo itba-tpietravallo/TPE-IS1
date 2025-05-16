@@ -1,0 +1,50 @@
+name: Infrastructure
+
+on:
+    workflow_dispatch:
+    push:
+        paths:
+            - "web/**"
+            - "db/**"
+
+jobs:
+    SpinUp:
+        runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: ./infra
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v4
+
+            - name: Extract branch name
+              shell: bash
+              run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+              id: extract_branch
+
+            - name: Cache node modules
+              uses: actions/cache@v3
+              id: cache-modules
+              with:
+                  path: |
+                      **/node_modules
+                      ~/.npm
+                  key: node_modules-${{ runner.os }}-deploy-${{hashFiles('package-lock.json')}}
+                  restore-keys: node_modules-${{ runner.os }}-deploy-
+
+            - name: Install dependencies
+              if: steps.cache-modules.outputs.cache-hit != 'true'
+              run: cd infra && npm i 
+
+            - name: Pull Vercel Environment Information
+              run: npx vercel pull --yes --environment=${{ steps.extract_branch.outputs.branch == 'main' && 'production' || 'preview' }} --token=${{ secrets.VERCEL_TOKEN }}
+
+            - name: Build Project Artifacts
+              run: npx vercel build --target=${{ steps.extract_branch.outputs.branch == 'main' && 'production' || 'preview' }} --token=${{ secrets.VERCEL_TOKEN }}
+              timeout-minutes: 2
+
+            - name: Deploy Project Artifacts to Vercel
+              run: |
+                  msg=`npx vercel deploy --prebuilt --target=${{ steps.extract_branch.outputs.branch == 'main' && 'production' || 'preview' }} --token=${{ secrets.VERCEL_TOKEN }}`
+                  echo "::notice title={[${{ steps.extract_branch.outputs.branch == 'main' && 'Production' || 'Preview' }}] Deployed on Vercel}::$msg"
+              timeout-minutes: 2

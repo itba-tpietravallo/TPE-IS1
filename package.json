@@ -1,6 +1,6 @@
 {
 	"scripts": {
-		"prepare": "husky install"
+		"prepare": "husky || true"
 	},
 	"devDependencies": {
 		"@playwright/test": "^1.52.0",
