@@ -65,6 +65,44 @@ export type Database = {
           },
         ]
       }
+      inscriptions: {
+        Row: {
+          contactEmail: string
+          contactPhone: number
+          id: string
+          name: string
+          players: string[] | null
+          teamName: string | null
+          tournamentId: string
+        }
+        Insert: {
+          contactEmail: string
+          contactPhone: number
+          id?: string
+          name: string
+          players?: string[] | null
+          teamName?: string | null
+          tournamentId: string
+        }
+        Update: {
+          contactEmail?: string
+          contactPhone?: number
+          id?: string
+          name?: string
+          players?: string[] | null
+          teamName?: string | null
+          tournamentId?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inscriptions_tournamentId_tournaments_id_fk"
+            columns: ["tournamentId"]
+            isOneToOne: false
+            referencedRelation: "tournaments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mp_oauth_authorization: {
         Row: {
           access_token: string
@@ -288,21 +326,21 @@ export type Database = {
           email: string
           full_name: string
           id: string
-          username: string
+          username: string | null
         }
         Insert: {
           avatar_url?: string | null
           email: string
           full_name: string
           id: string
-          username: string
+          username?: string | null
         }
         Update: {
           avatar_url?: string | null
           email?: string
           full_name?: string
           id?: string
-          username?: string
+          username?: string | null
         }
         Relationships: []
       }
