@@ -70,30 +70,31 @@ export type Database = {
           contactEmail: string
           contactPhone: number
           id: string
-          name: string
-          players: string[] | null
-          teamName: string | null
+          teamId: string
           tournamentId: string
         }
         Insert: {
           contactEmail: string
           contactPhone: number
           id?: string
-          name: string
-          players?: string[] | null
-          teamName?: string | null
+          teamId: string
           tournamentId: string
         }
         Update: {
           contactEmail?: string
           contactPhone?: number
           id?: string
-          name?: string
-          players?: string[] | null
-          teamName?: string | null
+          teamId?: string
           tournamentId?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "inscriptions_teamId_teams_team_id_fk"
+            columns: ["teamId"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["team_id"]
+          },
           {
             foreignKeyName: "inscriptions_tournamentId_tournaments_id_fk"
             columns: ["tournamentId"]
