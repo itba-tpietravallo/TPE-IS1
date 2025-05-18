@@ -101,7 +101,7 @@ export function NewField() {
 			neighbourhood: "",
 			city: "",
 			sports: [],
-			image: [],
+			image: undefined,
 			price: "",
 			description: "",
 		},
@@ -171,13 +171,15 @@ export function NewField() {
 
 			for (const file of files) {
 				let headers = new Headers();
-				const { downloadURL, signedPUTURL } = await (
-					await fetch(new URL("/api/v1/storage/upload", URL_ORIGIN).toString(), {
-						method: "POST",
-						body: JSON.stringify({ fileName: file.name }),
-						headers,
-					})
-				).json();
+				const { downloadURL, signedPUTURL } =
+					await // @todo: Refactor once migration to /api/v1/env is implemented
+					(
+						await fetch(new URL("/api/v1/storage/upload", "https://matchpointapp.com.ar").toString(), {
+							method: "POST",
+							body: JSON.stringify({ fileName: file.name }),
+							headers,
+						})
+					).json();
 
 				headers = new Headers();
 				headers.append("Content-Type", "application/octet-stream");
