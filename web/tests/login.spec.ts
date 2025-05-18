@@ -37,6 +37,7 @@ test.describe("Publish field", () => {
 		await page.getByRole("textbox", { name: "Barrio" }).fill(TEST_FIELD_DETAILS.FIELD_NEIGHBORHOOD);
 		await page.getByRole("textbox", { name: "Ciudad" }).click();
 		await page.getByRole("textbox", { name: "Ciudad" }).fill(TEST_FIELD_DETAILS.FIELD_CITY);
+		await page.waitForRequest(/.*\/api\/v1\/geocode.*/);
 		await page.getByPlaceholder("Escribir el deporte si no").click();
 		await page.getByRole("option", { name: TEST_FIELD_DETAILS.FIELD_SPORT }).click();
 		await page.locator('input[name="price"]').click();
