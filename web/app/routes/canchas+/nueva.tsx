@@ -1,6 +1,8 @@
 "use client";
 
-import { set, useForm, UseFormReturn } from "react-hook-form";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "../../components/ui/button";
 import {
 	Form,
@@ -16,17 +18,49 @@ import { Textarea } from "../../components/ui/textarea";
 import MultipleSelector, { Option } from "../../components/ui/multiselector";
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import clsx from "clsx";
-import { LoaderFunctionArgs } from "@remix-run/node";
+import { LoaderFunctionArgs, json } from "@remix-run/node";
 import { createBrowserClient } from "@supabase/ssr";
-import { useLoaderData } from "@remix-run/react";
+import { useLoaderData, useSubmit } from "@remix-run/react";
 import { authenticateUser } from "~/lib/auth.server";
 import { User } from "@supabase/supabase-js";
-import { DollarSign, Icon } from "lucide-react";
+import { DollarSign } from "lucide-react";
 import { getAllSports } from "@/lib/autogen/queries";
 import { APIProvider, Map, AdvancedMarker, Pin, InfoWindow } from "@vis.gl/react-google-maps";
 import debounce from "lodash.debounce";
-
 import { Database } from "@lib/autogen/database.types";
+
+// Zod schema for form validation
+const fieldSchema = z.object({
+	name: z.string().min(1, "El nombre es requerido"),
+	street: z.string().min(1, "La calle es requerida"),
+	street_number: z.string().min(1, "El número es requerido"),
+	neighbourhood: z.string().min(1, "El barrio es requerido"),
+	city: z.string().min(1, "La ciudad es requerida"),
+	sports: z
+		.array(
+			z.object({
+				label: z.string(),
+				value: z.string(),
+			}),
+		)
+		.min(1, "Selecciona al menos un deporte"),
+	image: z.array(z.any()).optional(),
+	price: z
+		.string()
+		.min(1, "El precio es requerido")
+		.refine((val) => !isNaN(Number(val)), "El precio debe ser un número"),
+	description: z.string().optional(),
+});
+
+type FieldFormData = z.infer<typeof fieldSchema>;
+
+// 1. Create a type for string-only fields in FieldFormData
+// This will be used to restrict BasicBox to only string fields
+
+type StringFieldKeys = {
+	[K in keyof FieldFormData]: FieldFormData[K] extends string ? K : never;
+}[keyof FieldFormData] &
+	string;
 
 export async function loader(args: LoaderFunctionArgs) {
 	const env = {
@@ -43,6 +77,7 @@ export async function loader(args: LoaderFunctionArgs) {
 	return {
 		env,
 		URL_ORIGIN: new URL(args.request.url).origin,
+		GOOGLE_MAPS_API_KEY: process.env.GOOGLE_MAPS_API_KEY,
 		user,
 		headers: {
 			"Access-Control-Allow-Origin": "*",
@@ -50,49 +85,16 @@ export async function loader(args: LoaderFunctionArgs) {
 	};
 }
 
-//extraigo la logica del geocode de lu a una funcion. Asi puedo llamarla desde el mapa
-type GeocodeResult = {
-	lat: number;
-	lng: number;
-} | null;
-
-export async function getCoordinates(
-	street: string,
-	street_number: string,
-	city: string,
-	apiKey: string,
-): Promise<GeocodeResult> {
-	if (!street || !street_number || !city || !apiKey) {
-		console.warn("Geocoding skipped: Missing address components or API key."); //para debuggear
-		return null;
-	}
-	const direction = `${street} ${street_number}, ${city}`;
-	const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(direction)}&key=${apiKey}`;
-
-	const locationData = await fetch(url)
-		.then((res) => res.json() as unknown as { results: { geometry: any }[]; status: string })
-		.catch(() => null);
-
-	if (!locationData || locationData.status != "OK") {
-		console.warn(`Geocoding failed for address ${direction}: ${locationData?.status}`);
-		return null;
-	}
-
-	const { lat, lng } = locationData.results[0].geometry.location;
-	return { lat, lng };
-}
-
 export function NewField() {
-	const { user, URL_ORIGIN, env } = useLoaderData<typeof loader>();
-
+	const { user, URL_ORIGIN, env, GOOGLE_MAPS_API_KEY } = useLoaderData<typeof loader>();
+	const submit = useSubmit();
 	const supabase = createBrowserClient<Database>(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
 	const [formError, setFormError] = useState(false);
-
 	const [geocodingError, setGeocodingError] = useState<string | null>(null);
 
-	const form = useForm({
+	const form = useForm<FieldFormData>({
+		resolver: zodResolver(fieldSchema),
 		defaultValues: {
-			section: "",
 			name: "",
 			street: "",
 			street_number: "",
@@ -105,49 +107,43 @@ export function NewField() {
 		},
 	});
 
-	const apiKey = "AIzaSyBw6wwGh_tfBhOikkUtc8uibxX1GPbr1ew";
 	const [latitude, setLatitude] = useState<number | null>(null);
 	const [longitude, setLongitude] = useState<number | null>(null);
-	const defaultMapCenter = useMemo(() => ({ lat: -34.37, lng: -58.25 }), []); //buenos aires (default)
+	const defaultMapCenter = useMemo(() => ({ lat: -34.37, lng: -58.25 }), []); // Buenos Aires (default)
 	const [mapView, setMapView] = useState({ center: defaultMapCenter, zoom: 9 });
 
-	// --- Geo ---
-	const handleGeocodeResult = useCallback(
-		(result: Awaited<ReturnType<typeof getCoordinates>>) => {
-			if (result) {
-				setLatitude(result.lat);
-				setLongitude(result.lng);
-				setGeocodingError(null);
-				setMapView({ center: { lat: result.lat, lng: result.lng }, zoom: 15 });
-			} else {
-				setLatitude(null);
-				setLongitude(null);
-				setGeocodingError("No se pudo encontrar la dirección en el mapa.");
-			}
-		},
-		[setLatitude, setLongitude, setGeocodingError, setMapView, defaultMapCenter],
-	);
-
-	// Debounce de la llamada a la funcion getCoordinates
+	// Debounced geocoding function
 	const debouncedGeocode = useMemo(
 		() =>
 			debounce(async (street: string, street_number: string, city: string) => {
 				setGeocodingError(null);
-				const result = await getCoordinates(street, street_number, city, apiKey);
-				handleGeocodeResult(result);
-			}, 750),
-		[apiKey, handleGeocodeResult],
+				const response = await fetch("/api/v1/geocode", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({ street, street_number, city }),
+				});
+				const data = await response.json();
+
+				if (data.error) {
+					setGeocodingError("Ingrese una dirección válida");
+					setLatitude(null);
+					setLongitude(null);
+				} else {
+					setLatitude(data.lat);
+					setLongitude(data.lng);
+					setMapView({ center: { lat: data.lat, lng: data.lng }, zoom: 15 });
+				}
+			}, 250),
+		[],
 	);
 
-	//watch de los campos street, city y altura
+	// Watch address fields for changes
 	const watchedStreet = form.watch("street");
 	const watchedStreetNumber = form.watch("street_number");
 	const watchedCity = form.watch("city");
 
-	//  trigger el debounced geocoding
 	useEffect(() => {
-		// Only call if essential fields have some value, prevents initial empty calls
-		if (watchedStreet || watchedStreetNumber || watchedCity) {
+		if (watchedStreet && watchedStreetNumber && watchedCity) {
 			debouncedGeocode(watchedStreet, watchedStreetNumber, watchedCity);
 		} else {
 			setLatitude(null);
@@ -160,22 +156,29 @@ export function NewField() {
 		};
 	}, [watchedStreet, watchedStreetNumber, watchedCity, debouncedGeocode]);
 
-	//Aca terminaria la geocodeada
-
-	const onSubmit = async (data: any) => {
+	const onSubmit = async (data: FieldFormData) => {
 		try {
+			if (!latitude || !longitude) {
+				setGeocodingError(
+					"Por favor, ingrese una dirección válida para ubicarla en el mapa antes de publicar.",
+				);
+				setFormError(true);
+				return;
+			}
+
 			const files = data.image || [];
 			const uploadedImageUrls: string[] = [];
 
 			for (const file of files) {
 				let headers = new Headers();
-				const { downloadURL, signedPUTURL } = (await (
-					await fetch(new URL("/api/v1/storage/upload", "https://matchpointapp.com.ar").toString(), {
+				const { downloadURL, signedPUTURL } = await (
+					await fetch(new URL("/api/v1/storage/upload", URL_ORIGIN).toString(), {
 						method: "POST",
 						body: JSON.stringify({ fileName: file.name }),
 						headers,
 					})
-				).json()) as { signedPUTURL: string; downloadURL: string };
+				).json();
+
 				headers = new Headers();
 				headers.append("Content-Type", "application/octet-stream");
 				await fetch(signedPUTURL, {
@@ -187,64 +190,17 @@ export function NewField() {
 				uploadedImageUrls.push(downloadURL);
 			}
 
-			// //const apiKey = "AIzaSyBw6wwGh_tfBhOikkUtc8uibxX1GPbr1ew";
-			// const direction = `${data.street} ${data.street_number}, ${data.city}`;
-			// const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(direction)}&key=${apiKey}`;
-			// const locationData = await fetch(url)
-			// 	.then((res) => res.json() as unknown as { results: { geometry: any }[]; status: string })
-			// 	.catch(() => null);
-
-			// if (!locationData || locationData.status != "OK") {
-			// setFormError(true);
-			// 	setLatitude(null);
-			// 	setLongitude(null);
-			// 	throw new Error(`The coordinates could not be retrieved from address ${direction}.`);
-			// }
-
-			// const { lat, lng } = locationData.results[0].geometry.location;
-			// setLatitude(lat);
-			// setLongitude(lng);
-
-			// console.log(lat, lng);
-
-			let currentLat = latitude;
-			let currentLng = longitude;
-
-			if (currentLat === null || currentLng === null) {
-				console.log("Coordinates missing on submit, attempting final geocode...");
-				const result = await getCoordinates(data.street, data.street_number, data.city, apiKey);
-				if (result) {
-					currentLat = result.lat;
-					currentLng = result.lng;
-
-					setLatitude(result.lat);
-					setLongitude(result.lng);
-					setGeocodingError(null);
-					setMapView({ center: { lat: result.lat, lng: result.lng }, zoom: 15 });
-				} else {
-					setGeocodingError(
-						"Por favor, ingrese una dirección válida para ubicarla en el mapa antes de publicar.",
-					);
-					setFormError(true);
-					return;
-				}
-			}
-
-			const sportsArray = Array.isArray(data.sports)
-				? data.sports.map((s: any) => (typeof s === "string" ? s : s.value || s.label))
-				: [];
-
 			const { error: insertError } = await supabase.from("fields").insert({
 				owner: user.user.id,
 				name: data.name,
 				street: data.street,
 				street_number: data.street_number,
-				neighborhood: data.neighbourhood || "",
+				neighborhood: data.neighbourhood,
 				city: data.city,
-				sports: sportsArray,
+				sports: data.sports.map((s) => s.value),
 				images: uploadedImageUrls,
 				price: Number(data.price),
-				location: `POINT(${currentLat} ${currentLng})`,
+				location: `POINT(${latitude} ${longitude})`,
 				description: data.description || "",
 				avatar_url: user.avatar_url,
 			});
@@ -290,16 +246,12 @@ export function NewField() {
 						form={form}
 						latitude={latitude}
 						longitude={longitude}
-						apiKey={apiKey}
 						geocodingError={geocodingError}
 						mapCenter={mapView.center}
 						mapZoom={mapView.zoom}
+						GOOGLE_MAPS_API_KEY={GOOGLE_MAPS_API_KEY!}
 						onCloseErrorPopup={() => {
 							setGeocodingError(null);
-							//aca podriamos resetear el mapa a buenos aires si las coordenadas no cierran
-							//if (latitude === null && longitude === null) {
-							// setMapView({ center: defaultMapCenter, zoom: 9 });
-							//}
 						}}
 					/>
 					<hr className="my-4 border-t border-gray-300" />
@@ -330,14 +282,16 @@ export function NewField() {
 	);
 }
 
+// 2. Update BasicBoxProps to use StringFieldKeys
+
 type BasicBoxProps = {
-	section: string;
+	section: StringFieldKeys;
 	label: string;
 	placeholder: string;
 	description: string;
 	box_specifications: string;
 	label_specifications?: string;
-	form: UseFormReturn<any, any, any>;
+	form: ReturnType<typeof useForm<FieldFormData>>;
 };
 
 function BasicBox({
@@ -349,7 +303,7 @@ function BasicBox({
 	label_specifications,
 	form,
 }: BasicBoxProps) {
-	const inputId = `input-${section}`; //para q el formlabel se pueda asociar con el input
+	const inputId = `input-${section}`;
 	return (
 		<FormField
 			control={form.control}
@@ -369,11 +323,12 @@ function BasicBox({
 		/>
 	);
 }
+
 type AddressSectionProps = {
-	form: UseFormReturn<any, any, any>;
+	form: ReturnType<typeof useForm<FieldFormData>>;
 	latitude: number | null;
 	longitude: number | null;
-	apiKey: string;
+	GOOGLE_MAPS_API_KEY: string;
 	geocodingError: string | null;
 	mapCenter: { lat: number; lng: number };
 	mapZoom: number;
@@ -384,21 +339,18 @@ function AddressSection({
 	form,
 	latitude,
 	longitude,
-	apiKey,
+	GOOGLE_MAPS_API_KEY,
 	geocodingError,
 	mapCenter,
 	mapZoom,
 	onCloseErrorPopup,
 }: AddressSectionProps) {
 	const mapId = "535bcf376e37682b";
-	const inputId = `input-${form}`;
 	const showErrorPopup = geocodingError !== null;
 
 	return (
 		<div className="flex flex-col space-y-5">
-			<FormLabel htmlFor={inputId} className="font-sansfont-sans text-base text-[#223332]">
-				Dirección
-			</FormLabel>
+			<FormLabel className="font-sans text-base text-[#223332]">Dirección</FormLabel>
 			<div className="flex flex-row space-x-10">
 				<BasicBox
 					section="street"
@@ -433,7 +385,7 @@ function AddressSection({
 					form={form}
 				/>
 			</div>
-			<APIProvider apiKey={apiKey}>
+			<APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
 				<div style={{ width: "100%", height: "400px" }}>
 					<Map
 						mapId={mapId}
@@ -445,15 +397,7 @@ function AddressSection({
 					>
 						{latitude !== null && longitude !== null && (
 							<AdvancedMarker position={{ lat: latitude, lng: longitude }}>
-								{/* <img
-									src="/matchpointpelota-logo.png" // Assumes the image is in the public root
-									alt="Matchpoint Logo"
-									style={{ width: "30px", height: "30px", objectFit: "contain" }} // Adjust size as needed
-								/>
-								esto es para que desp pongamos una imagen mas linda como marker. El logo solo no queda bien, desp hago una imagen
-								*/}
-
-								<Pin> </Pin>
+								<Pin />
 							</AdvancedMarker>
 						)}
 						{showErrorPopup && (
@@ -468,7 +412,7 @@ function AddressSection({
 	);
 }
 
-function SelectFormSection({ form, options }: { form: UseFormReturn<any, any, any>; options: Option[] }) {
+function SelectFormSection({ form, options }: { form: ReturnType<typeof useForm<FieldFormData>>; options: Option[] }) {
 	return (
 		<FormField
 			control={form.control}
@@ -479,7 +423,7 @@ function SelectFormSection({ form, options }: { form: UseFormReturn<any, any, an
 						<FormLabel className="font-sans text-base text-[#223332]">Deporte/s</FormLabel>
 						<div className="w-full">
 							<MultipleSelector
-								value={field.value || []}
+								value={field.value as Option[]}
 								onChange={(val) => field.onChange(val)}
 								options={options}
 								placeholder="Escribir el deporte si no aparece como opción..."
@@ -498,18 +442,15 @@ function SelectFormSection({ form, options }: { form: UseFormReturn<any, any, an
 	);
 }
 
-function PriceSection({ form }: { form: UseFormReturn<any, any, any> }) {
-	const inputId = "input-form"; //para q el formlabel se pueda asociar con el input
+function PriceSection({ form }: { form: ReturnType<typeof useForm<FieldFormData>> }) {
+	const inputId = "input-price";
 	return (
 		<FormField
 			control={form.control}
 			name="price"
 			render={({ field }) => (
 				<FormItem>
-					<FormLabel
-						htmlFor={inputId}
-						className={clsx("font-sans text-base text-[#223332]", "text-[#223332]")}
-					>
+					<FormLabel htmlFor={inputId} className="font-sans text-base text-[#223332]">
 						Precio
 					</FormLabel>
 					<FormControl>
@@ -530,11 +471,11 @@ function PriceSection({ form }: { form: UseFormReturn<any, any, any> }) {
 type DescriptionSectionProps = {
 	placeholder: string;
 	box_specifications: string;
-	form: UseFormReturn<any, any, any>;
+	form: ReturnType<typeof useForm<FieldFormData>>;
 };
 
 function DescriptionSection({ placeholder, box_specifications, form }: DescriptionSectionProps) {
-	const inputId = "input-placeholder";
+	const inputId = "input-description";
 	return (
 		<FormField
 			control={form.control}
@@ -554,10 +495,10 @@ function DescriptionSection({ placeholder, box_specifications, form }: Descripti
 	);
 }
 
-function ImageSection({ form }: { form: UseFormReturn<any, any, any> }) {
+function ImageSection({ form }: { form: ReturnType<typeof useForm<FieldFormData>> }) {
 	const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 	const fileInputRef = useRef<HTMLInputElement | null>(null);
-	const inputId = "input-form";
+	const inputId = "input-image";
 
 	const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		const files = event.target.files;
@@ -585,7 +526,7 @@ function ImageSection({ form }: { form: UseFormReturn<any, any, any> }) {
 	return (
 		<FormField
 			control={form.control}
-			name="images"
+			name="image"
 			render={() => (
 				<FormItem>
 					<FormLabel htmlFor={inputId} className="font-sans text-base text-[#223332]">
