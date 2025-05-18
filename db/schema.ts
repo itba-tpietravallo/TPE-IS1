@@ -267,12 +267,12 @@ export const inscriptionsTable = pgTable(
   "inscriptions",
   {
     id: uuid().primaryKey().defaultRandom().notNull(),
-    name: text().notNull(),
     tournamentId: uuid()
       .notNull()
       .references(() => tournamentsTable.id, { onDelete: "cascade" }),
-    teamName: text(),
-    players: text().array(),
+    teamId: uuid()
+      .notNull()
+      .references(() => teamsTable.team_id, { onDelete: "cascade" }),,
     contactPhone: integer().notNull(),
     contactEmail: text().notNull(),
   },
