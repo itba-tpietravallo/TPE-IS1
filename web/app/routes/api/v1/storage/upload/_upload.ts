@@ -48,11 +48,17 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 			headers: {
 				"Content-Type": "application/json",
 				"Cache-Control": "no-cache",
+				"Access-Control-Allow-Origin": "*",
 			},
 		},
 	);
 };
 
 export const loader = async ({ request }: ActionFunctionArgs) => {
-	return new Response("Method not allowed", { status: 405, statusText: "Method not allowed" });
+	return new Response("OK", {
+		status: 200,
+		headers: {
+			"Access-Control-Allow-Origin": "*",
+		},
+	});
 };
