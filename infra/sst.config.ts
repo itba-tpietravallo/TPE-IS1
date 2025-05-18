@@ -1,9 +1,10 @@
 /// <reference path="./.sst/platform/config.d.ts" />
-
 // aws sso login --sso-session=matchpoint-sso-sst
-
+// aws sts get-caller-identity --profile=matchpoint-dev
 export default $config({
-	app(input) {
+	async app(input) {
+		const vars = (await import("./variables")).default;
+		(await import("dotenv")).config();
 		return {
 			name: "infra",
 			removal: input?.stage === "production" ? "retain" : "remove",
@@ -11,46 +12,66 @@ export default $config({
 			home: "aws",
 			providers: {
 				aws: {
-					profile: input.stage === "production" ? "matchpoint-prod" : "matchpoint-dev",
-					region: "us-east-1",
+					profile:
+						input.stage === "production" ? vars.AWS_PROFILES.PRODUCTION : vars.AWS_PROFILES.DEVELOPMENT,
+					region: input.stage === "production" ? vars.AWS_REGION.PRODUCTION : vars.AWS_REGION.DEVELOPMENT,
 				},
 				gcp: {
-					project: "tpe-is1-itba-matchpoint",
-					region: "SOUTHAMERICA-EAST1",
-					version: "8.31.0"
-				}
+					project:
+						input.stage === "production"
+							? vars.GCP_PROJECT_NAME.PRODUCTION
+							: vars.GCP_PROJECT_NAME.DEVELOPMENT,
+					region: vars.GCP_STORAGE_REGION,
+					version: "8.31.0",
+				},
+				vercel: {
+					version: "1.15.0", // note: resource-vercel-v3.2.1/pulumi-resource-vercel is very much broken, using 1.15.0 for now
+					apiToken: process.env.VERCEL_API_TOKEN, // note: vercel does not read this automatically, needs to be passed in
+				},
 			},
 		};
 	},
 	async run() {
-		/// <reference path="./.sst/platform/config.d.ts" />
-		const GCP_PROJECT_NAME = "tpe-is1-itba-matchpoint";
-		const GCP_STORAGE_REGION = "SOUTHAMERICA-EAST1"
-		const DEFAULT_CORS = [
-			{
-				"origins": ["*"],
-				"methods": ["*"],
-				"maxAgeSeconds": 3600,
-				"responseHeaders": ["*"]
-			}
-		];
-		const bucket = new sst.aws.Bucket("MyBucket"); 
+		const vars = (await import("./variables")).default;
 
-		const gcpBucket = new gcp.storage.Bucket("test-sst-bucket", {
-			location: GCP_STORAGE_REGION,
-			storageClass: "STANDARD",
-			publicAccessPrevention: "inherited",
-			project: GCP_PROJECT_NAME,
-			cors: DEFAULT_CORS,
-			softDeletePolicy: {
-				retentionDurationSeconds: 0,
-			},
+		const imageBuckets = await createPublicStorageBuckets("matchpoint-images", vars);
+
+		new vercel.ProjectEnvironmentVariable("tpe-is1-itba", {
+			projectId: vars.VERCEL_PROJECT_ID,
+			key: $app.stage === "production" ? "IMAGE_BUCKET_URLS" : "IMAGE_BUCKET_URLS_DEV",
+			value: $util.jsonStringify(imageBuckets.map((b) => b.url)),
+			targets: ["production", "development", "preview"],
 		});
 
 		return {
-			name: bucket.name,
-			gcp: gcpBucket.name,
-		}
-
+			imageBuckets: imageBuckets.map((b) => b.url),
+		};
 	},
 });
+async function createPublicStorageBuckets(name: string, vars: typeof import("./variables").default) {
+	const awsBucket = new sst.aws.Bucket(name, {
+		cors: vars.AWS_DEFAULT_CORS,
+		access: "public",
+	});
+	const gcpBucket = new gcp.storage.Bucket(name, {
+		location: vars.GCP_STORAGE_REGION,
+		storageClass: vars.GCP_BUCKET_STORAGE_CLASS,
+		publicAccessPrevention: "inherited",
+		cors: vars.GCP_DEFAULT_CORS,
+		softDeletePolicy: {
+			retentionDurationSeconds: 0,
+		},
+	});
+	new gcp.storage.BucketAccessControl("matchpoint-images-access-policy", {
+		bucket: gcpBucket.name,
+		entity: "allUsers",
+		role: "READER",
+	});
+	return [
+		{ bucket: awsBucket, url: awsBucket.domain.apply((d) => `https://${d}/`) },
+		{
+			bucket: gcpBucket,
+			url: gcpBucket.name.apply((b) => `https://storage.googleapis.com/${b}`),
+		},
+	];
+}
