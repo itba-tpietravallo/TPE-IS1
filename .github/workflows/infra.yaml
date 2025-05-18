@@ -1,11 +1,12 @@
 name: Infrastructure
 
 on:
+    workflow_call:
     workflow_dispatch:
-    push:
-        paths:
-            - "web/**"
-            - "db/**"
+    # push:
+        # paths:
+            # - "web/**"
+            # - "db/**"
 
 jobs:
     SpinUp:
