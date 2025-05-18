@@ -21,8 +21,8 @@ const TEST_FIELD_DETAILS = {
 	FIELD_DESCRIPTION: "Description",
 };
 
-test.describe("Publish field", () => {
-	test("publish field", async ({ page }) => {
+test.describe("Fields", () => {
+	test("Publish field", async ({ page }) => {
 		// Publishing
 		await page.goto(`${BASE_URL}/canchas`);
 		await page.getByText("Agregar nueva cancha").waitFor({ state: "visible" });

@@ -115,25 +115,29 @@ export function NewField() {
 	// Debounced geocoding function
 	const debouncedGeocode = useMemo(
 		() =>
-			debounce(async (street: string, street_number: string, city: string) => {
-				setGeocodingError(null);
-				const response = await fetch("/api/v1/geocode", {
-					method: "POST",
-					headers: { "Content-Type": "application/json" },
-					body: JSON.stringify({ street, street_number, city }),
-				});
-				const data = await response.json();
+			debounce(
+				async (street: string, street_number: string, city: string) => {
+					setGeocodingError(null);
+					const response = await fetch("/api/v1/geocode", {
+						method: "POST",
+						headers: { "Content-Type": "application/json" },
+						body: JSON.stringify({ street, street_number, city }),
+					});
+					const data = await response.json();
 
-				if (data.error) {
-					setGeocodingError("Ingrese una dirección válida");
-					setLatitude(null);
-					setLongitude(null);
-				} else {
-					setLatitude(data.lat);
-					setLongitude(data.lng);
-					setMapView({ center: { lat: data.lat, lng: data.lng }, zoom: 15 });
-				}
-			}, 250),
+					if (data.error) {
+						setGeocodingError("Ingrese una dirección válida");
+						setLatitude(null);
+						setLongitude(null);
+					} else {
+						setLatitude(data.lat);
+						setLongitude(data.lng);
+						setMapView({ center: { lat: data.lat, lng: data.lng }, zoom: 15 });
+					}
+				},
+				250,
+				{ leading: false },
+			),
 		[],
 	);
 
