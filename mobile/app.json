@@ -10,20 +10,14 @@
 		"newArchEnabled": true,
 		"ios": {
 			"supportsTablet": true,
-			"bundleIdentifier": "com.anonymous.mobile",
-			"config": {
-				"googleMapsApiKey": "AIzaSyBw6wwGh_tfBhOikkUtc8uibxX1GPbr1ew"
-			}
+			"bundleIdentifier": "matchpoint"
 		},
 		"android": {
 			"adaptiveIcon": {
 				"foregroundImage": "./assets/images/adaptive-icon.png",
 				"backgroundColor": "#ffffff"
 			},
-			"package": "com.anonymous.mobile",
-			"config": {
-				"googleMapsApiKey": "AIzaSyBw6wwGh_tfBhOikkUtc8uibxX1GPbr1ew"
-			}
+			"package": "matchpoint"
 		},
 		"web": {
 			"bundler": "metro",
