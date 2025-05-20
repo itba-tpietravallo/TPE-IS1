@@ -244,7 +244,7 @@ export type Database = {
       teams: {
         Row: {
           contactEmail: string
-          contactPhone: number
+          contactPhone: string
           description: string | null
           images: string[] | null
           name: string
@@ -254,7 +254,7 @@ export type Database = {
         }
         Insert: {
           contactEmail: string
-          contactPhone: number
+          contactPhone: string
           description?: string | null
           images?: string[] | null
           name: string
@@ -264,7 +264,7 @@ export type Database = {
         }
         Update: {
           contactEmail?: string
-          contactPhone?: number
+          contactPhone?: string
           description?: string | null
           images?: string[] | null
           name?: string
