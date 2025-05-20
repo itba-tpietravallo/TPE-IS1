@@ -31,7 +31,7 @@ export const queries = {
 		supabase.from("reservations").select("date_time").eq("field_id", fieldId),
 
 	getAllTeams: (supabase: SupabaseClient<Database>) =>
-		supabase.from("teams").select("team_id, name, sport, description, images"),
+		supabase.from("teams").select("team_id, name, sport, description, images, players"),
 
 	getTeamMembers: (supabase: SupabaseClient<Database>, teamId: string) =>
 		supabase.from("teams").select("players").eq("team_id", teamId).single(),
