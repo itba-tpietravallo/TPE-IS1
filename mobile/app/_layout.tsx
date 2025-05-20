@@ -7,6 +7,7 @@ import Auth from "../components/Auth";
 import { Session } from "@supabase/supabase-js";
 import { StatusBar } from "expo-status-bar";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { AutocompleteDropdownContextProvider } from "react-native-autocomplete-dropdown";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -52,17 +53,19 @@ export default function RootLayout() {
 	return (
 		// <ThemeProvider > */}
 		<QueryClientProvider client={queryClient}>
-			{session && session.user ? (
-				<>
-					<Stack>
-						<Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-						<Stack.Screen name="+not-found" />
-					</Stack>
-					<StatusBar style="auto" />
-				</>
-			) : (
-				<Auth />
-			)}
+			<AutocompleteDropdownContextProvider>
+				{session && session.user ? (
+					<>
+						<Stack>
+							<Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+							<Stack.Screen name="+not-found" />
+						</Stack>
+						<StatusBar style="auto" />
+					</>
+				) : (
+					<Auth />
+				)}
+			</AutocompleteDropdownContextProvider>
 		</QueryClientProvider>
 	);
 }

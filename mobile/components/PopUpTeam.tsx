@@ -27,7 +27,6 @@ function PopUpTeam(props: PropsPopUpTeam) {
 
 	function userAlreadyOnTeam(username: string) {
 		if (players.includes(user?.full_name!)) {
-			console.log("User already joined");
 			return true;
 		}
 		return false;

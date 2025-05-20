@@ -1,7 +1,12 @@
 import React, { useState } from "react";
 import { StyleSheet, Text, View, TouchableOpacity, TextInput, Modal, Image, ScrollView } from "react-native";
+import { SearchBar } from "@rneui/themed";
 import { ScreenHeight, ScreenWidth } from "@rneui/themed/dist/config";
 import { supabase } from "@lib/supabase";
+import Search from "./Search";
+import { AutocompleteDropdownContextProvider } from "react-native-autocomplete-dropdown";
+import { getAllUsers, queries } from "@lib/autogen/queries";
+import { User } from "@supabase/supabase-js";
 
 interface PopUpReservaProps {
 	onClose: () => void;
@@ -12,8 +17,17 @@ interface PopUpReservaProps {
 	description: string;
 	price: string;
 	deadline: Date;
-	cantPlayers: Number;
+	cantPlayers: number;
 	players: string[];
+}
+
+function getPlayerListItem(player: NonNullable<ReturnType<typeof getAllUsers>["data"]>[number] & { id: string }) {
+	return (
+		<View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginLeft: 10 }}>
+			<Image source={{ uri: player.avatar_url! }} style={{ width: 30, height: 30, borderRadius: 15 }} />
+			<Text style={{ color: "#000000", padding: 15, width: "100%" }}>{player.full_name}</Text>
+		</View>
+	);
 }
 
 function PopUpTorneo({
@@ -39,6 +53,8 @@ function PopUpTorneo({
 			console.log("Guardado exitosamente:", data);
 		}
 	};
+
+	// const { data: initialPlayers } = getAllUsers(supabase);
 
 	return (
 		<View style={styles.modalContainer}>
@@ -74,57 +90,66 @@ function PopUpTorneo({
 				</TouchableOpacity>
 
 				<Modal visible={isModalVisible} transparent={true} onRequestClose={() => setIsModalVisible(false)}>
-					<View style={styles.modalContainer}>
-						<View style={styles.modal}>
-							<TouchableOpacity style={styles.closeButton} onPress={() => setIsModalVisible(false)}>
-								<Image style={styles.closeIcon} source={require("@/assets/images/close.png")} />
-							</TouchableOpacity>
-							<View style={styles.infoContainer}>
-								<Text style={styles.modalTitle}>Inscripción</Text>
-								<TextInput
-									style={styles.input}
-									placeholder="Nombre del equipo"
-									onChangeText={(text) => handleSignTeam(text)}
-								/>
-								<TextInput
-									style={styles.input}
-									placeholder="Teléfono de contacto"
-									keyboardType="phone-pad"
-								/>
-								<TextInput
-									style={styles.input}
-									placeholder="Mail de contacto"
-									keyboardType="email-address"
-								/>
-								<Text style={styles.label}>Jugadores:</Text>
-								<ScrollView
-									style={{ maxHeight: ScreenHeight * 0.4 }}
-									horizontal={false}
-									contentContainerStyle={{ flexDirection: "column" }}
-									showsHorizontalScrollIndicator={false}
-									showsVerticalScrollIndicator={false}
+					<AutocompleteDropdownContextProvider>
+						<View style={styles.modalContainer}>
+							<View style={styles.modal}>
+								<TouchableOpacity style={styles.closeButton} onPress={() => setIsModalVisible(false)}>
+									<Image style={styles.closeIcon} source={require("@/assets/images/close.png")} />
+								</TouchableOpacity>
+								<View style={styles.infoContainer}>
+									<Text style={styles.modalTitle}>Inscripción</Text>
+									<TextInput
+										style={styles.input}
+										placeholder="Nombre del equipo"
+										onChangeText={(text) => handleSignTeam(text)}
+									/>
+									<TextInput
+										style={styles.input}
+										placeholder="Teléfono de contacto"
+										keyboardType="phone-pad"
+									/>
+									<TextInput
+										style={styles.input}
+										placeholder="Mail de contacto"
+										keyboardType="email-address"
+									/>
+									<Text style={styles.label}>Jugadores:</Text>
+									<ScrollView
+										style={{ maxHeight: ScreenHeight * 0.4, width: "100%" }}
+										horizontal={false}
+										contentContainerStyle={{ flexDirection: "column" }}
+										showsHorizontalScrollIndicator={false}
+										showsVerticalScrollIndicator={false}
+									>
+										{Array.from({ length: cantPlayers }).map((_, index) => (
+											<Search<
+												NonNullable<ReturnType<typeof getAllUsers>["data"]>[number] & {
+													id: string;
+												}
+											>
+												key={index}
+												placeholder={`Ingrese jugador ${index + 1}...`}
+												initialData={[]}
+												renderItem={(p) => getPlayerListItem(p)}
+												fetchData={() => queries.getAllUsers(supabase)}
+												searchField="full_name"
+											/>
+										))}
+									</ScrollView>
+								</View>
+								<TouchableOpacity
+									style={styles.button}
+									onPress={() => {
+										// Aquí podrías agregar la lógica para enviar la inscripción
+										setIsModalVisible(false);
+										alert("Inscripción enviada");
+									}}
 								>
-									{Array.from({ length: cantPlayers }).map((_, index) => (
-										<TextInput
-											key={index}
-											style={styles.input}
-											placeholder={"Usuario jugador " + (index + 1)}
-										/>
-									))}
-								</ScrollView>
+									<Text style={styles.submitButtonText}>Enviar</Text>
+								</TouchableOpacity>
 							</View>
-							<TouchableOpacity
-								style={styles.button}
-								onPress={() => {
-									// Aquí podrías agregar la lógica para enviar la inscripción
-									setIsModalVisible(false);
-									alert("Inscripción enviada");
-								}}
-							>
-								<Text style={styles.submitButtonText}>Enviar</Text>
-							</TouchableOpacity>
 						</View>
-					</View>
+					</AutocompleteDropdownContextProvider>
 				</Modal>
 			</View>
 		</View>
