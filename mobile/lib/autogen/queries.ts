@@ -36,11 +36,7 @@ export const queries = {
 	getTeamMembers: (supabase: SupabaseClient<Database>, teamId: string) =>
 		supabase.from("teams").select("players").eq("team_id", teamId).single(),
 
-	getAllUsers: (supabase: SupabaseClient<Database>) => supabase.from("users").select("id, full_name, avatar_url, username"),
-
-	// Gets user names with similar names or usernames
-	getAllUsersLike: (supabase: SupabaseClient<Database>, user_name: string, limit?: number) =>
-		supabase.from("users").select("id, full_name, avatar_url").like("full_name", user_name).ilike("full_name", `%${user_name}%`).limit(limit || 10).throwOnError(),
+	getAllUsers: (supabase: SupabaseClient<Database>) => supabase.from("users").select("id, full_name, avatar_url"),
 
 	getUserAvatar: (supabase: SupabaseClient<Database>, user_name: string) =>
 		supabase.from("users").select("avatar_url").eq("full_name", user_name).single(),
