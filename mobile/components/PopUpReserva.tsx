@@ -31,9 +31,14 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 	const [isModalVisible, setIsModalVisible] = useState(false);
 	const [selectedDateTime, setSelectedDateTime] = useState<Date>(new Date());
 	const [unavailable, setUnavailability] = useState<boolean | null>(null);
+	const [show, setShow] = useState(false);
 
 	const handleDateTimeChange = async (event: any, date?: Date) => {
-		if (date) {
+		if (event.type === "dismissed" || event.type === "set") {
+			setShow(false);
+		}
+
+		if (date && event.type === "set") {
 			setSelectedDateTime(date);
 
 			const taken = await isSlotUnavailable(fieldId, date);
