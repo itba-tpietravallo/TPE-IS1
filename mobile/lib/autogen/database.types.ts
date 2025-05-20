@@ -67,24 +67,18 @@ export type Database = {
       }
       inscriptions: {
         Row: {
-          contactEmail: string
-          contactPhone: number
           id: string
-          teamId: string
+          teamId: string | null
           tournamentId: string
         }
         Insert: {
-          contactEmail: string
-          contactPhone: number
           id?: string
-          teamId: string
+          teamId?: string | null
           tournamentId: string
         }
         Update: {
-          contactEmail?: string
-          contactPhone?: number
           id?: string
-          teamId?: string
+          teamId?: string | null
           tournamentId?: string
         }
         Relationships: [
@@ -249,6 +243,8 @@ export type Database = {
       }
       teams: {
         Row: {
+          contactEmail: string
+          contactPhone: number
           description: string | null
           images: string[] | null
           name: string
@@ -257,6 +253,8 @@ export type Database = {
           team_id: string
         }
         Insert: {
+          contactEmail: string
+          contactPhone: number
           description?: string | null
           images?: string[] | null
           name: string
@@ -265,6 +263,8 @@ export type Database = {
           team_id?: string
         }
         Update: {
+          contactEmail?: string
+          contactPhone?: number
           description?: string | null
           images?: string[] | null
           name?: string
@@ -282,7 +282,6 @@ export type Database = {
           fieldId: string
           id: string
           name: string
-          players: string[] | null
           price: number
           sport: string
           startDate: string
@@ -294,7 +293,6 @@ export type Database = {
           fieldId: string
           id?: string
           name: string
-          players?: string[] | null
           price: number
           sport: string
           startDate: string
@@ -306,7 +304,6 @@ export type Database = {
           fieldId?: string
           id?: string
           name?: string
-          players?: string[] | null
           price?: number
           sport?: string
           startDate?: string
