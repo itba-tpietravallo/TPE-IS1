@@ -192,25 +192,34 @@ export type Database = {
       }
       reservations: {
         Row: {
+          bookers_count: number[]
+          confirmed: boolean
           date_time: string
           field_id: string
           id: string
           owner_id: string
-          payments_id: number | null
+          payments_ids: number | null
+          pending_bookers_ids: string[]
         }
         Insert: {
-          date_time: string
+          bookers_count: number[]
+          confirmed?: boolean
+          date_time?: string
           field_id: string
           id?: string
           owner_id: string
-          payments_id?: number | null
+          payments_ids?: number | null
+          pending_bookers_ids: string[]
         }
         Update: {
+          bookers_count?: number[]
+          confirmed?: boolean
           date_time?: string
           field_id?: string
           id?: string
           owner_id?: string
-          payments_id?: number | null
+          payments_ids?: number | null
+          pending_bookers_ids?: string[]
         }
         Relationships: [
           {
@@ -272,7 +281,15 @@ export type Database = {
           sport?: string
           team_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "teams_sport_sports_name_fk"
+            columns: ["sport"]
+            isOneToOne: false
+            referencedRelation: "sports"
+            referencedColumns: ["name"]
+          },
+        ]
       }
       tournaments: {
         Row: {
@@ -315,6 +332,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "fields"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tournaments_sport_sports_name_fk"
+            columns: ["sport"]
+            isOneToOne: false
+            referencedRelation: "sports"
+            referencedColumns: ["name"]
           },
         ]
       }
