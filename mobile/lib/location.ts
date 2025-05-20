@@ -39,6 +39,6 @@ export function useLocation() {
 }
 
 export function getNearbyFieldsByLoc(lat: number, long: number) {
-	const { data } = getNearbyFields(supabase, lat, long, 10, { enabled: !!(lat && long) });
+	const { data } = getNearbyFields(supabase, lat, long, 10, { enabled: !!location });
 	return { data };
 }
