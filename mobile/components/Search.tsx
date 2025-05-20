@@ -3,7 +3,7 @@ import { supabase } from "@lib/supabase";
 import { Text } from "@rneui/themed";
 import { PostgrestBuilder, PostgrestFilterBuilder } from "@supabase/postgrest-js";
 
-import { JSXElementConstructor, memo, ReactElement, useCallback, useRef, useState } from "react";
+import { JSXElementConstructor, memo, ReactElement, useCallback, useEffect, useRef, useState } from "react";
 import { Platform, View } from "react-native";
 import { AutocompleteDropdown, AutocompleteDropdownItem } from "react-native-autocomplete-dropdown";
 import { useDebouncedCallback } from "use-lodash-debounce";
@@ -24,11 +24,18 @@ export default function Search<Item extends AutocompleteDropdownItem>(props: {
 	renderItem: (item: Item, searchText: string) => ReactElement<any, string | JSXElementConstructor<any>> | null;
 	fetchData: (text: string) => PostgrestFilterBuilder<Database["public"], Item, Item[], string, never>;
 	searchField: keyof Item & string;
+	setSelectedItem?: (item: Item | null) => void;
 }) {
 	const [selectedItem, setSelectedItem] = useState(null as Item | null);
 	const [loading, setLoading] = useState(false);
 
 	const dropdownController = useRef(null as any);
+
+	useEffect(() => {
+		if (props.setSelectedItem) {
+			props.setSelectedItem(selectedItem);
+		}
+	}, [selectedItem]);
 
 	const [suggestionsList, setSuggestionsList] = useState([] as any[]) as [Item[], (items: Item[]) => void];
 
@@ -53,7 +60,7 @@ export default function Search<Item extends AutocompleteDropdownItem>(props: {
 				setLoading(true);
 				setSuggestionsList(
 					[...suggestionsList].filter((item) =>
-						(item[props.searchField] as string)?.toLowerCase().trim().includes(text.toLowerCase().trim()),
+						(item[props.searchField] as string)?.toLowerCase().trim().includes(filterToken),
 					),
 				);
 				const data = await props.fetchData(filterToken).ilike(props.searchField, `%${filterToken}%`).limit(3);
@@ -67,7 +74,7 @@ export default function Search<Item extends AutocompleteDropdownItem>(props: {
 					const changed = !(e2N.every((i) => a2N.includes(i)) && a2N.every((i) => e2N.includes(i)));
 
 					if (changed) {
-						setSuggestionsList(a);
+						setSuggestionsList(a.map((item) => ({ ...item, title: item[props.searchField] as string })));
 					}
 				}
 				setLoading(false);

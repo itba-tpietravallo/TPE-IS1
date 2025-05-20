@@ -6,7 +6,7 @@ import { Session } from "@supabase/supabase-js";
 import Icon from "react-native-vector-icons/FontAwesome6";
 import { Player } from "../app/(tabs)/teams.tsx";
 import PlayerPreview from "./PlayerPreview.tsx";
-import { getUsername } from "@lib/autogen/queries.ts";
+import { getUsername, getAllUsers } from "@lib/autogen/queries.ts";
 import { getUserSession } from "@/lib/autogen/queries";
 import { router } from "expo-router";
 
@@ -22,11 +22,12 @@ type PropsPopUpTeam = {
 
 function PopUpTeam(props: PropsPopUpTeam) {
 	const { data: user } = getUserSession(supabase);
+	const usersData = getAllUsers(supabase);
 
 	const [players, setPlayers] = useState<string[]>(props.players);
 
-	function userAlreadyOnTeam(username: string) {
-		if (players.includes(user?.full_name!)) {
+	function userAlreadyOnTeam(userId: string) {
+		if (players?.includes(userId)) {
 			return true;
 		}
 		return false;
@@ -34,38 +35,27 @@ function PopUpTeam(props: PropsPopUpTeam) {
 
 	const handleJoinTeam = async () => {
 		//@TODO: AVECES EN TEAMS TIRA UN ERROR (update creo que ya se arreglo pero dejo esto aca por las dudas)
-
-		const updatedMembers = [...players, user?.full_name!];
+		const updatedMembers = [...(players || []), user?.id!];
 
 		const { data, error } = await supabase
 			.from("teams")
 			.update({ players: updatedMembers })
-			.eq("team_id", props.team_id);
+			.eq("team_id", props.team_id)
+			.throwOnError();
 
-		if (error) {
-			console.error("Error al guardar:", error.message);
-		} else {
-			setPlayers(updatedMembers);
-			console.log("Guardado exitosamente:", data);
-		}
+		setPlayers(updatedMembers);
 	};
 
 	const handleLeaveTeam = async () => {
 		//@TODO: AVECES EN TEAMS TIRA UN ERROR
-
-		const updatedMembers = players.filter((player) => player !== user?.full_name);
+		const updatedMembers = players?.filter((player) => player !== user?.id);
 
 		const { data, error } = await supabase
 			.from("teams")
 			.update({ players: updatedMembers })
 			.eq("team_id", props.team_id);
 
-		if (error) {
-			console.error("Error al guardar:", error.message);
-		} else {
-			setPlayers(updatedMembers);
-			console.log("Guardado exitosamente:", data);
-		}
+		setPlayers(updatedMembers);
 	};
 
 	useEffect(() => {
@@ -102,7 +92,7 @@ function PopUpTeam(props: PropsPopUpTeam) {
 				{/* Miembros del Equipo */}
 				<ScrollView style={styles.scrollArea}>
 					<View style={{ width: "100%" }}>
-						{players.map((member) => (
+						{players?.map((member) => (
 							<View key={member} style={styles.row}>
 								<View style={{ height: 60, width: 30 }}></View>
 								{/* <Image
@@ -113,7 +103,9 @@ function PopUpTeam(props: PropsPopUpTeam) {
 									{" "}
 								</Icon>
 								<View style={styles.info}>
-									<Text style={styles.name}>{member}</Text>
+									<Text style={styles.name}>
+										{usersData.data?.find((user) => user.id === member)?.full_name}
+									</Text>
 								</View>
 								{/* <Text style={styles.number}/>FEAT: NUMEROS DE JUGADORES */}
 								{/* <PlayerPreview key={member} player_name={member}></PlayerPreview> */}
@@ -127,15 +119,29 @@ function PopUpTeam(props: PropsPopUpTeam) {
 			</View>
 
 			{/* Boton Join team */}
-			{!userAlreadyOnTeam(user?.full_name!) && (
-				<TouchableOpacity style={[styles.joinTeamButton]} onPress={handleJoinTeam}>
+			{!userAlreadyOnTeam(user?.id!) && (
+				<TouchableOpacity
+					style={[styles.joinTeamButton]}
+					onPress={() =>
+						handleJoinTeam()
+							.then(() => console.log("Joined team"))
+							.catch((e) => console.log("Error joining team", e))
+					}
+				>
 					<Text style={styles.buttonText}>Join Team</Text>
 				</TouchableOpacity>
 			)}
 
 			{/* Boton leave team */}
-			{userAlreadyOnTeam(user?.full_name!) && (
-				<TouchableOpacity style={[styles.leaveTeamButton]} onPress={handleLeaveTeam}>
+			{userAlreadyOnTeam(user?.id!) && (
+				<TouchableOpacity
+					style={[styles.leaveTeamButton]}
+					onPress={() =>
+						handleLeaveTeam()
+							.then(() => console.log("Left team"))
+							.catch((e) => console.log("Error leaving team", e))
+					}
+				>
 					<Text style={styles.buttonText}>Leave Team</Text>
 				</TouchableOpacity>
 			)}

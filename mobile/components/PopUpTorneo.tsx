@@ -5,7 +5,7 @@ import { ScreenHeight, ScreenWidth } from "@rneui/themed/dist/config";
 import { supabase } from "@lib/supabase";
 import Search from "./Search";
 import { AutocompleteDropdownContextProvider } from "react-native-autocomplete-dropdown";
-import { getAllUsers, queries } from "@lib/autogen/queries";
+import { getAllTeams, getAllUsers, getUserSession, queries } from "@lib/autogen/queries";
 import { User } from "@supabase/supabase-js";
 
 interface PopUpReservaProps {
@@ -18,7 +18,7 @@ interface PopUpReservaProps {
 	price: string;
 	deadline: Date;
 	cantPlayers: number;
-	players: string[];
+	tournamentId: string;
 }
 
 function getPlayerListItem(player: NonNullable<ReturnType<typeof getAllUsers>["data"]>[number] & { id: string }) {
@@ -31,27 +31,53 @@ function getPlayerListItem(player: NonNullable<ReturnType<typeof getAllUsers>["d
 }
 
 function PopUpTorneo({
+	tournamentId,
 	onClose,
 	name,
 	location,
+	sport,
 	date,
 	description,
 	price,
 	deadline,
 	cantPlayers,
-	players,
 }: PopUpReservaProps) {
 	const [isModalVisible, setIsModalVisible] = useState(false);
+	const [teamName, setTeamName] = useState("");
+	const [contactPhone, setContactPhone] = useState("");
+	const [contactEmail, setContactEmail] = useState("");
+	const [selectedPlayers, setSelectedPlayers] = useState<
+		NonNullable<ReturnType<typeof getAllUsers>["data"]>[number] & { id: string }[]
+	>();
+	const { data: user } = getUserSession(supabase);
+	const teamQuery = getAllTeams(supabase);
 
-	const handleSignTeam = async (team: string) => {
+	const handleSignUp = async (team: string) => {
 		// quiero agregar un player a un torneo que esta en el parametro como team
-		const updatedPTeams = [...players, team];
-		const { data, error } = await supabase.from("tournaments").update({ players: updatedPTeams }).eq("name", name);
-		if (error) {
-			console.error("Error al guardar:", error.message);
-		} else {
-			console.log("Guardado exitosamente:", data);
-		}
+		const updatedPTeams = [...(selectedPlayers?.map((p) => (p || {})?.id) || []), user?.id!].filter((id) => !!id);
+
+		const teamSignUp = await supabase
+			.from("teams")
+			.insert({
+				name: teamName,
+				players: updatedPTeams,
+				sport,
+				contactPhone,
+				contactEmail,
+			})
+			.select()
+			.single();
+
+		const inscriptionData = await supabase
+			.from("inscriptions")
+			.insert({
+				tournamentId: tournamentId,
+				teamId: teamSignUp.data?.id,
+			})
+			.select()
+			.throwOnError();
+
+		teamQuery.refetch();
 	};
 
 	// const { data: initialPlayers } = getAllUsers(supabase);
@@ -101,17 +127,19 @@ function PopUpTorneo({
 									<TextInput
 										style={styles.input}
 										placeholder="Nombre del equipo"
-										onChangeText={(text) => handleSignTeam(text)}
+										onChangeText={(text) => setTeamName(text)}
 									/>
 									<TextInput
 										style={styles.input}
 										placeholder="Teléfono de contacto"
 										keyboardType="phone-pad"
+										onChangeText={(text) => setContactPhone(text)}
 									/>
 									<TextInput
 										style={styles.input}
 										placeholder="Mail de contacto"
 										keyboardType="email-address"
+										onChangeText={(text) => setContactEmail(text)}
 									/>
 									<Text style={styles.label}>Jugadores:</Text>
 									<ScrollView
@@ -133,6 +161,10 @@ function PopUpTorneo({
 												renderItem={(p) => getPlayerListItem(p)}
 												fetchData={() => queries.getAllUsers(supabase)}
 												searchField="full_name"
+												setSelectedItem={(item) => {
+													// @ts-ignore
+													setSelectedPlayers([...(selectedPlayers || []), item]);
+												}}
 											/>
 										))}
 									</ScrollView>
@@ -142,7 +174,9 @@ function PopUpTorneo({
 									onPress={() => {
 										// Aquí podrías agregar la lógica para enviar la inscripción
 										setIsModalVisible(false);
-										alert("Inscripción enviada");
+										handleSignUp(teamName)
+											.then(() => console.log("Inscription sent"))
+											.catch((e) => console.log("Error sending inscription", e));
 									}}
 								>
 									<Text style={styles.submitButtonText}>Enviar</Text>

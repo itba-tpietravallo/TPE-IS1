@@ -9,7 +9,7 @@ type PropsTeam = {
 	name: string;
 	sport: string;
 	description: string;
-	players: string[]; //solucion provisoria
+	players: string[];
 	images: string[];
 	//players: Player[];
 };

@@ -208,10 +208,12 @@ export const teamsTable = pgTable(
   {
     team_id: uuid().primaryKey().defaultRandom().notNull(),
     name: text().notNull(),
-    sport: text().notNull(), //@TODO: hacer reference a sportsTable
+    sport: text().notNull().references(() => sportsTable.name),
     description: text(),
     images: text().array(),
-    players: text().array().notNull(), //Solucion provisoria | @TODO: convertir a uuid y hacer reference a usersTable
+    players: text().array().notNull(), //  @TODO: hacer reference a usersTable
+    contactPhone: text().notNull(),
+    contactEmail: text().notNull()
   },
   (table) => [
     pgPolicy("teams - select authenticated", {
@@ -238,7 +240,6 @@ export const tournamentsTable = pgTable(
     price: integer().notNull(),
     deadline: timestamp({ withTimezone: true }).notNull(),
     cantPlayers: integer().notNull(),
-    players: text().array(),
   },
   (table) => [
     pgPolicy("tournaments - select authenticated", {
@@ -271,10 +272,7 @@ export const inscriptionsTable = pgTable(
       .notNull()
       .references(() => tournamentsTable.id, { onDelete: "cascade" }),
     teamId: uuid()
-      .notNull()
       .references(() => teamsTable.team_id, { onDelete: "cascade" }),
-    contactPhone: integer().notNull(),
-    contactEmail: text().notNull(),
   },
   (table) => [
     pgPolicy("inscriptions - select authenticated", {

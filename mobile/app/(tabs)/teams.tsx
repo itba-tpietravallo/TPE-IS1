@@ -34,6 +34,7 @@ export type Player = {
 function TeamsFeed() {
 	const { data: teams } = getAllTeams(supabase);
 	const { data: sports } = getAllSports(supabase);
+
 	const [selectedSport, setSelectedSport] = useState<string>("");
 
 	const handleSportPress = (sportName: string) => {
