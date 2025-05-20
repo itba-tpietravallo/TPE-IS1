@@ -1,5 +1,10 @@
 version: "1.1"
 name: Status Check
+
+env:
+    test_username: "test-ci-cd@matchpointapp.com.ar"
+    test_password: "2unfaxj-23pe-d$xpkjJ"
+
 tests:
     healthcheck:
         steps:
@@ -9,25 +14,107 @@ tests:
                   method: GET
                   check:
                       status: /^20/
-    storage:
+    authenticate:
         steps:
-            - name: PUT request
+            - name: GET env
               http:
-                  url: ${{env.origin}}/api/v1/storage/upload
-                  method: PUT
+                  url: ${{env.origin}}/api/v1/env
+                  method: GET
+                  status: /^20/
+                  check:
+                      schema:
+                          type: object
+                          properties:
+                              DATABASE_ENDPOINT:
+                                  type: string
+                              DATABASE_ANON_KEY:
+                                  type: string
+                          required:
+                              - DATABASE_ENDPOINT
+                              - DATABASE_ANON_KEY
+                  captures:
+                      db_url:
+                          jsonpath: $.DATABASE_ENDPOINT
+                      db_key:
+                          jsonpath: $.DATABASE_ANON_KEY
+            - name: Get Auth token
+              http:
+                  url: ${{ captures.db_url }}/auth/v1/token
+                  method: POST
+                  headers:
+                      Content-Type: application/json
+                      apiKey: ${{ captures.db_key }}
+                  params:
+                      grant_type: password
                   json:
-                      fileName: "test.txt"
+                      email: ${{env.test_username}}
+                      password: ${{env.test_password}}
                   check:
                       status: /^20/
                       headers:
                           Content-Type: application/json
-                      schemaa:
+                      schema:
                           type: object
                           properties:
-                              signedPUTURL:
+                              access_token:
                                   type: string
-                              downloadURL:
+                              token_type:
                                   type: string
+                              expires_in:
+                                  type: integer
                           required:
-                              - signedPUTURL
-                              - downloadURL
+                              - access_token
+                              - token_type
+                              - expires_in
+                  captures:
+                      access_token:
+                          jsonpath: $.access_token
+                      refresh_token:
+                          jsonpath: $.refresh_token
+                      token_type:
+                          jsonpath: $.token_type
+                      user_id:
+                          jsonpath: $.user.id
+            - name: GET payment link
+              http:
+                  url: ${{ env.origin }}/api/v1/payments
+                  method: POST
+                  headers:
+                      access_token: ${{ captures.access_token }}
+                      refresh_token: ${{ captures.refresh_token }}
+                  json:
+                      userId: ${{ captures.user_id }}
+                      processor: "mercado-pago-redirect"
+                      fieldId: ""
+                      success_url: "https://www.matchpointapp.com.ar"
+                      pending_url: "https://www.matchpointapp.com.ar"
+                      cancel_url: "https://www.matchpointapp.com.ar"
+                      date_time: "2000-00-00T00:00:00Z"
+                  check:
+                      status: /500/ # Note: This is 500 because the
+                      # __DANGEROUS_createSupabaseServerClient_BYPASS_RLS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED
+                      # client cannot be used on dev locally atm
+
+    # storage:
+    #     steps:
+    #         - name: PUT request
+    #           if: false
+    #           http:
+    #               url: ${{env.origin}}/api/v1/storage/upload
+    #               method: PUT
+    #               json:
+    #                   fileName: "test.txt"
+    #               check:
+    #                   status: /^20/
+    #                   headers:
+    #                       Content-Type: application/json
+    #                   schema:
+    #                       type: object
+    #                       properties:
+    #                           signedPUTURL:
+    #                               type: string
+    #                           downloadURL:
+    #                               type: string
+    #                       required:
+    #                           - signedPUTURL
+    #                           - downloadURL

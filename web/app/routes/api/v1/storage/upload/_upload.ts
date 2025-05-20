@@ -26,7 +26,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 		contentType: "application/octet-stream",
 	} as const;
 
-	const credentials = atob(process.env.GCP_PRODUCTION_API_KEY || "");
+	const credentials = atob(process.env.GCP_PRODUCTION_API_KEY || "{}");
 	const credentialsObject = JSON.parse(credentials);
 
 	const storage = new Storage({
