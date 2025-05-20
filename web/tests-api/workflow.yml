@@ -1,7 +1,7 @@
 version: "1.1"
 name: Status Check
 tests:
-    example:
+    healthcheck:
         steps:
             - name: GET request
               http:
@@ -9,3 +9,25 @@ tests:
                   method: GET
                   check:
                       status: /^20/
+    storage:
+        steps:
+            - name: PUT request
+              http:
+                  url: ${{env.origin}}/api/v1/storage/upload
+                  method: PUT
+                  json:
+                      fileName: "test.txt"
+                  check:
+                      status: /^20/
+                      headers:
+                          Content-Type: application/json
+                      schemaa:
+                          type: object
+                          properties:
+                              signedPUTURL:
+                                  type: string
+                              downloadURL:
+                                  type: string
+                          required:
+                              - signedPUTURL
+                              - downloadURL
