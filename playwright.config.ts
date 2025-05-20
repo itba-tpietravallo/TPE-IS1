@@ -34,7 +34,7 @@ export default defineConfig({
 		trace: "on-first-retry",
 		actionTimeout: 10000, // 10 seconds
 	},
-	testDir: "./web/tests",
+	testDir: "./web/tests-e2e",
 	/* Run tests in files in parallel */
 	fullyParallel: true,
 	/* Fail the build on CI if you accidentally left test.only in the source code. */
@@ -53,7 +53,7 @@ export default defineConfig({
 			name: "chromium",
 			use: {
 				...devices["Desktop Chrome"],
-				storageState: path.resolve(__dirname, "./web/tests/.auth/user.json"),
+				storageState: path.resolve(__dirname, "./web/tests-e2e/.auth/user.json"),
 			},
 			dependencies: ["setup"],
 		},

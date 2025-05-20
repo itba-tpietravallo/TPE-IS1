@@ -1,7 +1,7 @@
 import { test as setup, expect } from "@playwright/test";
 import path from "path";
 
-const authFile = "./web/tests/.auth/user.json";
+const authFile = "./web/tests-e2e/.auth/user.json";
 
 const BASE_URL = "http://localhost:5173";
 const TEST_USER_EMAIL = process.env.TEST_USER_EMAIL || "";

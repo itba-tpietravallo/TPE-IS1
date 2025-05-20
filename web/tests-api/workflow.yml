@@ -1,0 +1,11 @@
+version: "1.1"
+name: Status Check
+tests:
+    example:
+        steps:
+            - name: GET request
+              http:
+                  url: ${{env.origin}}/api/test
+                  method: GET
+                  check:
+                      status: /^20/
