@@ -27,6 +27,7 @@ test.describe("Fields", () => {
 		await page.goto(`${BASE_URL}/canchas`);
 		await page.getByText("Agregar nueva cancha").waitFor({ state: "visible" });
 		await page.getByRole("link", { name: "Agregar nueva cancha" }).click();
+		await page.waitForLoadState("load");
 		await page.getByRole("textbox", { name: "Nombre" }).click();
 		await page.getByRole("textbox", { name: "Nombre" }).fill(TEST_FIELD_DETAILS.FIELD_NAME);
 		await page.getByRole("textbox", { name: "Calle" }).click();
