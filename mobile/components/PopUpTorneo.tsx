@@ -1,12 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { StyleSheet, Text, View, TouchableOpacity, TextInput, Modal, Image, ScrollView } from "react-native";
 import { SearchBar } from "@rneui/themed";
 import { ScreenHeight, ScreenWidth } from "@rneui/themed/dist/config";
 import { supabase } from "@lib/supabase";
 import Search from "./Search";
 import { AutocompleteDropdownContextProvider } from "react-native-autocomplete-dropdown";
-import { getAllTeams, getAllUsers, getUserSession, queries } from "@lib/autogen/queries";
+import SelectDropdown from "react-native-select-dropdown";
+import { getUserSession, getAllTeams, getTeamById, getUsername, getAllUsers, queries } from "@lib/autogen/queries";
 import { User } from "@supabase/supabase-js";
+import { get } from "http";
+import PopUpReserva from "./PopUpReserva";
 
 interface PopUpReservaProps {
 	onClose: () => void;
@@ -30,6 +33,11 @@ function getPlayerListItem(player: NonNullable<ReturnType<typeof getAllUsers>["d
 	);
 }
 
+function getTeamMembers() {
+	const { data, error } = getAllUsers(supabase);
+
+	return data as NonNullable<ReturnType<typeof getAllUsers>["data"]>;
+}
 function PopUpTorneo({
 	tournamentId,
 	onClose,
@@ -43,44 +51,69 @@ function PopUpTorneo({
 	cantPlayers,
 }: PopUpReservaProps) {
 	const [isModalVisible, setIsModalVisible] = useState(false);
-	const [teamName, setTeamName] = useState("");
-	const [contactPhone, setContactPhone] = useState("");
-	const [contactEmail, setContactEmail] = useState("");
+	const usersData = getAllUsers(supabase);
+	const { data: user } = getUserSession(supabase);
+	const { data: teams } = getAllTeams(supabase);
+	const myTeams = teams?.filter((team) => team.players.some((member) => member === user?.id));
+
+	const [selectedTeam, setSelectedTeam] = useState<string>("");
+	const [team, setTeam] = useState<string>("");
+	const [teamMembers, setTeamMembers] = useState<string[]>([]);
+	const [contactPhone, setContactPhone] = useState<string>("");
+	const [contactEmail, setContactEmail] = useState<string>("");
+
+	const [canJoin, setCanJoin] = useState<boolean>(false);
 	const [selectedPlayers, setSelectedPlayers] = useState<
 		NonNullable<ReturnType<typeof getAllUsers>["data"]>[number] & { id: string }[]
 	>();
-	const { data: user } = getUserSession(supabase);
-	const teamQuery = getAllTeams(supabase);
 
-	const handleSignUp = async (team: string) => {
-		// quiero agregar un player a un torneo que esta en el parametro como team
-		const updatedPTeams = [...(selectedPlayers?.map((p) => (p || {})?.id) || []), user?.id!].filter((id) => !!id);
-
-		const teamSignUp = await supabase
-			.from("teams")
-			.insert({
-				name: teamName,
-				players: updatedPTeams,
-				sport,
-				contactPhone,
-				contactEmail,
-			})
-			.select()
-			.single();
-
-		const inscriptionData = await supabase
-			.from("inscriptions")
-			.insert({
+	const handleSignTeam = async () => {
+		if (!canJoin) return;
+		if (selectedTeam == "") {
+			alert("Por favor, selecciona un equipo");
+			return;
+		}
+		await supabase.from("inscriptions").insert([
+			{
 				tournamentId: tournamentId,
-				teamId: teamSignUp.data?.id,
-			})
-			.select()
-			.throwOnError();
-
-		teamQuery.refetch();
+				teamId: selectedTeam,
+			},
+		]);
+		onClose();
 	};
 
-	// const { data: initialPlayers } = getAllUsers(supabase);
+	const fetchTeam = async () => {
+		const { data: teamData, error } = await supabase.from("teams").select("*").eq("team_id", selectedTeam).single(); // TODO: CAMBIAR por getTeamByID!! -> no sé por que no funciona
+
+		if (error) {
+			console.error("Error fetching team:", error);
+			return;
+		}
+
+		if (teamData) {
+			setTeam(teamData.name);
+			setContactPhone(teamData.contactPhone);
+			setContactEmail(teamData.contactEmail);
+			setTeamMembers(teamData.players || []);
+
+			const players = teamData.players || [];
+			setCanJoin(players.length >= cantPlayers);
+		}
+	};
+
+	useEffect(() => {
+		if (!selectedTeam) return;
+
+		fetchTeam();
+		console.log("Selected team:", team);
+		console.log("contact phone:", contactPhone);
+		console.log("contact email:", contactEmail);
+		console.log("team members:", teamMembers);
+	}, [selectedTeam]);
+
+	const getUserById = async (userId: string) => {
+		return getUsername(supabase, userId);
+	};
 
 	return (
 		<View style={styles.modalContainer}>
@@ -124,24 +157,53 @@ function PopUpTorneo({
 								</TouchableOpacity>
 								<View style={styles.infoContainer}>
 									<Text style={styles.modalTitle}>Inscripción</Text>
-									<TextInput
-										style={styles.input}
-										placeholder="Nombre del equipo"
-										onChangeText={(text) => setTeamName(text)}
+									<Text style={styles.label}>Elegir equipo</Text>
+									<SelectDropdown
+										data={
+											myTeams?.map((team) => ({
+												label: team.name,
+												value: team.team_id,
+											})) || []
+										}
+										onSelect={(itemValue, index) => setSelectedTeam(itemValue.value)}
+										renderButton={(selectedItem, isOpened) => {
+											return (
+												<View>
+													{myTeams && myTeams.length > 0 ? (
+														<Text style={styles.input}>
+															{selectedItem?.label || "Selecciona un equipo"}
+														</Text>
+													) : (
+														<Text style={styles.input}>No tienes equipos</Text>
+													)}
+												</View>
+											);
+										}}
+										renderItem={(item, index, isSelected) => {
+											return (
+												<View>
+													<Text style={styles.input}>{item.label}</Text>
+												</View>
+											);
+										}}
 									/>
-									<TextInput
-										style={styles.input}
-										placeholder="Teléfono de contacto"
-										keyboardType="phone-pad"
-										onChangeText={(text) => setContactPhone(text)}
-									/>
-									<TextInput
-										style={styles.input}
-										placeholder="Mail de contacto"
-										keyboardType="email-address"
-										onChangeText={(text) => setContactEmail(text)}
-									/>
-									<Text style={styles.label}>Jugadores:</Text>
+
+									<Text style={styles.label}>Telefono de contacto: </Text>
+									<Text style={styles.input}>{contactPhone}</Text>
+									<Text style={styles.label}>Mail de contacto: </Text>
+									<Text style={styles.input}>{contactEmail}</Text>
+									<View style={{ flexDirection: "column" }}>
+										<Text style={styles.label}>Jugadores:</Text>
+										<Text
+											style={{
+												color: "red",
+											}}
+										>
+											{teamMembers.length < cantPlayers
+												? `Cantidad minima de jugadores por equipo: ${cantPlayers}`
+												: ""}
+										</Text>
+									</View>
 									<ScrollView
 										style={{ maxHeight: ScreenHeight * 0.4, width: "100%" }}
 										horizontal={false}
@@ -149,7 +211,12 @@ function PopUpTorneo({
 										showsHorizontalScrollIndicator={false}
 										showsVerticalScrollIndicator={false}
 									>
-										{Array.from({ length: cantPlayers }).map((_, index) => (
+										{teamMembers.map((member, index) => (
+											<Text key={index} style={{ fontSize: 16, fontWeight: "bold" }}>
+												{usersData.data?.find((user) => user.id === member)?.full_name}
+											</Text>
+										))}
+										{/* {Array.from({ length: cantPlayers }).map((_, index) => (
 											<Search<
 												NonNullable<ReturnType<typeof getAllUsers>["data"]>[number] & {
 													id: string;
@@ -159,24 +226,20 @@ function PopUpTorneo({
 												placeholder={`Ingrese jugador ${index + 1}...`}
 												initialData={[]}
 												renderItem={(p) => getPlayerListItem(p)}
-												fetchData={() => queries.getAllUsers(supabase)}
+												fetchData={(q) => teamMembers}
 												searchField="full_name"
 												setSelectedItem={(item) => {
 													// @ts-ignore
 													setSelectedPlayers([...(selectedPlayers || []), item]);
 												}}
 											/>
-										))}
+										))} */}
 									</ScrollView>
 								</View>
 								<TouchableOpacity
-									style={styles.button}
+									style={[styles.button, { backgroundColor: canJoin ? "#f18f04" : "#ccc" }]}
 									onPress={() => {
-										// Aquí podrías agregar la lógica para enviar la inscripción
-										setIsModalVisible(false);
-										handleSignUp(teamName)
-											.then(() => console.log("Inscription sent"))
-											.catch((e) => console.log("Error sending inscription", e));
+										handleSignTeam();
 									}}
 								>
 									<Text style={styles.submitButtonText}>Enviar</Text>
