@@ -54,9 +54,9 @@ export default function FieldDetailPage() {
 			key={id}
 			name={name || ""}
 			description={description || ""}
-			imgSrc={field?.images ?? []}
-			price={field?.price || 0}
-			location={`${field?.street} ${field?.street_number}`}
+			imgSrc={field.data?.images ?? []}
+			price={field.data?.price || 0}
+			location={`${field.data?.street} ${field.data?.street_number}, ${field.data?.neighborhood}`}
 			setDescription={setDescription}
 			setName={setName}
 			reservations={reservations.data || []}
