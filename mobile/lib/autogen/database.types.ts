@@ -200,6 +200,7 @@ export type Database = {
           owner_id: string
           payments_ids: number[] | null
           pending_bookers_ids: string[]
+          team_id: string | null
         }
         Insert: {
           bookers_count: number
@@ -210,6 +211,7 @@ export type Database = {
           owner_id: string
           payments_ids?: number[] | null
           pending_bookers_ids: string[]
+          team_id?: string | null
         }
         Update: {
           bookers_count?: number
@@ -220,6 +222,7 @@ export type Database = {
           owner_id?: string
           payments_ids?: number[] | null
           pending_bookers_ids?: string[]
+          team_id?: string | null
         }
         Relationships: [
           {
@@ -235,6 +238,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservations_team_id_teams_team_id_fk"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["team_id"]
           },
         ]
       }
