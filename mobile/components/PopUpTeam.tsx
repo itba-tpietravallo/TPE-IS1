@@ -9,6 +9,7 @@ import PlayerPreview from "./PlayerPreview.tsx";
 import { getUsername, getAllUsers } from "@lib/autogen/queries.ts";
 import { getUserSession } from "@/lib/autogen/queries";
 import { router } from "expo-router";
+import PopUpJoinRequests from "./PopUpJoinRequests.tsx";
 
 type PropsPopUpTeam = {
 	onClose: () => void;
@@ -18,6 +19,7 @@ type PropsPopUpTeam = {
 	description: string;
 	players: string[]; //solucion provisoria
 	//players: Player[];
+	public: boolean;
 };
 
 function PopUpTeam(props: PropsPopUpTeam) {
@@ -25,6 +27,11 @@ function PopUpTeam(props: PropsPopUpTeam) {
 	const usersData = getAllUsers(supabase);
 
 	const [players, setPlayers] = useState<string[]>(props.players);
+
+	const [isModalVisible, setIsModalVisible] = useState(false);
+	const handleCloseModal = () => {
+		setIsModalVisible(false);
+	};
 
 	function userAlreadyOnTeam(userId: string) {
 		if (players?.includes(userId)) {
@@ -34,7 +41,6 @@ function PopUpTeam(props: PropsPopUpTeam) {
 	}
 
 	const handleJoinTeam = async () => {
-		//@TODO: AVECES EN TEAMS TIRA UN ERROR (update creo que ya se arreglo pero dejo esto aca por las dudas)
 		const updatedMembers = [...(players || []), user?.id!];
 
 		const { data, error } = await supabase
@@ -47,7 +53,6 @@ function PopUpTeam(props: PropsPopUpTeam) {
 	};
 
 	const handleLeaveTeam = async () => {
-		//@TODO: AVECES EN TEAMS TIRA UN ERROR
 		const updatedMembers = players?.filter((player) => player !== user?.id);
 
 		const { data, error } = await supabase
@@ -77,10 +82,39 @@ function PopUpTeam(props: PropsPopUpTeam) {
 
 	return (
 		<View style={styles.modalView}>
-			{/* Boton cerrar PopUp */}
-			<TouchableOpacity style={{ padding: 10, alignItems: "flex-start", marginLeft: 10 }} onPress={props.onClose}>
-				<Icon name="xmark" size={24} color="black" style={{ marginTop: 10 }} />
-			</TouchableOpacity>
+
+
+			<View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+				{/* Boton cerrar PopUp */}
+				<TouchableOpacity style={{ padding: 10, alignItems: "flex-start", marginLeft: 10 }} onPress={props.onClose}>
+					<Icon name="xmark" size={24} color="black" style={{ marginTop: 10 }} />
+				</TouchableOpacity>
+
+				{/* Boton join requests (arriba a la derecha) */}
+				{userAlreadyOnTeam(user?.id!) &&
+				<TouchableOpacity style={{ padding: 10, alignItems: "flex-start" }} onPress={() => setIsModalVisible(true)}>
+					<Icon name="users" size={24} color="black" style={{ marginTop: 10 }} />
+				</TouchableOpacity> 
+				}
+
+				{/* PopUpJoinRequests */}
+				<Modal
+					style={styles.modal}
+					visible={isModalVisible}
+					transparent={true}
+					onRequestClose={() => setIsModalVisible(false)}
+				>
+					<View style={styles.centeredView}>
+						<PopUpJoinRequests
+							onClose={handleCloseModal}
+							team_id={props.team_id}
+							name={props.name}
+							players={props.players}
+						/>
+					</View>
+				</Modal>
+				
+			</View>	
 
 			<View style={styles.mainInfo}>
 				{/* Nombre del equipo y deporte */}
@@ -119,7 +153,7 @@ function PopUpTeam(props: PropsPopUpTeam) {
 			</View>
 
 			{/* Boton Join team */}
-			{!userAlreadyOnTeam(user?.id!) && (
+			{props.public && !userAlreadyOnTeam(user?.id!) && (
 				<TouchableOpacity
 					style={[styles.joinTeamButton]}
 					onPress={() =>
@@ -129,6 +163,20 @@ function PopUpTeam(props: PropsPopUpTeam) {
 					}
 				>
 					<Text style={styles.buttonText}>Join Team</Text>
+				</TouchableOpacity>
+			)}
+
+			{/* Boton Request Join team */}
+			{!props.public && !userAlreadyOnTeam(user?.id!) && (
+				<TouchableOpacity
+					style={[styles.joinTeamButton]}
+					onPress={() =>
+						handleJoinTeam()     //CAMBIAR POR HANDLEREQUEST!!!!!!!!!!!!!!!!
+							.then(() => console.log("Joined team"))
+							.catch((e) => console.log("Error joining team", e))
+					}
+				>
+					<Text style={styles.buttonText}>Request to Join Team</Text>
 				</TouchableOpacity>
 			)}
 
@@ -254,6 +302,16 @@ const styles = StyleSheet.create({
 		color: "#fff",
 		fontSize: 16,
 		fontWeight: "bold",
+	},
+	modal: {
+		justifyContent: "center",
+		alignItems: "center",
+	},
+	centeredView: {
+		flex: 1,
+		justifyContent: "center",
+		alignItems: "center",
+		backgroundColor: "rgba(0, 0, 0, 0.5)",
 	},
 });
 

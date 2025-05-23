@@ -26,6 +26,7 @@ export default function PostTeam() {
 	const [members, setMembers] = useState<string[]>([]);
 	const [newMember, setNewMember] = useState("");
 	const [availability, setAvailability] = useState(0);
+	const [isPublic, setIsPublic] = useState(true);
 
 	const { data: user } = getUserSession(supabase);
 
@@ -181,6 +182,35 @@ export default function PostTeam() {
 					multiline
 					numberOfLines={4}
 				/>
+
+				{/* Privacidad */}     
+				<Text style={styles.label}>Privacidad</Text>
+				<SelectDropdown
+					onSelect={(itemValue, index) => setIsPublic(itemValue)}
+					data={[true, false]?.map((e) => e == true ? "Público" : "Privado" ) || []}
+					dropdownStyle={{ backgroundColor: "white", gap: 5, borderRadius: 8 }}
+					renderButton={(selectedItem, isOpened) => {
+						return (
+							<View style={styles.dropdownButtonStyle}>
+								<Text style={styles.dropdownButtonTxtStyle}>
+									{selectedItem || "Público"}
+								</Text>
+							</View>
+						);
+					}}
+					renderItem={(item, index, isSelected) => {
+						return (
+							<View
+								style={{
+									...styles.dropdownItemStyle,
+									...(isSelected && { backgroundColor: "#D2D9DF" }),
+								}}
+							>
+								<Text style={styles.dropdownItemTxtStyle}>{item}</Text>
+							</View>
+						);
+					}}
+				/> 
 
 				<Text style={{ color: "#464545" }}>* Indica que el campo es obligatorio.</Text>
 

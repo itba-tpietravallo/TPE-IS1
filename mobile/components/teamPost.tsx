@@ -47,6 +47,7 @@ function TeamPost(props: PropsTeam) {
 						sport={props.sport}
 						description={props.description}
 						players={props.players}
+						public={false}   //TODO; LEVANTAR DE LA DB !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 					/>
 				</View>
 			</Modal>
