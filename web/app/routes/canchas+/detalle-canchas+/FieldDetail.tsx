@@ -1,187 +1,228 @@
 ("use client");
-
-import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
-import { cn } from "~/lib/utils";
+import type { Database } from "@lib/autogen/database.types";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import { Label } from "~/components/ui/label";
-import { DollarSign, MapPin } from "lucide-react";
-import { ReactNode, useEffect, useState } from "react";
+import { DollarSign, MapPin, Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
-
-import {
-	Sheet,
-	SheetClose,
-	SheetContent,
-	SheetDescription,
-	SheetFooter,
-	SheetHeader,
-	SheetTitle,
-	SheetTrigger,
-} from "~/components/ui/sheet";
-
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "~/components/ui/carousel";
-import { useLoaderData, useNavigate } from "@remix-run/react";
-import { createBrowserClient } from "@supabase/ssr";
-import { LoaderFunctionArgs } from "@remix-run/node";
-
-import { getAllUsers } from "@lib/autogen/queries";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "~/components/ui/sheet";
 import { TorneosSheet } from "./TorneosSheet";
 import { DeleteFieldButton } from "./DeleteFieldButton";
 import type { UseQueryResult } from "@tanstack/react-query";
 
-let globalName = "";
-let globalDescription = "";
-
-export function loader(args: LoaderFunctionArgs) {
-	const env = {
-		SUPABASE_URL:
-			process.env.VERCEL_ENV === "production" ? process.env.PROD_SUPABASE_URL! : process.env.DEV_SUPABASE_URL!,
-		SUPABASE_ANON_KEY:
-			process.env.VERCEL_ENV === "production"
-				? process.env.PROD_SUPABASE_ANON_KEY!
-				: process.env.DEV_SUPABASE_ANON_KEY!,
-	};
-
-	return {
-		env,
-		URL_ORIGIN: new URL(args.request.url).origin,
-		id: args.params.id,
-	};
-}
-
-type ButtonProps = {
-	path?: string;
-	children: ReactNode;
+type CarouselProps = {
+	imgSrc: string[];
 };
 
-export function MyButton(props: ButtonProps) {
-	const { path, children } = props;
-	const navigate = useNavigate();
-	const [isLoading, setIsLoading] = useState(false);
-	const handleClick = () => setIsLoading(!isLoading);
+export type Reservation = {
+	id: string;
+	date_time: string;
+	owner_id: string;
+};
+
+type FieldProps = {
+	id?: string;
+	supabase: SupabaseClient<Database>;
+	imgSrc: string[];
+	name: string;
+	location: string;
+	price: number;
+	description: string;
+	reservations: Reservation[];
+	tournaments: any[];
+	users: any[];
+	dependantQueries?: UseQueryResult[];
+	onSave: (newName: string, newDescription: string, price: number) => void;
+	loading: boolean;
+};
+
+export function FieldDetail(props: FieldProps) {
+	const {
+		id,
+		supabase,
+		imgSrc,
+		name,
+		location,
+		price,
+		description,
+		reservations,
+		tournaments,
+		users,
+		onSave,
+		loading,
+	} = props;
+
 	return (
-		<Button
-			onClick={() => {
-				handleClick();
-				navigate(path ? path : ".");
-			}}
-			variant={`${isLoading ? "secondary" : "outline"}`}
-		>
-			{isLoading ? "Loading..." : children}
-		</Button>
+		<div className="h-full bg-[#f2f4f3]">
+			<div className="flex h-full flex-row items-center justify-center space-x-12">
+				<Card className="w-full max-w-3xl bg-[#223332] p-10 shadow-lg">
+					{loading ? (
+						<div className="flex h-64 flex-col items-center justify-center text-[#f2f4f3]">
+							<Loader2 className="mr-2 h-10 w-10 animate-spin" />
+							<p className="mt-4 text-xl">Cargando cancha...</p>
+						</div>
+					) : (
+						<>
+							<CardHeader className="space-y-5">
+								<div className="flex flex-row items-center justify-between">
+									<CardTitle className="text-5xl font-bold text-[#f2f4f3]">{name}</CardTitle>
+								</div>
+								<div className="flex flex-row">
+									<MapPin className="my-auto h-6 w-6 text-gray-400" />
+									<CardDescription className="text-2xl text-gray-400">{location}</CardDescription>
+								</div>
+								<div className="flex flex-row">
+									<DollarSign className="my-auto h-6 w-6 text-gray-400" />
+									<CardDescription className="text-2xl text-gray-400">{price}</CardDescription>
+								</div>
+							</CardHeader>
+							<CardContent className="grid gap-4">
+								<div className="grid gap-4 py-4 text-[#f2f4f3]">{description}</div>
+								<div className="w-full overflow-x-auto">
+									<h2 className="mb-4 border-gray-500 text-left text-xl font-semibold text-[#f2f4f3]">
+										Reservas:
+									</h2>
+									<div className="rounded-lg border border-white p-6 shadow-md">
+										<div className="grid grid-cols-3 gap-4 border-gray-500 px-6 py-4 text-[#f2f4f3]">
+											<div className="text-lg font-semibold">Fecha</div>
+											<div className="text-lg font-semibold">Horario</div>
+											<div className="text-lg font-semibold">Nombre</div>
+										</div>
+										<div>
+											{reservations.length > 0 ? (
+												reservations.map((reservations) => (
+													<div className="gap- grid grid-cols-3 border-t border-gray-500 px-6 py-4 text-[#f2f4f3]">
+														<div>
+															{new Date(reservations.date_time).toLocaleDateString(
+																"es-ES",
+																{
+																	year: "numeric",
+																	month: "2-digit",
+																	day: "2-digit",
+																},
+															)}{" "}
+														</div>
+														<div>
+															{" "}
+															{new Date(reservations.date_time).toLocaleTimeString(
+																"es-ES",
+																{
+																	hour: "2-digit",
+																	minute: "2-digit",
+																},
+															)}{" "}
+														</div>
+														<div>
+															{" "}
+															{
+																(users || [])?.find(
+																	(user) => user.id === reservations.owner_id,
+																)?.full_name
+															}
+														</div>
+													</div>
+												))
+											) : (
+												<div className="flex h-full w-full items-center justify-center border-t border-gray-500 text-lg italic text-white">
+													No hay reservas
+												</div>
+											)}
+										</div>
+									</div>
+								</div>
+								<TorneosSheet fieldId={id || ""} tournaments={tournaments} />
+								<DeleteFieldButton
+									supabase={supabase}
+									fieldId={id || ""}
+									dependantQueries={props?.dependantQueries || []}
+								/>
+							</CardContent>
+						</>
+					)}
+				</Card>
+				<div className="flex h-screen w-[400px] flex-col items-center justify-center space-y-5">
+					<MyCarousel imgSrc={imgSrc} />
+
+					<MySheet name={name} description={description} price={price} onSave={onSave} />
+				</div>
+			</div>
+		</div>
 	);
 }
 
-type SheetProps = {
+export default function MySheet({
+	name,
+	description,
+	price,
+	onSave,
+}: {
 	name: string;
-	setName: (e: string) => void;
 	description: string;
-	setDescription: (e: string) => void;
-};
-
-export function MySheet(props: SheetProps) {
-	const { env, URL_ORIGIN, id } = useLoaderData<typeof loader>();
-	const supabase = createBrowserClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
-
-	const { name, setName, description, setDescription } = props;
-
-	const handleChangeName = (e: React.ChangeEvent<HTMLInputElement>) => {
-		globalName = e.target.value;
-	};
-
-	const handleChangeDescr = (e: React.ChangeEvent<HTMLInputElement>) => {
-		globalDescription = e.target.value;
-	};
+	price: number;
+	onSave: (newName: string, newDescription: string, price: number) => void;
+}) {
+	const [open, setOpen] = useState(false);
+	const [localName, setLocalName] = useState(name);
+	const [localDescription, setLocalDescription] = useState(description);
+	const [localPrice, setLocalPrice] = useState(price);
 
 	const handleSave = () => {
-		if (globalName !== "") {
-			setName(globalName);
-		}
-		if (globalDescription !== "") {
-			setDescription(globalDescription);
-		}
+		onSave(localName, localDescription, localPrice);
+		setOpen(false);
 	};
 
-	// useEffect(() => {
-	// 	supabase
-	// 		.from("fields")
-	// 		.update({
-	// 			name: name,
-	// 		})
-	// 		.eq("id", id)
-	// 		.then(({ data, error }) => {
-	// 			if (error) {
-	// 				console.error("Error al guardar:", error.message);
-	// 			} else {
-	// 				console.log("Guardado exitosamente:", data);
-	// 			}
-	// 		});
-	// }, [name]);
-
-	// useEffect(() => {
-	// 	supabase
-	// 		.from("fields")
-	// 		.update({
-	// 			description: description,
-	// 		})
-	// 		.eq("id", id)
-	// 		.then(({ data, error }) => {
-	// 			if (error) {
-	// 				console.error("Error al guardar:", error.message);
-	// 			} else {
-	// 				console.log("Guardado exitosamente:", data);
-	// 			}
-	// 		});
-	// }, [description]);
+	useEffect(() => {
+		setLocalName(name);
+		setLocalDescription(description);
+		setLocalPrice(price);
+	}, [name, description]);
 
 	return (
-		<Sheet>
+		<Sheet open={open} onOpenChange={setOpen}>
 			<SheetTrigger asChild>
-				<Button variant="outline">Editar datos de la Cancha</Button>
+				<Button className="w-full">Editar datos de la cancha</Button>
 			</SheetTrigger>
 			<SheetContent>
 				<SheetHeader>
-					<SheetTitle>Editar Cancha</SheetTitle>
-					<SheetDescription>
-						Hace los cambios a tu cancha aqui. Hace click en guardar cuando termines.
-					</SheetDescription>
+					<SheetTitle>Modificá los datos de tu cancha</SheetTitle>
 				</SheetHeader>
-				<div className="grid gap-4 py-4">
-					<div className="grid grid-cols-4 items-center gap-4">
-						<Label htmlFor="name" className="text-right">
+				<div className="mt-4 space-y-4">
+					<div>
+						<label htmlFor="name" className="mb-1 block font-semibold">
 							Nombre
-						</Label>
-						<Input placeholder={name} id="name" className="col-span-3" onChange={handleChangeName} />
+						</label>
+						<Input id="name" value={localName} onChange={(e) => setLocalName(e.target.value)} />
 					</div>
-					<div className="grid grid-cols-4 items-center gap-4">
-						<Label htmlFor="username" className="text-right">
+
+					<div>
+						<label htmlFor="price" className="mb-1 block font-semibold">
+							Precio
+						</label>
+						<Input id="price" value={localPrice} onChange={(e) => setLocalPrice(Number(e.target.value))} />
+					</div>
+
+					<div>
+						<label htmlFor="description" className="mb-1 block font-semibold">
 							Descripción
-						</Label>
+						</label>
+						<p className="text-xs text-gray-600">
+							{" "}
+							Agregá acá cualquier información que consideres importante
+						</p>
 						<Input
-							placeholder={description}
-							id="description" //no se para que sirve esto
-							className="col-span-3"
-							onChange={handleChangeDescr}
+							id="description"
+							value={localDescription}
+							onChange={(e) => setLocalDescription(e.target.value)}
 						/>
 					</div>
+					<Button onClick={handleSave}>Guardar cambios</Button>
 				</div>
-				<SheetFooter>
-					<SheetClose asChild>
-						<Button type="submit" onClick={handleSave}>
-							Guardar cambios
-						</Button>
-					</SheetClose>
-				</SheetFooter>
 			</SheetContent>
 		</Sheet>
 	);
 }
-
-type CarouselProps = {
-	imgSrc: string[];
-};
 
 export function MyCarousel(props: CarouselProps) {
 	const { imgSrc } = props;
@@ -197,202 +238,5 @@ export function MyCarousel(props: CarouselProps) {
 			<CarouselPrevious />
 			<CarouselNext />
 		</Carousel>
-	);
-}
-
-export type Reservation = {
-	id: string;
-	date_time: string;
-	owner_id: string;
-};
-
-export const columns: ColumnDef<Reservation, unknown>[] = [
-	{
-		accessorKey: "date",
-		header: "Fecha",
-		meta: {
-			className: "w-1/3 text-center",
-		} as { className: string },
-	},
-	{
-		accessorKey: "hour",
-		header: "Hora",
-		meta: {
-			className: "w-1/3 text-center",
-		} as { className: string },
-	},
-	{
-		accessorKey: "name",
-		header: "Nombre",
-		meta: {
-			className: "w-1/3 text-center",
-		} as { className: string },
-	},
-];
-
-type FieldProps = {
-	imgSrc: string[];
-	name: string;
-	setName: (e: string) => void;
-	location: string;
-	price: number;
-	description: string;
-	setDescription: (e: string) => void;
-	reservations: Reservation[];
-	tournaments: any[];
-	dependantQueries?: UseQueryResult[];
-};
-
-type Users = {
-	id: string;
-	full_name: string;
-};
-
-export function FieldDetail(props: FieldProps) {
-	const { imgSrc, name, setName, location, price, description, setDescription, reservations, tournaments } = props;
-	const { env, URL_ORIGIN, id } = useLoaderData<typeof loader>();
-	const supabase = createBrowserClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
-	const { data: users } = getAllUsers(supabase);
-
-	return (
-		<div className="h-full bg-[#f2f4f3]">
-			<div className="flex h-full flex-row items-center justify-center space-x-12">
-				<Card className="w-full max-w-3xl bg-[#223332] p-10 shadow-lg">
-					<CardHeader className="space-y-5">
-						<div className="flex flex-row items-center justify-between">
-							<CardTitle className="text-5xl font-bold text-[#f2f4f3]">{name}</CardTitle>
-							<TorneosSheet fieldId={id || ""} tournaments={tournaments} />
-							<DeleteFieldButton
-								supabase={supabase}
-								fieldId={id || ""}
-								dependantQueries={props?.dependantQueries}
-							/>
-						</div>
-						<div className="flex flex-row">
-							<MapPin className="my-auto h-6 w-6 text-gray-400" />
-							<CardDescription className="text-2xl text-gray-400">{location}</CardDescription>
-						</div>
-						<div className="flex flex-row">
-							<DollarSign className="my-auto h-6 w-6 text-gray-400" />
-							<CardDescription className="text-2xl text-gray-400">{price}</CardDescription>
-						</div>
-					</CardHeader>
-					<CardContent className="grid gap-4">
-						<div className="grid gap-4 py-4 text-[#f2f4f3]">{description}</div>
-						<div className="w-full overflow-x-auto">
-							<h2 className="mb-4 border-gray-500 text-left text-xl font-semibold text-[#f2f4f3]">
-								Reservas:
-							</h2>
-							<div className="rounded-lg border border-white p-6 shadow-md">
-								<div className="grid grid-cols-3 gap-4 border-gray-500 px-6 py-4 text-[#f2f4f3]">
-									<div className="text-lg font-semibold">Fecha</div>
-									<div className="text-lg font-semibold">Horario</div>
-									<div className="text-lg font-semibold">Nombre</div>
-								</div>
-								<div>
-									{reservations.length > 0 ? (
-										reservations.map((reservations) => (
-											<div className="gap- grid grid-cols-3 border-t border-gray-500 px-6 py-4 text-[#f2f4f3]">
-												<div>
-													{new Date(reservations.date_time).toLocaleDateString("es-ES", {
-														year: "numeric",
-														month: "2-digit",
-														day: "2-digit",
-													})}{" "}
-												</div>
-												<div>
-													{" "}
-													{new Date(reservations.date_time).toLocaleTimeString("es-ES", {
-														hour: "2-digit",
-														minute: "2-digit",
-													})}{" "}
-												</div>
-												<div>
-													{" "}
-													{
-														(users || [])?.find((user) => user.id === reservations.owner_id)
-															?.full_name
-													}
-												</div>
-											</div>
-										))
-									) : (
-										<div className="flex h-full w-full items-center justify-center border-t border-gray-500 text-lg italic text-white">
-											No hay reservas
-										</div>
-									)}
-								</div>
-							</div>
-						</div>
-					</CardContent>
-				</Card>
-				<div className="flex h-screen w-[400px] flex-col items-center justify-center space-y-5">
-					<MyCarousel imgSrc={imgSrc} />
-					<MySheet name={name} setName={setName} description={description} setDescription={setDescription} />
-				</div>
-			</div>
-		</div>
-	);
-}
-
-interface DataTableProps<TData, TValue> {
-	columns: ColumnDef<TData, TValue>[];
-	data: TData[];
-}
-
-export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData, TValue>) {
-	const table = useReactTable({
-		data,
-		columns,
-		getCoreRowModel: getCoreRowModel(),
-	});
-
-	return (
-		<div className="rounded-md border">
-			<Table className="w-full table-fixed">
-				<TableHeader>
-					{table.getHeaderGroups().map((headerGroup) => (
-						<TableRow key={headerGroup.id}>
-							{headerGroup.headers.map((header) => {
-								return (
-									<TableHead
-										key={header.id}
-										className={cn(
-											(header.column.columnDef.meta as { className?: string })?.className,
-										)}
-									>
-										{flexRender(header.column.columnDef.header, header.getContext())}
-									</TableHead>
-								);
-							})}
-						</TableRow>
-					))}
-				</TableHeader>
-				<TableBody>
-					{table.getRowModel().rows?.length ? (
-						table.getRowModel().rows.map((row) => (
-							<TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
-								{row.getVisibleCells().map((cell) => (
-									<TableCell
-										key={cell.id}
-										className={cn(
-											(cell.column.columnDef.meta as { className?: string })?.className,
-										)}
-									>
-										{flexRender(cell.column.columnDef.cell, cell.getContext())}
-									</TableCell>
-								))}
-							</TableRow>
-						))
-					) : (
-						<TableRow>
-							<TableCell colSpan={columns.length} className="text-center">
-								No data available
-							</TableCell>
-						</TableRow>
-					)}
-				</TableBody>
-			</Table>
-		</div>
 	);
 }

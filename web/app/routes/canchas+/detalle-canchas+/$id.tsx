@@ -9,6 +9,7 @@ import {
 	getFieldById,
 	getAllTournamentsForFieldById,
 	getAllFields,
+	getAllUsers,
 } from "@lib/autogen/queries";
 
 export function loader(args: LoaderFunctionArgs) {
@@ -38,30 +39,57 @@ export default function FieldDetailPage() {
 	const tournaments = getAllTournamentsForFieldById(supabase, id || "", { enabled: !!id });
 	const allFieldsQuery = getAllFields(supabase);
 
+	const usersQuery = getAllUsers(supabase);
+	const { data: users } = usersQuery;
+
 	const [name, setName] = useState(field.data?.name);
 	const [description, setDescription] = useState(field.data?.description);
+	const [price, setPrice] = useState(field.data?.price);
 
-	// Isn't this an infinite loop?
-	// -- Tomas Pietravallo (2024-04-28)
-	// It wasnt but caused other issues 2024-05-13
+	const handleUpdate = async (newName: string, newDesc: string, newPrice: number) => {
+		setName(newName);
+		setDescription(newDesc);
+		const { data, error } = await supabase
+			.from("fields")
+			.update({ name: newName, description: newDesc, price: newPrice })
+			.eq("id", id);
+
+		if (error) {
+			console.error("Error updating field:", error);
+		} else {
+			console.log("Field updated successfully:", data);
+			// hago refresh cuando tengo update the field
+			field.refetch();
+			allFieldsQuery.refetch();
+		}
+	};
+	// sin este useEffect, cuando hago hard refresh pierdo nombre, descripcion, precio
 	useEffect(() => {
-		setName(field.data?.name);
-		setDescription(field.data?.description);
-	}, [field.data?.name, field.data?.description]);
+		if (field.data) {
+			setName(field.data.name);
+			setDescription(field.data.description);
+			setPrice(field.data.price);
+		}
+	}, [field.data]);
+
+	const isLoading = field.isLoading || reservations.isLoading || tournaments.isLoading || usersQuery.isLoading;
 
 	return (
 		<FieldDetail
+			id={id}
+			supabase={supabase}
 			key={id}
 			name={name || ""}
 			description={description || ""}
 			imgSrc={field.data?.images ?? []}
 			price={field.data?.price || 0}
 			location={`${field.data?.street} ${field.data?.street_number}, ${field.data?.neighborhood}`}
-			setDescription={setDescription}
-			setName={setName}
 			reservations={reservations.data || []}
 			tournaments={tournaments.data || []}
+			users={users || []}
 			dependantQueries={[allFieldsQuery, tournaments, reservations]}
+			onSave={handleUpdate}
+			loading={isLoading}
 		/>
 	);
 }
