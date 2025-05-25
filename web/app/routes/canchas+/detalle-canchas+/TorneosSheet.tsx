@@ -11,6 +11,9 @@ import {
 import { Button } from "~/components/ui/button";
 import { useLoaderData, useNavigate } from "@remix-run/react";
 import { createBrowserClient } from "@supabase/ssr";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@lib/autogen/database.types";
+
 import { LoaderFunctionArgs } from "@remix-run/node";
 import { getAllTournamentsForFieldById, getFieldById } from "@lib/autogen/queries";
 import { set, useForm, UseFormReturn } from "react-hook-form";
@@ -32,6 +35,7 @@ import { Textarea } from "../../../components/ui/textarea";
 import MultipleSelector, { Option } from "../../../components/ui/multiselector";
 import { DollarSign, Icon } from "lucide-react";
 import { on } from "events";
+import { getAllTeams, getTeamById } from "@db/queries";
 
 export function loader(args: LoaderFunctionArgs) {
 	const env = {
@@ -280,6 +284,60 @@ function SelectFormSection({ form, options }: { form: UseFormReturn<any, any, an
 	);
 }
 
+export function SingleTournamentInfo({ tournament_id }: { tournament_id: string }) {
+	const { env, URL_ORIGIN, id } = useLoaderData<typeof loader>();
+	const supabase = createBrowserClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
+	const [inscriptions, setInscriptions] = useState<any[]>([]);
+
+	const teamsData = getAllTeams(supabase);
+
+	useEffect(() => {
+		const fetchInscriptions = async () => {
+			const { data, error } = await supabase.from("inscriptions").select("*").eq("tournamentId", tournament_id); // Reemplaza con el ID del torneo actual
+
+			if (error) {
+				console.error("Error fetching inscriptions:", error);
+			} else {
+				setInscriptions(data || []);
+			}
+		};
+
+		if (tournament_id) {
+			fetchInscriptions();
+		}
+	}, [tournament_id]);
+
+	console.log("Inscriptions:", inscriptions);
+
+	return (
+		<div className="mt-4 flex flex-col items-center text-sm text-gray-700">
+			{inscriptions.length > 0 ? (
+				<div className="w-full max-w-4xl space-y-2">
+					<div className="flex justify-center border-b pb-1 font-semibold">
+						<div className="w-1/3 text-center">Nombre</div>
+						<div className="w-1/3 text-center">Teléfono</div>
+						<div className="w-1/3 text-center">Email</div>
+					</div>
+
+					{inscriptions.map((inscription, index) => {
+						const team = teamsData.data?.find((team) => team.team_id === inscription.teamId);
+
+						return (
+							<div key={index} className="flex justify-center py-1">
+								<div className="w-1/3 text-center">{team?.name}</div>
+								<div className="w-1/3 text-center">{team?.contactPhone}</div>
+								<div className="w-1/3 text-center">{team?.contactEmail}</div>
+							</div>
+						);
+					})}
+				</div>
+			) : (
+				<p>No hay inscriptos.</p>
+			)}
+		</div>
+	);
+}
+
 type TorneosSheetProps = {
 	fieldId: string;
 	tournaments: any[];
@@ -315,7 +373,7 @@ export function TorneosSheet({ fieldId, tournaments }: TorneosSheetProps) {
 									Equipos inscriptos: {tournament.players?.length || 0}
 								</p> */}
 								<p className="pt-3 text-sm text-gray-600">Inscriptos:</p>
-								{tournament.players?.length > 0 ? (
+								{/* {tournament.players?.length > 0 ? (
 									<ul className="mt-2 list-disc pl-5 text-sm text-gray-500">
 										{tournament.players.map((player: string, index: number) => (
 											<li key={index}>{player}</li>
@@ -323,7 +381,8 @@ export function TorneosSheet({ fieldId, tournaments }: TorneosSheetProps) {
 									</ul>
 								) : (
 									<p className="text-sm text-gray-500">No hay equipos inscriptos.</p>
-								)}
+								)} */}
+								<SingleTournamentInfo tournament_id={tournament.id} />
 							</div>
 						))}
 					</div>
