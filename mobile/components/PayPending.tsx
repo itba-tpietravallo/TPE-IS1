@@ -10,7 +10,6 @@ import { Button, Image, Text } from "@rneui/themed";
 import { supabase } from "@/lib/supabase";
 import { IconSymbol } from "./ui/IconSymbol";
 import { Link, usePathname } from "expo-router";
-import Constants from "expo-constants";
 
 const ButtonStyles = {
 	error: {
