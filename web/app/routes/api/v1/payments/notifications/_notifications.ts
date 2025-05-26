@@ -172,19 +172,34 @@ async function processMercadoPagoNotification(
 				});
 			}
 
-			const { error: error2 } = await supabaseClient
+			const { data: reservation, error: fetchError } = await supabaseClient
 				.from("reservations")
-				.update({
-					payments_id: Number(data.data.id),
-				})
-				.eq("id", reservation_id);
+				.select("payments_ids")
+				.eq("id", reservation_id)
+				.single();
 
-			if (error2) {
-				console.error("Error updating reservation:", error2);
-				return new Response("Error updating reservation", {
+			if (fetchError) {
+				console.error("Error fetching reservation:", fetchError);
+				return new Response("Error fetching reservation", {
 					status: 500,
-					statusText: "Error updating reservation",
+					statusText: "Error fetching reservation",
 				});
+			} else {
+				const newPaymentId = Number(data.data.id);
+				const updatedArray = [...(reservation.payments_ids || []), newPaymentId];
+
+				const { error: updateError } = await supabaseClient
+					.from("reservations")
+					.update({ payments_ids: updatedArray })
+					.eq("id", reservation_id);
+
+				if (updateError) {
+					console.error("Error updating reservation:", updateError);
+					return new Response("Error updating reservation", {
+						status: 500,
+						statusText: "Error updating reservation",
+					});
+				}
 			}
 
 			try {

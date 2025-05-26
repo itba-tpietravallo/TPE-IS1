@@ -12,11 +12,13 @@ import { PreferenceCreateData } from "mercadopago/dist/clients/preference/create
 type PaymentRequest = {
 	userId: string;
 	fieldId: string;
+	reservationId: string;
 	processor: string;
 	pending_url: string;
 	success_url: string;
 	failure_url: string;
 	date_time: string;
+	price?: number;
 };
 
 function uuidv4() {
@@ -89,7 +91,7 @@ async function getMercadoPagoRedirectURL(
 	reqBody: PaymentRequest,
 	supabaseClient: SupabaseClient,
 ): Promise<Response> {
-	const { success_url, failure_url, pending_url, fieldId, date_time } = reqBody;
+	const { success_url, failure_url, pending_url, fieldId, date_time, price } = reqBody;
 
 	if (!success_url || !pending_url || !failure_url || !fieldId || !date_time) {
 		return new Response("Missing required fields", {
@@ -148,7 +150,12 @@ async function getMercadoPagoRedirectURL(
 		options: { timeout: 5000 },
 	});
 
-	const RESERVATION_ID = uuidv4();
+	const RESERVATION_ID = reqBody.reservationId;
+
+	const URL =
+		process.env.VERCEL_ENV === "production"
+			? "https://matchpointapp.com.ar/"
+			: "https://tpe-is1-itba-p9nkukv55-tomas-pietravallos-projects-3cd242b1.vercel.app/";
 
 	const BODY: PreferenceCreateData = {
 		body: {
@@ -157,7 +164,7 @@ async function getMercadoPagoRedirectURL(
 					id: fieldId,
 					title: data.name,
 					description: data.description,
-					unit_price: data.price,
+					unit_price: price === undefined ? data.price : price,
 					quantity: 1,
 					currency_id: "ARS",
 					category_id: "others",
@@ -176,7 +183,7 @@ async function getMercadoPagoRedirectURL(
 				email: user.email,
 			},
 			binary_mode: true,
-			notification_url: `https://matchpointapp.com.ar/api/v1/payments/notifications?user_id=${user.id}&reservation_id=${RESERVATION_ID}&amount=${data.price}&merchant_fee=${0}`,
+			notification_url: `${URL}api/v1/payments/notifications?user_id=${user.id}&reservation_id=${RESERVATION_ID}&amount=${price === undefined ? data.price : price}&merchant_fee=${0}`,
 			external_reference: `${RESERVATION_ID}`,
 			marketplace: "8221763286725670",
 			marketplace_fee: 0,
@@ -203,18 +210,33 @@ async function getMercadoPagoRedirectURL(
 		});
 	}
 
-	const resp = await supabaseClient.from("reservations").insert({
-		id: RESERVATION_ID,
-		date_time: new Date(date_time),
-		owner_id: user?.id,
-		payments_id: null,
-		field_id: fieldId,
-	} as typeof reservationsTable.$inferInsert);
+	// const resp = await supabaseClient.from("reservations").insert({
+	// 	id: RESERVATION_ID,
+	// 	date_time: new Date(date_time),
+	// 	owner_id: user?.id,
+	// 	payments_id: null,
+	// 	field_id: fieldId,
+	// } as typeof reservationsTable.$inferInsert);
+
+	const updatedArray = data.pending_bookers_ids.filter((id: string) => id !== reqBody.userId);
+
+	const updatePayload: {
+		pending_bookers_ids: string[];
+		confirmed?: boolean;
+	} = {
+		pending_bookers_ids: updatedArray,
+	};
+
+	if (updatedArray.length === 0) {
+		updatePayload.confirmed = true;
+	}
+
+	const resp = await supabaseClient.from("reservations").update(updatePayload).eq("id", reqBody.reservationId);
 
 	if (resp.error) {
-		return new Response(`Error creating reservation: ${resp.error.message}. ${date_time}`, {
+		return new Response(`Error updating reservation: ${resp.error.message}. ${date_time}`, {
 			status: 500,
-			statusText: `Error creating reservation: ${resp.error.message}. ${date_time}`,
+			statusText: `Error updating reservation: ${resp.error.message}. ${date_time}`,
 		});
 	}
 

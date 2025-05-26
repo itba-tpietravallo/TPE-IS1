@@ -29,60 +29,35 @@ const ButtonStyles = {
 	},
 	default: {
 		backgroundColor: "#f18f04",
-		text: "Reservar",
+		text: "Pagar",
 	},
 };
 
-export default function CheckoutButton({
-	userId,
+export default function PayPending({
+	reservationId,
 	fieldId,
 	date_time,
-	disabled = false,
+	price,
 }: {
-	userId: string;
+	reservationId: string;
 	fieldId: string;
 	date_time: string;
-	disabled?: boolean;
+	price: number;
 }) {
 	const [pending, setPending] = useState(false);
 	const [status, setStatus] = useState<"error" | "failure" | "pending" | "success" | "default">("default");
 	const [error, setError] = useState<string | null>(null);
 	const path = usePathname();
-	const singleBooker = [userId];
 
 	async function handlePress() {
 		setPending(true);
-
-		const resp = await supabase
-			.from("reservations")
-			.insert({
-				owner_id: userId,
-				field_id: fieldId,
-				date_time: date_time,
-				bookers_count: 1,
-				pending_bookers_ids: singleBooker,
-			})
-			.select()
-			.single();
-
-		if (resp.error) {
-			console.error("Error inserting reservation:", resp.error);
-		} else {
-			console.log("reservation inserted");
-		}
-
-		const reservationId = resp.data?.id;
 
 		await supabase.auth.getSession().then(async (res) => {
 			if (res.error || res.data == null) {
 				throw new Error(res.error?.message || "Authentication error");
 			}
 
-			const URL = __DEBUG__
-				? "https://matchpointapp.com.ar/"
-				: "https://tpe-is1-itba-p9nkukv55-tomas-pietravallos-projects-3cd242b1.vercel.app/";
-
-			await fetch(`${URL}api/v1/payments`, {
+			await fetch("https://matchpointapp.com.ar/api/v1/payments", {
 				method: "POST",
 				body: JSON.stringify({
 					userId: res.data.session?.user.id,
@@ -93,6 +68,7 @@ export default function CheckoutButton({
 					success_url: Linking.createURL(`${path}?success`),
 					failure_url: Linking.createURL(`${path}?failure`),
 					date_time,
+					price,
 					// Failure redirect example:
 					// exp://10.7.218.143:8081?collection_id=null&collection_status=null&payment_id=null&status=null&external_reference=field:3ae59ad0-57d4-4cbc-bd39-99a29ba7d12e-user:85a36c63-97f6-4c8d-b967-94c8d452a8b1&payment_type=null&merchant_order_id=null&preference_id=449538966-3da6a0e8-89e8-438f-b5ea-4737c408158f&site_id=MLA&processing_mode=aggregator&merchant_account_id=null
 				}),
@@ -151,12 +127,13 @@ export default function CheckoutButton({
 
 	return (
 		<TouchableOpacity
-			disabled={disabled || pending}
+			disabled={pending}
 			style={{
-				width: "100%",
+				width: 130,
 				padding: "5%",
-				backgroundColor: disabled ? "#cccccc" : ButtonStyles[status].backgroundColor,
-				opacity: disabled ? 0.6 : 1,
+				backgroundColor: ButtonStyles[status].backgroundColor,
+				borderRadius: 12,
+				opacity: 1,
 			}}
 			onPress={() => handlePress()}
 		>
@@ -165,7 +142,7 @@ export default function CheckoutButton({
 					{status === "error"
 						? `Error: ${error}`
 						: pending && status === "default"
-							? "Reservando"
+							? "Pagando"
 							: ButtonStyles[status].text}
 				</Text>
 

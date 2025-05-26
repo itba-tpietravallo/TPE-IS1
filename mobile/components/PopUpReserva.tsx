@@ -1,17 +1,17 @@
-import React, { useState, useEffect, useRef } from "react";
-import { View, Text, Button, StyleSheet, Image, TouchableOpacity, Modal, Alert } from "react-native";
+import React, { useState } from "react";
+import { View, Text, StyleSheet, Image, TouchableOpacity, Modal } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { ScreenWidth } from "@rneui/themed/dist/config";
 import { supabase } from "@/lib/supabase";
-import { Session } from "@supabase/supabase-js";
 import CheckoutButton from "./CheckoutButton";
+import PreReserveButton from "./PreReserveButton";
 
-import { getAllReservationTimeSlots, getUserSession } from "@/lib/autogen/queries";
+import { getAllReservationTimeSlots, getUserSession, getAllTeamsByUser } from "@/lib/autogen/queries";
+import Selector from "./Selector";
 
-type User = {
+export type Renter = {
 	id: string;
-	full_name: string;
-	avatar_url: string;
+	name: string;
 };
 
 interface PopUpReservaProps {
@@ -31,14 +31,34 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 	const [isModalVisible, setIsModalVisible] = useState(false);
 	const [selectedDateTime, setSelectedDateTime] = useState<Date>(new Date());
 	const [unavailable, setUnavailability] = useState<boolean | null>(null);
-	const [show, setShow] = useState(false);
+	const [selectedRenter, setSelectedRenter] = useState<Renter | null>(null);
+	const { data: teamData } = getAllTeamsByUser(supabase, user?.id!, { enabled: !!user?.id });
+	const normalizedTeams = teamData ? teamData.filter((team) => team.team_id && team.name !== null) : [];
+
+	const teams: Renter[] = normalizedTeams.map((team) => ({
+		id: team.team_id,
+		name: team.name as string,
+	}));
+
+	const renters: Renter[] = [...(user?.id && user?.username ? [{ id: user.id, name: user.username }] : []), ...teams];
+
+	// const handleDateTimeChange = async (event: any, date?: Date) => {
+	// 	if (event.type === "dismissed" || event.type === "set") {
+	// 		setShow(false);
+	// 	}
+
+	// 	if (date && event.type === "set") {
+	// 		setSelectedDateTime(date);
+
+	// 		const taken = await isSlotUnavailable(fieldId, date);
+
+	// 		setUnavailability(taken);
+	// 		console.log(new Date().getTime());
+	// 	}
+	// };
 
 	const handleDateTimeChange = async (event: any, date?: Date) => {
-		if (event.type === "dismissed" || event.type === "set") {
-			setShow(false);
-		}
-
-		if (date && event.type === "set") {
+		if (date) {
 			setSelectedDateTime(date);
 
 			const taken = await isSlotUnavailable(fieldId, date);
@@ -48,12 +68,16 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 		}
 	};
 
+	function isTeam(renter: Renter | null): boolean {
+		if (!renter) return false;
+		return teams.some((team) => team.id === renter.id);
+	}
+
 	return (
 		<View style={styles.modalView}>
 			<TouchableOpacity style={{ padding: 10, alignItems: "flex-end" }} onPress={onClose}>
 				<Image style={{ width: 20, height: 20, marginTop: 10 }} source={require("@/assets/images/close.png")} />
 			</TouchableOpacity>
-
 			<View style={styles.mainInfo}>
 				<View style={styles.topInfo}>
 					<View style={{ flex: 1, paddingRight: 10, alignItems: "center" }}>
@@ -155,7 +179,6 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 				{description}
 			</Text>
 			<Text style={{ padding: 20, fontSize: 18 }}>Precio: ${price}</Text>
-
 			{/* ---------------------------------- Funciona en IOS??????? -------------------------------- */}
 			<View style={styles.selection}>
 				<View>
@@ -173,24 +196,55 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 					/>
 				</View>
 			</View>
-
 			{unavailable && (
 				<Text style={{ marginLeft: 20, marginBottom: 10, marginTop: 8, color: "red" }}>
 					Fecha y horario no disponibles.
 				</Text>
 			)}
-
 			{!unavailable && (
 				<Text style={{ marginLeft: 20, marginBottom: 10, marginTop: 8, color: "green" }}>
 					Fecha y horario disponibles.
 				</Text>
 			)}
-
 			{/* ---------------------------------- Funciona(ish) en Android --------------------------------*/}
 			{/* ... */}
 			{/* ---------------------------------- ------------------------ --------------------------------*/}
+			<Selector<Renter>
+				title="Reservar como..."
+				options={renters}
+				onSelect={setSelectedRenter}
+				initialLabel="Seleccionar"
+				getLabel={(renter) => renter.name}
+			/>
 
-			<CheckoutButton fieldId={fieldId} date_time={selectedDateTime.toISOString()} />
+			{!selectedRenter && (
+				<TouchableOpacity
+					disabled
+					style={{
+						backgroundColor: "#ccc",
+						paddingVertical: 14,
+						alignItems: "center",
+						marginTop: 20,
+					}}
+				>
+					<Text style={{ color: "white", fontWeight: "bold", fontSize: 18 }}>Reservar</Text>
+				</TouchableOpacity>
+			)}
+
+			{selectedRenter && isTeam(selectedRenter) && user?.id && (
+				<PreReserveButton
+					userId={user.id}
+					fieldId={fieldId}
+					fieldName={selectedRenter.name}
+					// preActionFunction={preActionFunction}
+					teamId={selectedRenter.id}
+					date_time={selectedDateTime.toISOString()}
+				/>
+			)}
+
+			{selectedRenter && !isTeam(selectedRenter) && user?.id && (
+				<CheckoutButton userId={user.id} fieldId={fieldId} date_time={selectedDateTime.toISOString()} />
+			)}
 		</View>
 	);
 }
