@@ -1,4 +1,8 @@
 export const __GET_PUBLIC_ENV = (env?: "production" | "development") => {
+	if (env == undefined) {
+		env = process.env.VERCEL_ENV as "production" | "development";
+	}
+
 	const DATABASE_ENDPOINT =
 		(env ?? process.env.VERCEL_ENV) === "production"
 			? process.env.PROD_SUPABASE_URL!
