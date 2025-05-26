@@ -10,6 +10,7 @@ import { Button, Image, Text } from "@rneui/themed";
 import { supabase } from "@/lib/supabase";
 import { IconSymbol } from "./ui/IconSymbol";
 import { Link, usePathname } from "expo-router";
+import Constants from "expo-constants";
 
 const ButtonStyles = {
 	error: {
@@ -60,8 +61,8 @@ export default function PayPending({
 			await fetch(
 				new URL(
 					"/api/v1/payments",
-					__DEBUG__
-						? "https://tpe-is1-itba-p9nkukv55-tomas-pietravallos-projects-3cd242b1.vercel.app/"
+					Linking.getLinkingURL()?.includes("exp://")
+						? "https://tpe-is1-itba-thi56o22h-tomas-pietravallos-projects-3cd242b1.vercel.app"
 						: "https://matchpointapp.com.ar/",
 				).toString(),
 				{

@@ -10,6 +10,7 @@ import { Button, Image, Text } from "@rneui/themed";
 import { supabase } from "@/lib/supabase";
 import { IconSymbol } from "./ui/IconSymbol";
 import { Link, usePathname } from "expo-router";
+import Constants from "expo-constants";
 
 const ButtonStyles = {
 	error: {
@@ -50,6 +51,8 @@ export default function CheckoutButton({
 	const path = usePathname();
 	const singleBooker = [userId];
 
+	const DEV_MODE = Linking.getLinkingURL()?.includes("exp://");
+
 	async function handlePress() {
 		setPending(true);
 
@@ -78,11 +81,12 @@ export default function CheckoutButton({
 				throw new Error(res.error?.message || "Authentication error");
 			}
 
-			const URL = __DEBUG__
-				? "https://tpe-is1-itba-p9nkukv55-tomas-pietravallos-projects-3cd242b1.vercel.app/"
+			const url = DEV_MODE
+				? "https://tpe-is1-itba-thi56o22h-tomas-pietravallos-projects-3cd242b1.vercel.app/"
 				: "https://matchpointapp.com.ar/";
 
-			await fetch(`${URL}api/v1/payments`, {
+			console.log(url);
+			await fetch(`${url}api/v1/payments`, {
 				method: "POST",
 				body: JSON.stringify({
 					userId: res.data.session?.user.id,
