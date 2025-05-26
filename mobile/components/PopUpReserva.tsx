@@ -6,7 +6,7 @@ import { supabase } from "@/lib/supabase";
 import CheckoutButton from "./CheckoutButton";
 import PreReserveButton from "./PreReserveButton";
 
-import { getAllReservationTimeSlots, getUserSession, getAllTeamsByUser } from "@/lib/autogen/queries";
+import { getAllReservationTimeSlots, getUserSession, getAllTeamsByUser, getUsername } from "@/lib/autogen/queries";
 import Selector from "./Selector";
 
 export type Renter = {
@@ -40,7 +40,13 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 		name: team.name as string,
 	}));
 
-	const renters: Renter[] = [...(user?.id && user?.username ? [{ id: user.id, name: user.username }] : []), ...teams];
+	const userName = getUsername(supabase, user?.id!, { enabled: !!user?.id });
+
+	const renters: Renter[] = [
+		...(user?.id && typeof userName.data === "string" ? [{ id: user.id, name: userName.data }] : []),
+		...teams,
+	];
+	console.log(user?.username);
 
 	// const handleDateTimeChange = async (event: any, date?: Date) => {
 	// 	if (event.type === "dismissed" || event.type === "set") {
