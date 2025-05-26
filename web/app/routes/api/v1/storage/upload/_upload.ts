@@ -14,8 +14,8 @@ function uuidv4() {
 export const action = async ({ request }: ActionFunctionArgs) => {
 	let { fileName } = (await request.json()) || ({ fileName: "" } as { fileName: string });
 
-	const bucketUrl = __GET_PUBLIC_ENV().IMAGE_BUCKET_URLS.find((url) => url.includes("google"))![0];
-	const bucket = bucketUrl.replaceAll("https://storage.googleapis.com/", "");
+	const bucketUrl = __GET_PUBLIC_ENV().IMAGE_BUCKET_URLS.find((url) => url.includes("google"));
+	const bucket = String(`${bucketUrl}`).replaceAll("https://storage.googleapis.com/", "");
 
 	if (!fileName) {
 		return new Response("File name is required", { status: 400 });
