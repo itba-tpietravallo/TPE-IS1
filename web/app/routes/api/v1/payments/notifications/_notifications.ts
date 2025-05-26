@@ -6,8 +6,8 @@ import { MercadoPagoConfig, MerchantOrder, Payment, PaymentRefund } from "mercad
 
 import createHmac from "create-hmac";
 
-import { mpPaymentsTable } from "@/../../db/schema";
 import { Database } from "@lib/autogen/database.types";
+import { __GET_PUBLIC_ENV } from "@lib/getenv.server";
 
 type NotificationType = {
 	action: string;
@@ -127,7 +127,10 @@ async function processMercadoPagoNotification(
 					)
 				)
 			),
-			date_time
+			date_time,
+			payments_ids,
+			pending_bookers_ids,
+			team_id
 		`,
 		)
 		.eq("id", reservation_id)
@@ -172,15 +175,31 @@ async function processMercadoPagoNotification(
 				});
 			}
 
-			const { error: error2 } = await supabaseClient
+			const newPaymentId = Number(data.data.id);
+			const updatedPaymentIdsArray = [...(res.data.payments_ids || []), newPaymentId];
+
+			const updatedPendingBookersArray = res.data.pending_bookers_ids.filter((id: string) => id !== user_id);
+
+			const updatePayload: {
+				payments_ids: number[];
+				pending_bookers_ids: string[];
+				confirmed?: boolean;
+			} = {
+				payments_ids: updatedPaymentIdsArray,
+				pending_bookers_ids: updatedPendingBookersArray,
+			};
+
+			if (updatedPendingBookersArray.length === 0) {
+				updatePayload.confirmed = true;
+			}
+
+			const { error: updateError } = await supabaseClient
 				.from("reservations")
-				.update({
-					payments_id: Number(data.data.id),
-				})
+				.update(updatePayload)
 				.eq("id", reservation_id);
 
-			if (error2) {
-				console.error("Error updating reservation:", error2);
+			if (updateError) {
+				console.error("Error updating reservation:", updateError);
 				return new Response("Error updating reservation", {
 					status: 500,
 					statusText: "Error updating reservation",
@@ -203,7 +222,7 @@ async function processMercadoPagoNotification(
 						statusText: "Player info not found",
 					});
 
-				await fetch(new URL("/api/v1/send-email", "https://matchpointapp.com.ar/").toString(), {
+				await fetch(new URL("/api/v1/send-email", __GET_PUBLIC_ENV().URL_ORIGIN).toString(), {
 					method: "POST",
 					body: JSON.stringify({
 						player_email: player_info.email,

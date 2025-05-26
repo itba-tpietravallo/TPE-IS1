@@ -10,7 +10,7 @@ function NavigationBar() {
 			</TouchableOpacity>
 			<View style={styles.separator} />
 			<TouchableOpacity style={styles.button} onPress={() => router.push("/(tabs)/canchas")}>
-				<Image style={styles.image} source={require("@/assets/images/cancha.png")} />
+				<Image style={styles.image} source={require("@/assets/images/fields3.png")} />
 			</TouchableOpacity>
 			<View style={styles.separator} />
 			<TouchableOpacity style={styles.button} onPress={() => router.push("/(tabs)/torneos")}>
@@ -18,7 +18,7 @@ function NavigationBar() {
 			</TouchableOpacity>
 			<View style={styles.separator} />
 			<TouchableOpacity style={styles.button} onPress={() => router.push("/(tabs)/map")}>
-				<Image style={styles.image} source={require("@/assets/images/map.png")} />
+				<Image style={styles.image} source={require("@/assets/images/map-icon.png")} />
 			</TouchableOpacity>
 		</View>
 	);

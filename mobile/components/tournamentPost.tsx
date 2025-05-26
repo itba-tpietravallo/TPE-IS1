@@ -8,6 +8,7 @@ import { StyleSheet, Text, View, ImageBackground, Image, TouchableOpacity, Modal
 import PopUpTorneo from "@components/PopUpTorneo";
 
 interface props {
+	tournamentId: string;
 	name: string;
 	fieldId: string;
 	sport: string;
@@ -16,9 +17,9 @@ interface props {
 	price: number;
 	deadline: Date;
 	cantPlayers: number;
-	players: string[];
 }
 function TournamentPost({
+	tournamentId,
 	name,
 	fieldId,
 	sport,
@@ -27,7 +28,6 @@ function TournamentPost({
 	price,
 	deadline,
 	cantPlayers,
-	players,
 }: props) {
 	const [isModalVisible, setIsModalVisible] = useState(false);
 	const handleCloseModal = () => {
@@ -83,7 +83,7 @@ function TournamentPost({
 						price={price.toString()}
 						deadline={deadline}
 						cantPlayers={cantPlayers}
-						players={players}
+						tournamentId={tournamentId}
 					/>
 				</View>
 			</Modal>

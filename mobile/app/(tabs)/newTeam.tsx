@@ -26,6 +26,7 @@ export default function PostTeam() {
 	const [members, setMembers] = useState<string[]>([]);
 	const [newMember, setNewMember] = useState("");
 	const [availability, setAvailability] = useState(0);
+	const [isPublic, setIsPublic] = useState(true);
 
 	const { data: user } = getUserSession(supabase);
 
@@ -39,7 +40,12 @@ export default function PostTeam() {
 				description: description,
 				images: null,
 				//availability: availability, // Disponibilidad ingresada
-				players: [user?.full_name!], // Cuando crea el equipo automaticamente se une el creador
+				players: [user?.id!], // Cuando crea el equipo automaticamente se une el creador
+				playerRequests: [],
+				admins: [user?.id!], 
+				isPublic: isPublic,
+				contactPhone: "",
+				contactEmail: "",
 			},
 		]);
 		router.push("/(tabs)/teams");
@@ -181,6 +187,35 @@ export default function PostTeam() {
 					multiline
 					numberOfLines={4}
 				/>
+
+				{/* Privacidad */}    
+				<Text style={styles.label}>Privacidad</Text>
+				<SelectDropdown
+					data={["Público", "Privado"]}
+					onSelect={(itemValue) => setIsPublic(itemValue==="Público")}
+					dropdownStyle={{ backgroundColor: "white", gap: 5, borderRadius: 8 }}
+					renderButton={(selectedItem, isOpened) => {
+						return (
+							<View style={styles.dropdownButtonStyle}>
+								<Text style={styles.dropdownButtonTxtStyle}>
+									{selectedItem === true ? "Público" : selectedItem === false ? "Privado" : "Público"}
+								</Text>
+							</View>
+						);
+					}}
+					renderItem={(item, index, isSelected) => {
+						return (
+							<View
+								style={{
+									...styles.dropdownItemStyle,
+									...(isSelected && { backgroundColor: "#D2D9DF" }),
+								}}
+							>
+								<Text style={styles.dropdownItemTxtStyle}>{item}</Text>
+							</View>
+						);
+					}}
+				/> 
 
 				<Text style={{ color: "#464545" }}>* Indica que el campo es obligatorio.</Text>
 

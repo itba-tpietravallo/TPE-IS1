@@ -6,9 +6,10 @@ import * as WebBrowser from "expo-web-browser";
 import * as Linking from "expo-linking";
 import { fetch } from "expo/fetch";
 
-import { Image, Text } from "@rneui/themed";
+import { Button, Image, Text } from "@rneui/themed";
 import { supabase } from "@/lib/supabase";
-import { usePathname } from "expo-router";
+import { IconSymbol } from "./ui/IconSymbol";
+import { Link, usePathname } from "expo-router";
 
 const ButtonStyles = {
 	error: {
@@ -28,82 +29,65 @@ const ButtonStyles = {
 	},
 	default: {
 		backgroundColor: "#f18f04",
-		text: "Reservar",
+		text: "Pagar",
 	},
 };
 
-export default function CheckoutButton({
-	userId,
+export default function PayPending({
+	reservationId,
 	fieldId,
 	date_time,
-	disabled = false,
+	price,
 }: {
-	userId: string;
+	reservationId: string;
 	fieldId: string;
 	date_time: string;
-	disabled?: boolean;
+	price: number;
 }) {
 	const [pending, setPending] = useState(false);
 	const [status, setStatus] = useState<"error" | "failure" | "pending" | "success" | "default">("default");
 	const [error, setError] = useState<string | null>(null);
 	const path = usePathname();
-	const singleBooker = [userId];
-
-	const DEV_MODE = Linking.getLinkingURL()?.includes("exp://");
 
 	async function handlePress() {
 		setPending(true);
-
-		const resp = await supabase
-			.from("reservations")
-			.insert({
-				owner_id: userId,
-				field_id: fieldId,
-				date_time: date_time,
-				bookers_count: 1,
-				pending_bookers_ids: singleBooker,
-			})
-			.select()
-			.single();
-
-		if (resp.error) {
-			console.error("Error inserting reservation:", resp.error);
-		} else {
-			console.log("reservation inserted");
-		}
-
-		const reservationId = resp.data?.id;
 
 		await supabase.auth.getSession().then(async (res) => {
 			if (res.error || res.data == null) {
 				throw new Error(res.error?.message || "Authentication error");
 			}
 
-			const url = DEV_MODE ? "https://dev.matchpointapp.com.ar/" : "https://matchpointapp.com.ar/";
-
-			console.log(url);
-			await fetch(`${url}api/v1/payments`, {
-				method: "POST",
-				body: JSON.stringify({
-					userId: res.data.session?.user.id,
-					fieldId,
-					reservationId,
-					processor: "mercado-pago-redirect",
-					pending_url: Linking.createURL(`${path}?pending`),
-					success_url: Linking.createURL(`${path}?success`),
-					failure_url: Linking.createURL(`${path}?failure`),
-					date_time,
-					// Failure redirect example:
-					// exp://10.7.218.143:8081?collection_id=null&collection_status=null&payment_id=null&status=null&external_reference=field:3ae59ad0-57d4-4cbc-bd39-99a29ba7d12e-user:85a36c63-97f6-4c8d-b967-94c8d452a8b1&payment_type=null&merchant_order_id=null&preference_id=449538966-3da6a0e8-89e8-438f-b5ea-4737c408158f&site_id=MLA&processing_mode=aggregator&merchant_account_id=null
-				}),
-				headers: {
-					"Content-Type": "application/json",
-					Accept: "application/json",
-					apiKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!,
-					access_token: `${res.data.session!.access_token}`,
-					refresh_token: `${res.data.session!.refresh_token}`,
+			await fetch(
+				new URL(
+					"/api/v1/payments",
+					Linking.getLinkingURL()?.includes("exp://")
+						? "https://dev.matchpointapp.com.ar/"
+						: "https://matchpointapp.com.ar/",
+				).toString(),
+				{
+					method: "POST",
+					body: JSON.stringify({
+						userId: res.data.session?.user.id,
+						fieldId,
+						reservationId,
+						processor: "mercado-pago-redirect",
+						pending_url: Linking.createURL(`${path}?pending`),
+						success_url: Linking.createURL(`${path}?success`),
+						failure_url: Linking.createURL(`${path}?failure`),
+						date_time,
+						price,
+						// Failure redirect example:
+						// exp://10.7.218.143:8081?collection_id=null&collection_status=null&payment_id=null&status=null&external_reference=field:3ae59ad0-57d4-4cbc-bd39-99a29ba7d12e-user:85a36c63-97f6-4c8d-b967-94c8d452a8b1&payment_type=null&merchant_order_id=null&preference_id=449538966-3da6a0e8-89e8-438f-b5ea-4737c408158f&site_id=MLA&processing_mode=aggregator&merchant_account_id=null
+					}),
+					headers: {
+						"Content-Type": "application/json",
+						Accept: "application/json",
+						apiKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!,
+						access_token: `${res.data.session!.access_token}`,
+						refresh_token: `${res.data.session!.refresh_token}`,
+					},
 				},
-			}).then(async (res) => {
+			).then(async (res) => {
 				if (res.status >= 200 && res.status < 300) {
 					const data = await res.text();
 					await openBrowserAsync(data);
@@ -151,12 +135,13 @@ export default function CheckoutButton({
 
 	return (
 		<TouchableOpacity
-			disabled={disabled || pending}
+			disabled={pending}
 			style={{
-				width: "100%",
+				width: 130,
 				padding: "5%",
-				backgroundColor: disabled ? "#cccccc" : ButtonStyles[status].backgroundColor,
-				opacity: disabled ? 0.6 : 1,
+				backgroundColor: ButtonStyles[status].backgroundColor,
+				borderRadius: 12,
+				opacity: 1,
 			}}
 			onPress={() => handlePress()}
 		>
@@ -165,7 +150,7 @@ export default function CheckoutButton({
 					{status === "error"
 						? `Error: ${error}`
 						: pending && status === "default"
-							? "Reservando"
+							? "Pagando"
 							: ButtonStyles[status].text}
 				</Text>
 

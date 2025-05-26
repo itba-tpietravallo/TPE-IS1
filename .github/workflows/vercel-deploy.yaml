@@ -15,12 +15,15 @@ jobs:
     Database-Changes:
         uses: ./.github/workflows/db-types.yaml
         secrets: inherit
+    API-Tests:
+        uses: ./.github/workflows/api-tests.yaml
+        secrets: inherit
     Browser-Tests:
         needs: [Database-Changes]
         uses: ./.github/workflows/playwright.yml
         secrets: inherit
     Deploy:
-        needs: [Browser-Tests]
+        needs: [Browser-Tests, API-Tests]
         runs-on: ubuntu-latest
         defaults:
             run:
@@ -56,7 +59,20 @@ jobs:
               timeout-minutes: 2
 
             - name: Deploy Project Artifacts to Vercel
+              id: deploy
               run: |
                   msg=`npx vercel deploy --prebuilt --target=${{ steps.extract_branch.outputs.branch == 'main' && 'production' || 'preview' }} --token=${{ secrets.VERCEL_TOKEN }}`
                   echo "::notice title={[${{ steps.extract_branch.outputs.branch == 'main' && 'Production' || 'Preview' }}] Deployed on Vercel}::$msg"
+                  echo "url=${msg}" >> $GITHUB_OUTPUT
+              timeout-minutes: 2
+
+            - name: Alias dev environment
+              if: steps.extract_branch.outputs.branch != 'main'
+              run: |
+                  rm -f ~/.local/share/com.vercel.cli/auth.json || true
+                  rm -f ~/.local/share/com.vercel.cli/config.json || true
+                  echo "${{ secrets.VERCEL_HARDCODED_CLI_AUTH_JSON }}" > ~/.local/share/com.vercel.cli/auth.json
+                  echo "${{ secrets.VERCEL_HARDCODED_CLI_CONFIG_JSON }}" > ~/.local/share/com.vercel.cli/config.json
+                  npx vercel whoami # force auth refresh just in case
+                  npx vercel alias ${{ steps.deploy.outputs.url }} dev.matchpointapp.com.ar
               timeout-minutes: 2

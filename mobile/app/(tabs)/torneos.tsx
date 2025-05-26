@@ -28,6 +28,7 @@ function TorneosFeed() {
 			>
 				{torneos?.map((torneo, index) => (
 					<TournamentPost
+						tournamentId={torneo.id}
 						key={index}
 						name={torneo.name}
 						fieldId={torneo.fieldId}
@@ -37,7 +38,6 @@ function TorneosFeed() {
 						price={torneo.price}
 						deadline={new Date(torneo.deadline)}
 						cantPlayers={torneo.cantPlayers}
-						players={torneo.players || []}
 					/>
 				))}
 			</ScrollView>

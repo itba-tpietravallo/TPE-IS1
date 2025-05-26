@@ -17,7 +17,15 @@ export const queries = {
 		supabase.rpc("nearby_fields", { lat, long, lim: limit || 5 }),
 
 	getAllFieldsByOwner: (supabase: SupabaseClient<Database>, ownerId: string) =>
-		supabase.from("fields").select("*").eq("owner", ownerId),
+		supabase.from("fields").select("*").or(`adminedBy.cs.{${ownerId}}, owner.eq.${ownerId}`),
+
+	getIsFieldOwner: (supabase: SupabaseClient<Database>, fieldId: string, userId: string) =>
+		supabase
+			.from("fields")
+			.select("id")
+			.eq("id", fieldId)
+			.eq("owner", userId as string)
+			.single(),
 
 	getFieldById: (supabase: SupabaseClient<Database>, fieldId: string) =>
 		supabase.from("fields").select("*").eq("id", fieldId).single(),
@@ -30,11 +38,16 @@ export const queries = {
 	getAllReservationTimeSlots: (supabase: SupabaseClient<Database>, fieldId: string) =>
 		supabase.from("reservations").select("date_time").eq("field_id", fieldId),
 
-	getAllTeams: (supabase: SupabaseClient<Database>) =>
-		supabase.from("teams").select("team_id, name, sport, description, images, players"),
+	getAllTeams: (supabase: SupabaseClient<Database>) => supabase.from("teams").select("*"),
+
+	getTeamById: (supabase: SupabaseClient<Database>, teamId: string) =>
+		supabase.from("teams").select("*").eq("team_id", teamId).single(),
 
 	getTeamMembers: (supabase: SupabaseClient<Database>, teamId: string) =>
 		supabase.from("teams").select("players").eq("team_id", teamId).single(),
+
+	getTeamIdByName: (supabase: SupabaseClient<Database>, name: string) =>
+		supabase.from("teams").select("team_id").eq("name", name),
 
 	getAllUsers: (supabase: SupabaseClient<Database>) => supabase.from("users").select("id, full_name, avatar_url"),
 
@@ -61,10 +74,31 @@ export const queries = {
 
 	getAllTournamentsForFieldById: (supabase: SupabaseClient<Database>, fieldId: string) =>
 		supabase.from("tournaments").select("*").eq("fieldId", fieldId),
+
+	getAllTeamsByUser: (supabase: SupabaseClient<Database>, userId: string) =>
+		supabase.from("teams").select("team_id, name").contains("players", [userId]),
+
+	getPendingReservationsByUser: (supabase: SupabaseClient<Database>, userId: string) =>
+		supabase
+			.from("reservations")
+			.select("id, date_time, teams ( name ), bookers_count, fields ( id, price, name ), pending_bookers_ids")
+			.contains("pending_bookers_ids", [userId]),
 };
 
 export function getAllFields(supabase: SupabaseClient<Database>, opts: any = undefined) {
 	return useQuerySupabase(queries.getAllFields(supabase), opts);
+}
+
+export function getIsFieldOwner(
+	supabase: SupabaseClient<Database>,
+	fieldId: string,
+	userId: string,
+	opts: any = undefined,
+) {
+	return useQuerySupabase(queries.getIsFieldOwner(supabase, fieldId, userId), {
+		enabled: !!(fieldId && userId),
+		...opts,
+	});
 }
 
 export function getNearbyFields(
@@ -105,8 +139,16 @@ export function getAllTeams(supabase: SupabaseClient<Database>, opts: any = unde
 	return useQuerySupabase(queries.getAllTeams(supabase), opts);
 }
 
+export function getTeamById(supabase: SupabaseClient<Database>, teamId: string, opts: any = undefined) {
+	return useQuerySupabase(queries.getTeamById(supabase, teamId), opts);
+}
+
 export function getTeamMembers(supabase: SupabaseClient<Database>, teamId: string, opts: any = undefined) {
 	return useQuerySupabase(queries.getTeamMembers(supabase, teamId), opts);
+}
+
+export function getTeamIdByName(supabase: SupabaseClient<Database>, name: string, opts: any = undefined) {
+	return useQuerySupabase(queries.getTeamIdByName(supabase, name), opts);
 }
 
 export function getAllUsers(supabase: SupabaseClient<Database>, opts: any = undefined) {
@@ -125,7 +167,6 @@ export function getUsername(supabase: SupabaseClient<Database>, userId: string, 
 			const { data, error } = await queries.getUsername(supabase, userId);
 
 			if (error || !data.username) {
-				console.error("Error fetching username:", error, data);
 				const base_username = data?.full_name?.toLowerCase().split(" ").join("_")! || "user";
 				const similar = await supabase.from("users").select("username").like("username", base_username);
 				const def =
@@ -139,6 +180,8 @@ export function getUsername(supabase: SupabaseClient<Database>, userId: string, 
 
 			return username;
 		},
+		enabled: !!userId,
+		...opts,
 	});
 }
 
@@ -178,4 +221,16 @@ export function getAllTournamentsForFieldById(
 	opts: any = undefined,
 ) {
 	return useQuerySupabase(queries.getAllTournamentsForFieldById(supabase, fieldId), opts);
+}
+
+export function getAllTeamsByUser(supabase: SupabaseClient<Database>, userId: string, opts: any = undefined) {
+	return useQuerySupabase(queries.getAllTeamsByUser(supabase, userId), opts);
+}
+
+export function getPendingReservationsByUser(
+	supabase: SupabaseClient<Database>,
+	userId: string,
+	opts: any = undefined,
+) {
+	return useQuerySupabase(queries.getPendingReservationsByUser(supabase, userId), opts);
 }

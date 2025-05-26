@@ -7,7 +7,7 @@ import { supabase } from "./supabase";
 
 WebBrowser.maybeCompleteAuthSession(); // required for web only
 
-const redirectTo = makeRedirectUri({ scheme: "matchpointapp://", preferLocalhost: true, path: "/" });
+const redirectTo = makeRedirectUri({ scheme: "matchpoint", preferLocalhost: true, path: "/" });
 
 export const createSessionFromUrl = async (url: string) => {
 	const { params, errorCode } = QueryParams.getQueryParams(url);

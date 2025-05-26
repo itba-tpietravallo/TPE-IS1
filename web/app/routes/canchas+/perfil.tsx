@@ -1,12 +1,14 @@
 import { LoaderFunctionArgs } from "@remix-run/node";
 import { Link, useLoaderData } from "@remix-run/react";
-import { createBrowserClient } from "@supabase/ssr";
-import { useEffect, useState } from "react";
-import { ProfilePictureAvatar } from "~/components/profile-picture";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader } from "~/components/ui/card";
+import { useState } from "react";
+import { Card, CardTitle, CardContent, CardFooter, CardHeader } from "~/components/ui/card";
+import { Avatar, AvatarImage, AvatarFallback } from "~/components/ui/avatar";
+import { Label } from "~/components/ui/label";
+import { Badge } from "~/components/ui/badge";
+import { Input } from "~/components/ui/input";
+import { Button } from "~/components/ui/button";
 import { authenticateUser } from "~/lib/auth.server";
-import { FieldsPreviewGrid } from "./_index";
-import { getAllFieldsByOwner, getUsername } from "@lib/autogen/queries";
+import { CreditCard, Mail, Phone, User, CalendarDays } from "lucide-react";
 
 type Field = {
 	avatar_url: string;
@@ -26,6 +28,23 @@ type Field = {
 	street_number: string;
 };
 
+type ProfileInfoProps = {
+	email?: string;
+	userName?: string;
+	phone?: string;
+	url_origin?: string;
+};
+
+type ReservsProps = {
+	date: string;
+	fieldName: string;
+	reservator: string;
+};
+
+type ReservsListProps = {
+	reservs: ReservsProps[] | null;
+};
+
 export async function loader({ request }: LoaderFunctionArgs) {
 	const env = {
 		SUPABASE_URL:
@@ -41,87 +60,179 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export default function Index() {
 	const { user, avatar_url, email, phone, full_name, env, URL_ORIGIN } = useLoaderData<typeof loader>();
-	const supabase = createBrowserClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
-	const { data: fields } = getAllFieldsByOwner(supabase, user.id);
-	const { data: username } = getUsername(supabase, user.id, { enabled: !!user.id });
+	//const supabase = createBrowserClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
+	//const { data } = getAllReservationsForOwner(supabase, user.id);
+	//console.log(data, user.id);
+
+	// const reservs = data?.map((reserv) => ({
+	// 	date: reserv.date_time,
+	// 	fieldName: reserv.fields?.name,
+	// 	reservator: reserv.users?.full_name,
+	// })) ?? [];
 
 	return (
 		<>
-			<div className="items-left flex h-fit min-h-fit w-full flex-col justify-start gap-4 p-4">
+			<Card className="m-16">
+				<CardContent className="pt-6">
+					<div className="flex flex-col items-center gap-6 md:flex-row">
+						<Avatar className="h-24 w-24 border-4 border-white shadow-md">
+							<AvatarImage src={avatar_url || undefined} alt="Profile picture" />
+							<AvatarFallback>
+								{full_name
+									?.split(" ")
+									.slice(0, 2)
+									.map((e) => e.charAt(0))
+									.join("")}
+							</AvatarFallback>
+						</Avatar>
+						<div className="flex-1 text-center md:text-left">
+							<h1 className="text-2xl font-bold">{full_name}</h1>
+							<p className="text-muted-foreground">
+								<Badge variant="outline" className="mt-1">
+									<CalendarDays className="mr-1 h-3 w-3" />
+									Miembro desde {new Date(user?.created_at).toLocaleDateString()}
+								</Badge>
+							</p>
+						</div>
+					</div>
+				</CardContent>
+			</Card>
+
+			<ProfileInfo
+				email={email ?? undefined}
+				userName={full_name ?? undefined}
+				phone={phone ?? undefined}
+				url_origin={URL_ORIGIN ?? undefined}
+			/>
+
+			{/* RIP imprimir Reservas */}
+
+			{/* <div className="m-16">
 				<div>
-					<h1 className="text-3xl">Tu perfil</h1>
-					<Card className="w-full">
-						<CardHeader className="w-full text-left">
-							<div className="grid max-w-fit grid-cols-4 items-center gap-4">
-								<h2 className="col-span-3 text-2xl font-bold">{full_name}</h2>
-								<ProfilePictureAvatar
-									str={avatar_url}
-									name={full_name}
-									className="h-full max-h-20 w-full max-w-20"
-								/>
-							</div>
-						</CardHeader>
-						<CardContent>
-							<hr className="mb-2" />
-							<CardDescription className="flex flex-col gap-4">
-								<h2 className="text-xl text-muted-foreground">Informacion de tu cuenta</h2>
-								<ul className="flex h-auto flex-col gap-2">
-									<li className="flex flex-row items-center gap-2">
-										<span className="text-lg font-bold">Email:</span>
-										<span className="text-lg">{email}</span>
-									</li>
-									<li className="flex flex-row items-center gap-2">
-										<span className="text-lg font-bold">Nombre de usuario:</span>
-										<span className="text-lg">{username || "(no vinculado)"}</span>
-									</li>
-									<li className="flex flex-row items-center gap-2">
-										<span className="text-lg font-bold">Telefono:</span>
-										<span className="text-lg">{phone || "(no vinculado)"}</span>
-									</li>
-									<li className="flex flex-row items-center gap-2">
-										<span className="text-lg font-bold">Cuenta creada el dia:</span>
-										<span className="text-lg">
-											{new Date(user?.created_at).toLocaleDateString()}
-										</span>
-									</li>
-								</ul>
-								<Link
-									to={`${new URL("/api/v1/payments/oauth/mercadopago", URL_ORIGIN)}`}
-									className="h-fit w-fit cursor-pointer rounded border border-blue-600 bg-blue-300 p-2 px-4 text-lg leading-none text-black shadow-sm"
-								>
-									Vincular a Mercado Pago
-								</Link>
-							</CardDescription>
-						</CardContent>
-					</Card>
-				</div>
-				<div>
-					<h1 className="text-3xl">Canchas vinculadas</h1>
 					<Card className="h-fit min-h-fit w-full">
 						<CardHeader className="w-full text-left">
-							<h2 className="text-2xl font-bold">Tus canchas</h2>
+							<h2 className="text-2xl font-bold">Reservas</h2>
 						</CardHeader>
 						<CardContent>
-							<hr className="mb-2" />
-							<CardDescription>
-								{(fields || [])?.length === 0 ? (
-									<p className="text-lg">No tienes canchas vinculadas a tu cuenta.</p>
-								) : (
-									<FieldsPreviewGrid
-										fields={(fields || [])?.map((field) => ({
-											id: field.id,
-											name: field.name,
-											location: `${field.street} ${field.street_number}, ${field.neighborhood}, ${field.city}`,
-											price: field.price,
-											img: (field.images || [])[0] || "",
-										}))}
-									/>
-								)}
-							</CardDescription>
+							<ReservsList reservs={reservs} />
 						</CardContent>
 					</Card>
 				</div>
-			</div>
+			</div> */}
 		</>
+	);
+}
+
+export function ReservsList({ reservs }: ReservsListProps) {
+	return (
+		<div className="p-4">
+			<h2 className="mb-4 text-xl font-semibold">Reservations</h2>
+			<ul className="space-y-4">
+				{reservs?.map((reservation, index) => (
+					<li key={index} className="rounded-lg border p-4 shadow-sm">
+						<p>
+							<strong>Date:</strong> {new Date(reservation.date).toLocaleString()}
+						</p>
+						<p>
+							<strong>Field:</strong> {reservation.fieldName}
+						</p>
+						<p>
+							<strong>User:</strong> {reservation.reservator}
+						</p>
+					</li>
+				))}
+			</ul>
+		</div>
+	);
+}
+
+export function ProfileInfo({ email, userName, phone, url_origin }: ProfileInfoProps) {
+	const [phoneSaved, setPhoneSaved] = useState(phone ?? "");
+	const [phoneInput, setPhoneInput] = useState("");
+
+	const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		setPhoneInput(e.target.value);
+	};
+
+	const handleSave = () => {
+		setPhoneSaved(phoneInput);
+		setPhoneInput("");
+	};
+
+	const handleCancel = () => {
+		setPhoneInput("");
+	};
+
+	const phoneDisplayed = phoneInput !== "" ? phoneInput : phoneSaved;
+
+	return (
+		<Card className="mb-6 ml-16 mr-16 mt-16">
+			<CardHeader>
+				<CardTitle>Información de tu cuenta</CardTitle>
+			</CardHeader>
+			<CardContent className="space-y-6">
+				<div className="space-y-4">
+					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+						<div className="space-y-2">
+							<div className="flex items-center gap-2">
+								<Mail className="h-4 w-4 text-muted-foreground" />
+								<Label htmlFor="email">Email</Label>
+							</div>
+							<Input id="email" value={email ?? ""} readOnly />
+						</div>
+
+						<div className="space-y-2">
+							<div className="flex items-center gap-2">
+								<User className="h-4 w-4 text-muted-foreground" />
+								<Label htmlFor="username">Nombre de usuario</Label>
+							</div>
+							<Input id="username" value={userName || "(no vinculado)"} readOnly />
+						</div>
+					</div>
+
+					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+						<div className="space-y-2">
+							<div className="flex items-center gap-2">
+								<Phone className="h-4 w-4 text-muted-foreground" />
+								<Label htmlFor="phone">Teléfono</Label>
+							</div>
+							<Input
+								id="phone"
+								placeholder="Agregar número de teléfono"
+								value={phoneDisplayed}
+								onChange={handlePhoneChange}
+							/>
+							{!phoneSaved && phoneInput === "" && (
+								<p className="text-sm text-muted-foreground">(no vinculado)</p>
+							)}
+						</div>
+
+						<div className="space-y-2">
+							<div className="flex items-center gap-2">
+								<CreditCard className="h-4 w-4 text-muted-foreground" />
+								<Label htmlFor="payment">Método de pago</Label>
+							</div>
+							<div className="flex gap-2">
+								<Link to={`${new URL("/api/v1/payments/oauth/mercadopago", url_origin)}`}>
+									<Button variant="outline" className="w-full">
+										<CreditCard className="mr-2 h-4 w-4" />
+										Vincular a Mercado Pago
+									</Button>
+								</Link>
+							</div>
+						</div>
+					</div>
+				</div>
+			</CardContent>
+
+			{phoneInput && (
+				<CardFooter className="flex justify-between border-t pt-6">
+					<Button variant="outline" onClick={handleCancel}>
+						Cancelar
+					</Button>
+					<Button onClick={handleSave}>Guardar cambios</Button>
+				</CardFooter>
+			)}
+		</Card>
 	);
 }

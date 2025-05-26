@@ -15,7 +15,7 @@ mobile/lib/autogen/*
 /playwright-report/
 /blob-report/
 /playwright/.cache/
-**/tests/.auth/*
+**/tests-e2e/.auth/*
 
 # Codegeneration
 **/autogen/*

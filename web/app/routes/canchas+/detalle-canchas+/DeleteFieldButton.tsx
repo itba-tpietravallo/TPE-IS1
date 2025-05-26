@@ -35,7 +35,7 @@ export function DeleteFieldButton({
 	return (
 		<AlertDialog>
 			<AlertDialogTrigger asChild>
-				<Button variant="destructive" className="ml-4 text-sm font-medium hover:bg-red-700">
+				<Button variant="destructive" className="text-sm font-medium hover:bg-red-700">
 					Eliminar cancha
 				</Button>
 			</AlertDialogTrigger>

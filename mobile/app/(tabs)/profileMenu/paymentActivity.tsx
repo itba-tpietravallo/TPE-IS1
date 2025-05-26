@@ -72,29 +72,35 @@ export default function CardList() {
 			>
 				Mi actividad
 			</Text>
-			<FlatList
-				data={memoPayments}
-				keyExtractor={(item) => item.payment_id.toString()}
-				contentContainerStyle={styles.container}
-				scrollEnabled={true}
-				renderItem={({ item }) => (
-					<View style={styles.payment}>
-						<Text style={styles.last_updated}>{item.last_updated}</Text>
-						<View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-							<Text style={styles.transaction_amount}>{item.transaction_amount}</Text>
-							<Text
-								style={{
-									fontWeight: "bold",
-									fontSize: 18,
-									color: item.status === "Completado" ? "#5fd700" : "#ff5e00",
-								}}
-							>
-								{item.status}
-							</Text>
+			{memoPayments?.length === 0 ? (
+				<Text style={{ textAlign: "center", marginTop: 40, fontSize: 18, color: "#555" }}>
+					No has tenido actividad.
+				</Text>
+			) : (
+				<FlatList
+					data={memoPayments}
+					keyExtractor={(item) => item.payment_id.toString()}
+					contentContainerStyle={styles.container}
+					scrollEnabled={true}
+					renderItem={({ item }) => (
+						<View style={styles.payment}>
+							<Text style={styles.last_updated}>{item.last_updated}</Text>
+							<View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+								<Text style={styles.transaction_amount}>{item.transaction_amount}</Text>
+								<Text
+									style={{
+										fontWeight: "bold",
+										fontSize: 18,
+										color: item.status === "Completado" ? "#5fd700" : "#ff5e00",
+									}}
+								>
+									{item.status}
+								</Text>
+							</View>
 						</View>
-					</View>
-				)}
-			/>
+					)}
+				/>
+			)}
 		</View>
 	);
 }

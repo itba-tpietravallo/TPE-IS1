@@ -21,7 +21,7 @@ type Field = {
 function myTeams() {
 	const { data: user } = getUserSession(supabase);
 	const { data: teams } = getAllTeams(supabase);
-	const myTeams = teams?.filter((team) => team.players.some((member) => member === user?.full_name));
+	const myTeams = teams?.filter((team) => team?.players?.some((member) => member === user?.id));
 	const [selectedTeam, setSelectedTeam] = useState<Field | null>(null);
 	const [isModalVisible, setIsModalVisible] = useState(false);
 

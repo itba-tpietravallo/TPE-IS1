@@ -10,7 +10,7 @@ export const action = async ({ request }: { request: Request }) => {
 		const data = await resend.emails.send({
 			from: "MatchPoint <no-reply@payments.matchpointapp.com.ar>",
 			to: body.player_email,
-			subject: "Confirmamos tu reserva!",
+			subject: "Confirmamos tu pago!",
 			react: PaymentConfirmationEmail({
 				player_name: body.player_name,
 				amount: body.amount,

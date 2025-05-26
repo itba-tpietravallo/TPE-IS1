@@ -11,6 +11,7 @@ import {
 import { Button } from "~/components/ui/button";
 import { useLoaderData, useNavigate } from "@remix-run/react";
 import { createBrowserClient } from "@supabase/ssr";
+import { Trash2 } from "lucide-react";
 import { LoaderFunctionArgs } from "@remix-run/node";
 import { getAllTournamentsForFieldById, getFieldById } from "@lib/autogen/queries";
 import { set, useForm, UseFormReturn } from "react-hook-form";
@@ -32,7 +33,7 @@ import { Textarea } from "../../../components/ui/textarea";
 import MultipleSelector, { Option } from "../../../components/ui/multiselector";
 import { DollarSign, Icon } from "lucide-react";
 import { on } from "events";
-
+import { getAllTeams, getTeamById } from "@/lib/autogen/queries";
 export function loader(args: LoaderFunctionArgs) {
 	const env = {
 		SUPABASE_URL:
@@ -95,6 +96,8 @@ export function TournamentForm({ fieldId, onClose = () => {} }: { fieldId: strin
 	const field = getFieldById(supabase, fieldId || "");
 	const [formError, setFormError] = useState(false);
 
+	const [selectedSport, setSelectedSport] = useState<string | null>(null);
+
 	const form = useForm({
 		defaultValues: {
 			name: "",
@@ -121,7 +124,7 @@ export function TournamentForm({ fieldId, onClose = () => {} }: { fieldId: strin
 			{
 				name: data.name,
 				fieldId: fieldId,
-				sport: data.sport,
+				sport: selectedSport,
 				startDate: data.startDate,
 				description: data.description,
 				price: data.price,
@@ -129,11 +132,12 @@ export function TournamentForm({ fieldId, onClose = () => {} }: { fieldId: strin
 				cantPlayers: data.cantPlayers,
 			},
 		]);
+
 		onClose();
 	};
 
 	return (
-		<div className="flex flex-col items-center justify-center space-y-12 bg-[#f2f4f3] p-5">
+		<div className="flex flex-col items-center justify-center space-y-12 bg-[#f2f4f3] p-10">
 			<Form {...form}>
 				<div className="max-h-[400px] w-full space-y-5 overflow-y-auto">
 					<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
@@ -146,7 +150,12 @@ export function TournamentForm({ fieldId, onClose = () => {} }: { fieldId: strin
 							label_specifications="text-base font-sans text-[#223332]"
 							form={form}
 						/>
-						<SelectFormSection form={form} options={options} />
+						<SelectFormSection
+							form={form}
+							options={options}
+							selectedSport={selectedSport}
+							setSelectedSport={setSelectedSport}
+						/>
 
 						<DescriptionSection
 							placeholder="Información adicional sobre la cancha y servicios. Por ejemplo, cantidad de jugadores, días y horarios de apertura."
@@ -188,6 +197,13 @@ export function TournamentForm({ fieldId, onClose = () => {} }: { fieldId: strin
 								{formError ? "Se encontró un error, porfavor vuelva a intentar" : "Publicar"}
 							</Button>
 						</div>
+						<Button
+							onClick={onClose}
+							className="bg-color mb-11 mt-5 h-10 w-full bg-[#f2f4f3] text-base text-gray-500 underline hover:bg-[#f2f4f3]/80 hover:text-gray-700"
+							type="button"
+						>
+							Cancelar
+						</Button>
 					</form>
 				</div>
 			</Form>
@@ -251,32 +267,94 @@ function PriceSection({ form }: { form: UseFormReturn<any, any, any> }) {
 	);
 }
 
-function SelectFormSection({ form, options }: { form: UseFormReturn<any, any, any>; options: Option[] }) {
+function SelectFormSection({
+	form,
+	options,
+	selectedSport,
+	setSelectedSport,
+}: {
+	form: UseFormReturn<any, any, any>;
+	options: Option[];
+	selectedSport: string | null;
+	setSelectedSport: (value: string | null) => void;
+}) {
 	return (
 		<FormField
 			control={form.control}
-			name="sports"
+			name="sport"
 			render={({ field }) => (
 				<FormItem>
 					<div className="flex flex-col">
 						<FormLabel className="h-8 px-2 text-sm text-[#223332]">Deporte</FormLabel>
 						<div className="w-full">
 							<MultipleSelector
-								value={field.value || []}
-								onChange={(val) => field.onChange(val)}
+								value={field.value}
+								onChange={(val) => {
+									setSelectedSport(val[0]?.value ?? null);
+									field.onChange(val);
+								}}
 								options={options}
 								creatable
-								emptyIndicator={
-									<p className="text-center text-lg leading-10 text-gray-600 dark:text-gray-400">
-										Ningún resultado encontrado.
-									</p>
-								}
 							/>
 						</div>
 					</div>
 				</FormItem>
 			)}
 		/>
+	);
+}
+
+export function SingleTournamentInfo({ tournament_id }: { tournament_id: string }) {
+	const { env, URL_ORIGIN, id } = useLoaderData<typeof loader>();
+	const supabase = createBrowserClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
+	const [inscriptions, setInscriptions] = useState<any[]>([]);
+
+	const teamsData = getAllTeams(supabase);
+
+	useEffect(() => {
+		const fetchInscriptions = async () => {
+			const { data, error } = await supabase.from("inscriptions").select("*").eq("tournamentId", tournament_id); // Reemplaza con el ID del torneo actual
+
+			if (error) {
+				console.error("Error fetching inscriptions:", error);
+			} else {
+				setInscriptions(data || []);
+			}
+		};
+
+		if (tournament_id) {
+			fetchInscriptions();
+		}
+	}, [tournament_id]);
+
+	console.log("Inscriptions:", inscriptions);
+
+	return (
+		<div className="mt-4 flex flex-col items-center text-sm text-gray-700">
+			{inscriptions.length > 0 ? (
+				<div className="w-full max-w-4xl space-y-2">
+					<div className="flex justify-center border-b pb-1 font-semibold">
+						<div className="w-1/3 text-center">Nombre</div>
+						<div className="w-1/3 text-center">Teléfono</div>
+						<div className="w-1/3 text-center">Email</div>
+					</div>
+
+					{inscriptions.map((inscription, index) => {
+						const team = teamsData.data?.find((team) => team.team_id === inscription.teamId);
+
+						return (
+							<div key={index} className="flex justify-center py-1">
+								<div className="w-1/3 text-center">{team?.name}</div>
+								<div className="w-1/3 text-center">{team?.contactPhone}</div>
+								<div className="w-1/3 text-center">{team?.contactEmail}</div>
+							</div>
+						);
+					})}
+				</div>
+			) : (
+				<p>No hay inscriptos.</p>
+			)}
+		</div>
 	);
 }
 
@@ -291,17 +369,32 @@ export function TorneosSheet({ fieldId, tournaments }: TorneosSheetProps) {
 	const field = getFieldById(supabase, fieldId || "");
 	const [showForm, setShowForm] = useState(false);
 
+	const handleDelete = async (t_id: string) => {
+		console.log("Eliminando torneo con ID:", t_id);
+
+		const { error } = await supabase.from("tournaments").delete().eq("id", t_id);
+
+		if (error) {
+			console.error("Error eliminando torneo:", error);
+		} else {
+			console.log("Torneo eliminado con éxito");
+		}
+	};
+
 	return (
 		<Sheet>
 			<SheetTrigger asChild>
 				<Button
 					variant="outline"
-					className="ml-4 bg-[#d97e01] text-sm font-medium hover:bg-white hover:text-[#d97e01]"
+					className="bg-[#d97e01] text-sm font-medium hover:bg-white hover:text-[#d97e01]"
 				>
 					Ver torneos
 				</Button>
 			</SheetTrigger>
-			<SheetContent className="w-full flex-col items-center space-y-5 overflow-y-auto">
+			<SheetContent
+				side="bottom"
+				className="max-h-[500px] w-full flex-col items-center space-y-5 overflow-y-auto"
+			>
 				<SheetHeader>
 					<SheetTitle className="p-6 font-bold text-[#d97e01]">Torneos de {field.data?.name}</SheetTitle>
 				</SheetHeader>
@@ -309,21 +402,16 @@ export function TorneosSheet({ fieldId, tournaments }: TorneosSheetProps) {
 					<div className="flex flex-col items-center justify-center space-y-5">
 						{tournaments.map((tournament) => (
 							<div key={tournament.id} className="w-full rounded-lg p-4 shadow-md">
-								<h2 className="text-lg font-bold">{tournament.name}</h2>
+								<div className="flex items-center justify-between">
+									<h2 className="text-lg font-bold">{tournament.name}</h2>
+									{/* <Trash2
+										className="h-5 w-5 cursor-pointer text-gray-500 hover:text-red-600"
+										onClick={() => handleDelete(tournament.id)}
+									/> */}
+								</div>
 								<p>Fecha de inicio: {new Date(tournament.startDate).toLocaleDateString()}</p>
-								{/* <p className="text-sm text-gray-600">
-									Equipos inscriptos: {tournament.players?.length || 0}
-								</p> */}
 								<p className="pt-3 text-sm text-gray-600">Inscriptos:</p>
-								{tournament.players?.length > 0 ? (
-									<ul className="mt-2 list-disc pl-5 text-sm text-gray-500">
-										{tournament.players.map((player: string, index: number) => (
-											<li key={index}>{player}</li>
-										))}
-									</ul>
-								) : (
-									<p className="text-sm text-gray-500">No hay equipos inscriptos.</p>
-								)}
+								<SingleTournamentInfo tournament_id={tournament.id} />
 							</div>
 						))}
 					</div>
