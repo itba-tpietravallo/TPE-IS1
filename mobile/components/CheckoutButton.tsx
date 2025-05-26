@@ -80,9 +80,7 @@ export default function CheckoutButton({
 				throw new Error(res.error?.message || "Authentication error");
 			}
 
-			const url = DEV_MODE
-				? "https://tpe-is1-itba-5q1r5qblg-tomas-pietravallos-projects-3cd242b1.vercel.app/"
-				: "https://matchpointapp.com.ar/";
+			const url = DEV_MODE ? "https://dev.matchpointapp.com.ar/" : "https://matchpointapp.com.ar/";
 
 			console.log(url);
 			await fetch(`${url}api/v1/payments`, {

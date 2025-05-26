@@ -61,7 +61,7 @@ export default function PayPending({
 				new URL(
 					"/api/v1/payments",
 					Linking.getLinkingURL()?.includes("exp://")
-						? "https://tpe-is1-itba-5q1r5qblg-tomas-pietravallos-projects-3cd242b1.vercel.app"
+						? "https://dev.matchpointapp.com.ar/"
 						: "https://matchpointapp.com.ar/",
 				).toString(),
 				{

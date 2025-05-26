@@ -56,7 +56,15 @@ jobs:
               timeout-minutes: 2
 
             - name: Deploy Project Artifacts to Vercel
+              id: deploy
               run: |
                   msg=`npx vercel deploy --prebuilt --target=${{ steps.extract_branch.outputs.branch == 'main' && 'production' || 'preview' }} --token=${{ secrets.VERCEL_TOKEN }}`
                   echo "::notice title={[${{ steps.extract_branch.outputs.branch == 'main' && 'Production' || 'Preview' }}] Deployed on Vercel}::$msg"
+                  echo "url=${msg}" >> $GITHUB_OUTPUT
+              timeout-minutes: 2
+
+            - name: Alias dev environment
+              if: steps.extract_branch.outputs.branch != 'main'
+              run: |
+                  npx vercel alias ${{ steps.deploy.outputs.url }} dev.matchpointapp.com.ar --token=${{ secrets.VERCEL_TOKEN }}
               timeout-minutes: 2

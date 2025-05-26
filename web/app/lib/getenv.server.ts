@@ -11,10 +11,7 @@ export const __GET_PUBLIC_ENV = (env?: "production" | "development") => {
 		(env === "production" ? process.env.IMAGE_BUCKET_URLS : process.env.IMAGE_BUCKET_URLS_DEV) || "[]",
 	) as string[];
 
-	const URL_ORIGIN =
-		env === "production"
-			? "https://matchpointapp.com.ar"
-			: "https://tpe-is1-itba-p9nkukv55-tomas-pietravallos-projects-3cd242b1.vercel.app/";
+	const URL_ORIGIN = env === "production" ? "https://matchpointapp.com.ar" : "https://dev.matchpointapp.com.ar/";
 
 	return {
 		DATABASE_ENDPOINT,
