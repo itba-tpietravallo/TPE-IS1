@@ -234,10 +234,13 @@ async function processMercadoPagoNotification(
 					bodyPayload.team_id = res.data.team_id;
 				}
 
-				await fetch(new URL("/api/v1/send-email", "https://matchpointapp.com.ar/").toString(), {
-					method: "POST",
-					body: JSON.stringify(bodyPayload),
-				});
+				await fetch(
+					new URL("/api/v1/send-payment-confirmed-email", "https://matchpointapp.com.ar/").toString(),
+					{
+						method: "POST",
+						body: JSON.stringify(bodyPayload),
+					},
+				);
 			} catch (error: any) {
 				console.error(error.message);
 			}

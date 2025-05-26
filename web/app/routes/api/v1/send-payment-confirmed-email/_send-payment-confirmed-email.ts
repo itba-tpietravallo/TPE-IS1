@@ -1,6 +1,6 @@
 import { json } from "@remix-run/node";
 import { Resend } from "resend";
-import { PaymentConfirmationEmail } from "../../../../../email/react-email-starter/emails/PaymentConfirmationEmail";
+import { PaymentConfirmedEmail } from "../../../../../email/react-email-starter/emails/PaymentConfirmedEmail";
 
 export const action = async ({ request }: { request: Request }) => {
 	const resend = new Resend(process.env.RESEND_PAYMENT_MAILER);
@@ -10,8 +10,8 @@ export const action = async ({ request }: { request: Request }) => {
 		const data = await resend.emails.send({
 			from: "MatchPoint <no-reply@payments.matchpointapp.com.ar>",
 			to: body.player_email,
-			subject: "Confirmamos tu reserva!",
-			react: PaymentConfirmationEmail({
+			subject: "Confirmamos tu pago!",
+			react: PaymentConfirmedEmail({
 				player_name: body.player_name,
 				amount: body.amount,
 				payment_id: body.payment_id,

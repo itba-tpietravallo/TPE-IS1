@@ -101,8 +101,6 @@ export default function PreReserveButton({
 				return;
 			}
 
-			console.log("About to insert ", fieldId);
-
 			const resp = await supabase.from("reservations").insert({
 				field_id: fieldId,
 				date_time: date_time,
