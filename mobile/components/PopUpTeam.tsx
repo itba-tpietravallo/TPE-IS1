@@ -59,7 +59,7 @@ function PopUpTeam(props: PropsPopUpTeam) {
 
 			const { data, error } = await supabase
 				.from("teams")
-				.update({ players: updatedRequests })
+				.update({ playerRequests: updatedRequests })
 				.eq("team_id", props.team_id)
 				.throwOnError();
 
