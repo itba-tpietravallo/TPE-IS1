@@ -126,7 +126,10 @@ async function processMercadoPagoNotification(
 					)
 				)
 			),
-			date_time
+			date_time,
+			payments_ids,
+			pending_bookers_ids,
+			team_id
 		`,
 		)
 		.eq("id", reservation_id)
@@ -171,51 +174,35 @@ async function processMercadoPagoNotification(
 				});
 			}
 
-			const { data: reservation, error: fetchError } = await supabaseClient
+			const newPaymentId = Number(data.data.id);
+			const updatedPaymentIdsArray = [...(res.data.payments_ids || []), newPaymentId];
+
+			const updatedPendingBookersArray = res.data.pending_bookers_ids.filter((id: string) => id !== user_id);
+
+			const updatePayload: {
+				payments_ids: number[];
+				pending_bookers_ids: string[];
+				confirmed?: boolean;
+			} = {
+				payments_ids: updatedPaymentIdsArray,
+				pending_bookers_ids: updatedPendingBookersArray,
+			};
+
+			if (updatedPendingBookersArray.length === 0) {
+				updatePayload.confirmed = true;
+			}
+
+			const { error: updateError } = await supabaseClient
 				.from("reservations")
-				.select("payments_ids, pending_bookers_ids")
-				.eq("id", reservation_id)
-				.single();
+				.update(updatePayload)
+				.eq("id", reservation_id);
 
-			if (fetchError) {
-				console.error("Error fetching reservation:", fetchError);
-				return new Response("Error fetching reservation", {
+			if (updateError) {
+				console.error("Error updating reservation:", updateError);
+				return new Response("Error updating reservation", {
 					status: 500,
-					statusText: "Error fetching reservation",
+					statusText: "Error updating reservation",
 				});
-			} else {
-				const newPaymentId = Number(data.data.id);
-				const updatedPaymentIdsArray = [...(reservation.payments_ids || []), newPaymentId];
-
-				const updatedPendingBookersArray = reservation.pending_bookers_ids.filter(
-					(id: string) => id !== user_id,
-				);
-
-				const updatePayload: {
-					payments_ids: number[];
-					pending_bookers_ids: string[];
-					confirmed?: boolean;
-				} = {
-					payments_ids: updatedPaymentIdsArray,
-					pending_bookers_ids: updatedPendingBookersArray,
-				};
-
-				if (updatedPendingBookersArray.length === 0) {
-					updatePayload.confirmed = true;
-				}
-
-				const { error: updateError } = await supabaseClient
-					.from("reservations")
-					.update(updatePayload)
-					.eq("id", reservation_id);
-
-				if (updateError) {
-					console.error("Error updating reservation:", updateError);
-					return new Response("Error updating reservation", {
-						status: 500,
-						statusText: "Error updating reservation",
-					});
-				}
 			}
 
 			try {
@@ -234,16 +221,22 @@ async function processMercadoPagoNotification(
 						statusText: "Player info not found",
 					});
 
+				const bodyPayload: any = {
+					player_email: player_info.email,
+					player_name: player_info.full_name,
+					amount: amount,
+					payment_id: Number(data.data.id),
+					field_name: res.data.fields.name,
+					reservation_date: res.data.date_time,
+				};
+
+				if (res.data.team_id !== null && res.data.team_id !== undefined) {
+					bodyPayload.team_id = res.data.team_id;
+				}
+
 				await fetch(new URL("/api/v1/send-email", "https://matchpointapp.com.ar/").toString(), {
 					method: "POST",
-					body: JSON.stringify({
-						player_email: player_info.email,
-						player_name: player_info.full_name,
-						amount: amount,
-						payment_id: Number(data.data.id),
-						field_name: res.data.fields.name,
-						reservation_date: res.data.date_time,
-					}),
+					body: JSON.stringify(bodyPayload),
 				});
 			} catch (error: any) {
 				console.error(error.message);
