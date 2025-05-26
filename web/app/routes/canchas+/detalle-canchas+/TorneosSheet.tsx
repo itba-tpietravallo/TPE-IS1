@@ -35,7 +35,7 @@ import { Textarea } from "../../../components/ui/textarea";
 import MultipleSelector, { Option } from "../../../components/ui/multiselector";
 import { DollarSign, Icon } from "lucide-react";
 import { on } from "events";
-import { getAllTeams, getTeamById } from "@db/queries";
+import { getAllTeams, getTeamById } from "@/lib/autogen/queries";
 
 export function loader(args: LoaderFunctionArgs) {
 	const env = {
