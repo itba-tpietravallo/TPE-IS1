@@ -28,6 +28,8 @@ test.describe("Fields", () => {
 		await page.getByText("Agregar nueva cancha").waitFor({ state: "visible" });
 		await page.getByRole("link", { name: "Agregar nueva cancha" }).click();
 		await page.waitForLoadState("load");
+		await page.waitForRequest(/.*maps\.googleapis\.com\/.*main.*/);
+		await page.waitForRequest(/.*maps\.googleapis\.com\/.*map.*/);
 		await page.getByRole("textbox", { name: "Nombre" }).click();
 		await page.getByRole("textbox", { name: "Nombre" }).fill(TEST_FIELD_DETAILS.FIELD_NAME);
 		await page.getByRole("textbox", { name: "Calle" }).click();
@@ -39,6 +41,7 @@ test.describe("Fields", () => {
 		await page.getByRole("textbox", { name: "Ciudad" }).click();
 		await page.getByRole("textbox", { name: "Ciudad" }).fill(TEST_FIELD_DETAILS.FIELD_CITY);
 		await page.waitForRequest(/.*\/api\/v1\/geocode.*/);
+		await page.waitForTimeout(150);
 		await page.getByPlaceholder("Escribir el deporte si no").click();
 		await page.getByRole("option", { name: TEST_FIELD_DETAILS.FIELD_SPORT }).click();
 		await page.locator('input[name="price"]').click();
