@@ -9,6 +9,7 @@ import {
 import { reservationsTable, mpPaymentsTable } from "@/../../../db/schema";
 import { PreferenceCreateData } from "mercadopago/dist/clients/preference/create/types";
 import { __GET_PUBLIC_ENV } from "@lib/getenv.server";
+import { Database } from "@lib/autogen/database.types";
 
 type PaymentRequest = {
 	userId: string;
@@ -90,7 +91,7 @@ export async function action({
 async function getMercadoPagoRedirectURL(
 	user: User,
 	reqBody: PaymentRequest,
-	supabaseClient: SupabaseClient,
+	supabaseClient: SupabaseClient<Database>,
 ): Promise<Response> {
 	const { success_url, failure_url, pending_url, fieldId, date_time, price } = reqBody;
 
@@ -161,12 +162,12 @@ async function getMercadoPagoRedirectURL(
 				{
 					id: fieldId,
 					title: data.name,
-					description: data.description,
+					description: data.description!,
 					unit_price: price === undefined ? data.price : price,
 					quantity: 1,
 					currency_id: "ARS",
 					category_id: "others",
-					picture_url: data.avatar_url,
+					picture_url: data.avatar_url!,
 				},
 			],
 			back_urls: {
