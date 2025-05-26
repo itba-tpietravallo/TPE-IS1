@@ -1,0 +1,55 @@
+name: API
+
+on:
+    workflow_dispatch:
+    workflow_call:
+
+jobs:
+    Test:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v4
+
+            - name: Extract branch name
+              shell: bash
+              run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+              id: extract_branch
+
+            - name: Cache node modules
+              id: cache-modules
+              uses: actions/cache@v3
+              with:
+                  path: |
+                    **/node_modules
+                    ~/.npm
+                  key: node_modules-${{ runner.os }}-api-${{hashFiles('package-lock.json')}}
+                  restore-keys: node_modules-${{ runner.os }}-api-
+
+            - name: Install dependencies
+              if: steps.cache-modules.outputs.cache-hit != 'true'
+              run: npm ci
+              shell: bash
+            
+            - uses: actions/cache@v3
+              id: web-cache
+              with:
+                  path: |
+                      'web/node_modules'
+                  key: "${{ runner.os }}-web-${{ hashFiles('web/package-lock.json') }}"
+                  restore-keys: |
+                      ${{ runner.os }}-web-
+            
+            - name: Install web dependencies
+              if: steps.web-cache.outputs.cache-hit != 'true'
+              run: |
+                cd web && npm ci && cd ..
+                          
+            - name: Load web env
+              run: |
+                cat ./web/.env | grep '^[^#]' >> "$GITHUB_ENV"
+
+            - name: Run tests
+              run: |
+                cd web && :(){ curl --head -X GET --retry 10 --retry-connrefused --retry-delay 3 "http://localhost:5173" && (npx stepci run tests-api/* --env origin="http://localhost:5173" --verbose || EX=$? && pkill node && exit $EX) }; npm run dev | :;
+

@@ -15,12 +15,15 @@ jobs:
     Database-Changes:
         uses: ./.github/workflows/db-types.yaml
         secrets: inherit
+    API-Tests:
+        uses: ./.github/workflows/api-tests.yaml
+        secrets: inherit
     Browser-Tests:
         needs: [Database-Changes]
         uses: ./.github/workflows/playwright.yml
         secrets: inherit
     Deploy:
-        needs: [Browser-Tests]
+        needs: [Browser-Tests, API-Tests]
         runs-on: ubuntu-latest
         defaults:
             run:
@@ -66,7 +69,7 @@ jobs:
             - name: Alias dev environment
               if: steps.extract_branch.outputs.branch != 'main'
               run: |
-                  rm -f ~/.local/share/com.vercel.cli || true
+                  rm -f ~/.local/share/com.vercel.cli/auth.json || true
                   echo "${{ secrets.VERCEL_HARDCODED_CLI_AUTH_JSON }}" > ~/.local/share/com.vercel.cli/auth.json
                   npx vercel alias ${{ steps.deploy.outputs.url }} dev.matchpointapp.com.ar
               timeout-minutes: 2
