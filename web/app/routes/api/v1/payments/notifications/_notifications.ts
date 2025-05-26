@@ -193,7 +193,7 @@ async function processMercadoPagoNotification(
 				);
 
 				const updatePayload: {
-					payments_ids: string[];
+					payments_ids: number[];
 					pending_bookers_ids: string[];
 					confirmed?: boolean;
 				} = {
