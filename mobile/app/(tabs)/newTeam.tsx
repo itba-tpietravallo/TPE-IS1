@@ -41,7 +41,7 @@ export default function PostTeam() {
 				images: null,
 				//availability: availability, // Disponibilidad ingresada
 				players: [user?.id!], // Cuando crea el equipo automaticamente se une el creador
-				playerRequests: [""],
+				playerRequests: [],
 				admins: [user?.id!], 
 				isPublic: isPublic,
 				contactPhone: "",
@@ -188,17 +188,17 @@ export default function PostTeam() {
 					numberOfLines={4}
 				/>
 
-				{/* Privacidad */}     
+				{/* Privacidad */}    
 				<Text style={styles.label}>Privacidad</Text>
 				<SelectDropdown
-					onSelect={(itemValue, index) => setIsPublic(itemValue)}
-					data={[true, false]?.map((e) => e == true ? "Público" : "Privado" ) || []}
+					data={["Público", "Privado"]}
+					onSelect={(itemValue) => setIsPublic(itemValue==="Público")}
 					dropdownStyle={{ backgroundColor: "white", gap: 5, borderRadius: 8 }}
 					renderButton={(selectedItem, isOpened) => {
 						return (
 							<View style={styles.dropdownButtonStyle}>
 								<Text style={styles.dropdownButtonTxtStyle}>
-									{selectedItem || "Público"}
+									{selectedItem === true ? "Público" : selectedItem === false ? "Privado" : "Público"}
 								</Text>
 							</View>
 						);

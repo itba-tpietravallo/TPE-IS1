@@ -10,6 +10,7 @@ import { getUsername, getAllUsers } from "@lib/autogen/queries.ts";
 import { getUserSession } from "@/lib/autogen/queries";
 import { router } from "expo-router";
 import PopUpJoinRequests from "./PopUpJoinRequests.tsx";
+import { join } from "path";
 
 type PropsPopUpTeam = {
 	onClose: () => void;
@@ -41,6 +42,13 @@ function PopUpTeam(props: PropsPopUpTeam) {
 		return false;
 	}
 
+	function joinRequested(userId: string) {
+		if (requests?.includes(userId)) {
+			return true;
+		}
+		return false;
+	}
+
 	const handleJoinTeam = async () => {
 
 		if(props.public){
@@ -59,7 +67,7 @@ function PopUpTeam(props: PropsPopUpTeam) {
 
 			const { data, error } = await supabase
 				.from("teams")
-				.update({ players: updatedRequests })
+				.update({ playerRequests: updatedRequests })
 				.eq("team_id", props.team_id)
 				.throwOnError();
 
@@ -106,8 +114,8 @@ function PopUpTeam(props: PropsPopUpTeam) {
 					<Icon name="xmark" size={24} color="black" style={{ marginTop: 10 }} />
 				</TouchableOpacity>
 
-				{/* Boton join requests (arriba a la derecha) */}
-				{userAlreadyOnTeam(user?.id!) &&
+				{/* Boton join requests (arriba a la derecha) (si es publico no aparece) */}
+				{userAlreadyOnTeam(user?.id!) && !props.public &&
 				<TouchableOpacity style={{ padding: 10, alignItems: "flex-start" }} onPress={() => {setIsModalVisible(true)}}>
 					<Icon name="users" size={24} color="black" style={{ marginTop: 10 }} />
 				</TouchableOpacity> 
@@ -169,8 +177,8 @@ function PopUpTeam(props: PropsPopUpTeam) {
 				<Text style={styles.description}>{props.description}</Text>
 			</View>
 
-			{/* Boton Join team */}
-			{!userAlreadyOnTeam(user?.id!) && (
+			{/* Boton Join team - request to join team */}
+			{!userAlreadyOnTeam(user?.id!) && !joinRequested(user?.id!) && (
 				<TouchableOpacity
 					style={[styles.joinTeamButton]}
 					onPress={() =>
@@ -181,6 +189,13 @@ function PopUpTeam(props: PropsPopUpTeam) {
 				>
 					<Text style={styles.buttonText}>{props.public ? "Join Team" : "Request to Join Team"}</Text>
 				</TouchableOpacity>
+			)}
+
+			{/* Boton request to join sent */}
+			{!userAlreadyOnTeam(user?.id!) && joinRequested(user?.id!) && (
+				<View style={[styles.joinTeamButton]}>
+					<Text style={styles.buttonText}>{"Request sent!"}</Text>
+				</View>
 			)}
 
 			{/* Boton leave team */}
