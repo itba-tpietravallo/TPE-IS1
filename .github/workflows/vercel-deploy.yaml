@@ -66,5 +66,7 @@ jobs:
             - name: Alias dev environment
               if: steps.extract_branch.outputs.branch != 'main'
               run: |
-                  npx vercel alias ${{ steps.deploy.outputs.url }} dev.matchpointapp.com.ar --token=${{ secrets.VERCEL_TOKEN }}
+                  rm -f ~/.local/share/com.vercel.cli || true
+                  echo "${{ secrets.VERCEL_HARDCODED_CLI_AUTH_JSON }}" > ~/.local/share/com.vercel.cli/auth.json
+                  npx vercel alias ${{ steps.deploy.outputs.url }} dev.matchpointapp.com.ar
               timeout-minutes: 2
