@@ -13,6 +13,8 @@ import { ReservationSheet } from "./ReseravtionSheet";
 import { DeleteFieldButton } from "./DeleteFieldButton";
 import type { UseQueryResult } from "@tanstack/react-query";
 import { getAllTeams, getIsFieldOwner, getUserAuthSession } from "@lib/autogen/queries";
+import { useQuery, UseQuerySingleReturn } from "@supabase-cache-helpers/postgrest-react-query";
+import { en } from "@supabase/auth-ui-shared";
 
 type CarouselProps = {
 	imgSrc: string[];
@@ -21,6 +23,7 @@ type CarouselProps = {
 type FieldProps = {
 	id?: string;
 	supabase: SupabaseClient<Database>;
+	ff?: UseQuerySingleReturn<Database["public"]["Tables"]["fields"]["Row"]>;
 	imgSrc: string[];
 	name: string;
 	location: string;
@@ -34,12 +37,24 @@ type FieldProps = {
 	loading: boolean;
 };
 
+export const UserEmailFromId = (props: { supabase: SupabaseClient<Database>; id: string }) => {
+	const {
+		data: user,
+		error,
+		isLoading,
+	} = useQuery(props.supabase.from("users").select("email").eq("id", props.id).single(), {
+		enabled: !!props.id,
+	});
+	return isLoading ? <p>Cargando...</p> : <p>{user?.email!}</p>;
+};
+
 export function FieldDetail(props: FieldProps) {
 	const {
 		id,
 		supabase,
 		imgSrc,
 		name,
+		ff,
 		location,
 		price,
 		description,
@@ -54,6 +69,8 @@ export function FieldDetail(props: FieldProps) {
 	const [sheetOpen, setSheetOpen] = useState(false);
 	const user = getUserAuthSession(supabase);
 	const isOwner = !!getIsFieldOwner(supabase, id!, user.data?.user.id!)?.data?.id;
+
+	console.log("FIELD", props.field, props);
 
 	return (
 		<div className="h-full bg-[#f2f4f3]">
@@ -151,6 +168,140 @@ export function FieldDetail(props: FieldProps) {
 									</div>
 								</div>
 								<TorneosSheet fieldId={id || ""} tournaments={tournaments} />
+								<div className="w-full">
+									{isOwner && (
+										<Sheet>
+											<SheetTrigger asChild>
+												<Button
+													variant="outline"
+													className="w-full border-white bg-[#2b3a39] text-white hover:bg-[#364845]"
+												>
+													Añadir administrador
+												</Button>
+											</SheetTrigger>
+											<SheetContent>
+												<SheetHeader>
+													<SheetTitle>Gestión de administradores</SheetTitle>
+												</SheetHeader>
+												<div className="mt-6 space-y-6">
+													<form
+														onSubmit={async (e) => {
+															e.preventDefault();
+															const form = e.target as HTMLFormElement;
+															const email = form.email.value;
+
+															const u = await supabase
+																.from("users")
+																.select("id")
+																.eq("email", email)
+																.single();
+
+															if (u.error || !u.data) {
+																alert("Usuario no encontrado");
+																return;
+															}
+
+															if (email && ff) {
+																console.log("AAAAA", [
+																	...(ff?.data?.adminedBy || []),
+																	u.data.id,
+																]);
+																await supabase
+																	.from("fields")
+																	.update({
+																		adminedBy: [
+																			...(ff?.data?.adminedBy || []),
+																			u.data.id,
+																		],
+																	})
+																	.eq("id", ff?.data?.id!);
+																ff.refetch();
+																props.dependantQueries?.forEach((query) =>
+																	query.refetch(),
+																);
+																form.reset();
+															}
+														}}
+														className="flex flex-col space-y-4"
+													>
+														<div>
+															<label
+																htmlFor="email"
+																className="mb-1 block text-sm font-semibold"
+															>
+																Correo electrónico
+															</label>
+															<div className="flex gap-2">
+																<Input
+																	id="email"
+																	name="email"
+																	type="email"
+																	placeholder="correo@ejemplo.com"
+																/>
+																<Button type="submit">Añadir</Button>
+															</div>
+														</div>
+													</form>
+
+													<div className="space-y-2">
+														<h3 className="text-sm font-semibold">
+															Administradores actuales
+														</h3>
+														<div className="max-h-[300px] overflow-y-auto rounded-md border p-2">
+															{ff?.data?.adminedBy && ff.data.adminedBy.length > 0 ? (
+																(ff?.data?.adminedBy || []).map((admin, _) => (
+																	<div
+																		key={`k${_}`}
+																		className="flex items-center justify-between py-2"
+																	>
+																		<span className="text-sm">
+																			<UserEmailFromId
+																				supabase={supabase}
+																				id={admin}
+																				key={`ka-${admin}`}
+																			/>
+																		</span>
+																		{admin && ff && (
+																			<Button
+																				size="sm"
+																				variant="destructive"
+																				onClick={async () => {
+																					await supabase
+																						.from("fields")
+																						.update({
+																							adminedBy:
+																								ff?.data?.adminedBy.filter(
+																									(i) => i !== admin,
+																								),
+																						})
+																						.eq("id", ff?.data?.id!);
+																					// window.location.reload();
+																					ff.refetch();
+																					props.dependantQueries?.forEach(
+																						(query) => query.refetch(),
+																					);
+																				}}
+																			>
+																				Eliminar
+																			</Button>
+																		)}
+																	</div>
+																))
+															) : (
+																<p
+																	key="fallback"
+																	className="py-2 text-center text-sm italic text-gray-500"
+																>
+																	No hay administradores
+																</p>
+															)}
+														</div>
+													</div>
+												</div>
+											</SheetContent>
+										</Sheet>
+									)}
+								</div>
 								{isOwner && (
 									<DeleteFieldButton
 										supabase={supabase}

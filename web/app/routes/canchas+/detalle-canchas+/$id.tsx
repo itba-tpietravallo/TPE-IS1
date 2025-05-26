@@ -77,6 +77,7 @@ export default function FieldDetailPage() {
 	return (
 		<FieldDetail
 			id={id}
+			ff={field}
 			supabase={supabase}
 			key={id}
 			name={name || ""}

@@ -386,7 +386,7 @@ export function TorneosSheet({ fieldId, tournaments }: TorneosSheetProps) {
 			<SheetTrigger asChild>
 				<Button
 					variant="outline"
-					className="ml-4 bg-[#d97e01] text-sm font-medium hover:bg-white hover:text-[#d97e01]"
+					className="bg-[#d97e01] text-sm font-medium hover:bg-white hover:text-[#d97e01]"
 				>
 					Ver torneos
 				</Button>
