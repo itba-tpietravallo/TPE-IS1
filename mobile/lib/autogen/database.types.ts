@@ -65,6 +65,39 @@ export type Database = {
           },
         ]
       }
+      inscriptions: {
+        Row: {
+          id: string
+          teamId: string | null
+          tournamentId: string
+        }
+        Insert: {
+          id?: string
+          teamId?: string | null
+          tournamentId: string
+        }
+        Update: {
+          id?: string
+          teamId?: string | null
+          tournamentId?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inscriptions_teamId_teams_team_id_fk"
+            columns: ["teamId"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["team_id"]
+          },
+          {
+            foreignKeyName: "inscriptions_tournamentId_tournaments_id_fk"
+            columns: ["tournamentId"]
+            isOneToOne: false
+            referencedRelation: "tournaments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mp_oauth_authorization: {
         Row: {
           access_token: string
@@ -210,6 +243,8 @@ export type Database = {
       }
       teams: {
         Row: {
+          contactEmail: string
+          contactPhone: number
           description: string | null
           images: string[] | null
           name: string
@@ -218,6 +253,8 @@ export type Database = {
           team_id: string
         }
         Insert: {
+          contactEmail: string
+          contactPhone: number
           description?: string | null
           images?: string[] | null
           name: string
@@ -226,6 +263,8 @@ export type Database = {
           team_id?: string
         }
         Update: {
+          contactEmail?: string
+          contactPhone?: number
           description?: string | null
           images?: string[] | null
           name?: string
@@ -243,7 +282,6 @@ export type Database = {
           fieldId: string
           id: string
           name: string
-          players: string[] | null
           price: number
           sport: string
           startDate: string
@@ -255,7 +293,6 @@ export type Database = {
           fieldId: string
           id?: string
           name: string
-          players?: string[] | null
           price: number
           sport: string
           startDate: string
@@ -267,7 +304,6 @@ export type Database = {
           fieldId?: string
           id?: string
           name?: string
-          players?: string[] | null
           price?: number
           sport?: string
           startDate?: string
