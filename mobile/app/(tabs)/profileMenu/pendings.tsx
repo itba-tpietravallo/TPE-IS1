@@ -32,40 +32,46 @@ export default function Pendings() {
 				Pendientes
 			</Text>
 
-			<FlatList
-				data={pendingReservations}
-				keyExtractor={(item) => item.id?.toString() ?? Math.random().toString()}
-				contentContainerStyle={styles.container}
-				scrollEnabled={true}
-				renderItem={({ item }) => (
-					<View style={styles.payment}>
-						<View style={styles.rowBetween}>
-							<View style={styles.column}>
-								<Text style={styles.amount}>
-									{(() => {
-										const splitPriceNumber =
-											Math.round((item.fields.price / item.bookers_count) * 100) / 100;
-										return Number.isInteger(splitPriceNumber)
-											? `$${splitPriceNumber.toString()}`
-											: `$${splitPriceNumber.toFixed(2)}`;
-									})()}
-								</Text>
+			{pendingReservations?.length === 0 ? (
+				<Text style={{ textAlign: "center", marginTop: 40, fontSize: 18, color: "#555" }}>
+					No tienes pagos pendientes.
+				</Text>
+			) : (
+				<FlatList
+					data={pendingReservations}
+					keyExtractor={(item) => item.id?.toString() ?? Math.random().toString()}
+					contentContainerStyle={styles.container}
+					scrollEnabled={true}
+					renderItem={({ item }) => (
+						<View style={styles.payment}>
+							<View style={styles.rowBetween}>
+								<View style={styles.column}>
+									<Text style={styles.amount}>
+										{(() => {
+											const splitPriceNumber =
+												Math.round((item.fields.price / item.bookers_count) * 100) / 100;
+											return Number.isInteger(splitPriceNumber)
+												? `$${splitPriceNumber.toString()}`
+												: `$${splitPriceNumber.toFixed(2)}`;
+										})()}
+									</Text>
 
-								{item.teams && <Text style={styles.teamName}>Equipo: {item.teams.name}</Text>}
+									{item.teams && <Text style={styles.teamName}>Equipo: {item.teams.name}</Text>}
 
-								<Text style={styles.fieldName}>Cancha: {item.fields.name}</Text>
+									<Text style={styles.fieldName}>Cancha: {item.fields.name}</Text>
+								</View>
+
+								<PayPending
+									reservationId={item.id}
+									fieldId={item.fields.id}
+									date_time={item.date_time}
+									price={Math.round((item.fields.price / item.bookers_count) * 100) / 100}
+								/>
 							</View>
-
-							<PayPending
-								reservationId={item.id}
-								fieldId={item.fields.id}
-								date_time={item.date_time}
-								price={Math.round((item.fields.price / item.bookers_count) * 100) / 100}
-							/>
 						</View>
-					</View>
-				)}
-			/>
+					)}
+				/>
+			)}
 		</View>
 	);
 }
