@@ -233,7 +233,7 @@ async function getMercadoPagoRedirectURL(
 		});
 	}
 
-	const updatedArray = currentData.pending_bookers_ids.filter((id: string) => id !== RESERVATION_ID);
+	const updatedArray = currentData.pending_bookers_ids.filter((id: string) => id !== reqBody.userId);
 
 	const updatePayload: {
 		pending_bookers_ids: string[];

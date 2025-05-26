@@ -70,6 +70,9 @@ jobs:
               if: steps.extract_branch.outputs.branch != 'main'
               run: |
                   rm -f ~/.local/share/com.vercel.cli/auth.json || true
+                  rm -f ~/.local/share/com.vercel.cli/config.json || true
                   echo "${{ secrets.VERCEL_HARDCODED_CLI_AUTH_JSON }}" > ~/.local/share/com.vercel.cli/auth.json
+                  echo "${{ secrets.VERCEL_HARDCODED_CLI_CONFIG_JSON }}" > ~/.local/share/com.vercel.cli/config.json
+                  npx vercel whoami # force auth refresh just in case
                   npx vercel alias ${{ steps.deploy.outputs.url }} dev.matchpointapp.com.ar
               timeout-minutes: 2
