@@ -219,7 +219,20 @@ async function getMercadoPagoRedirectURL(
 	// 	field_id: fieldId,
 	// } as typeof reservationsTable.$inferInsert);
 
-	const updatedArray = data.pending_bookers_ids.filter((id: string) => id !== reqBody.userId);
+	const { data: currentData, error: errorGettingCurrent } = await supabaseClient
+		.from("reservations")
+		.select("pending_bookers_ids")
+		.eq("id", RESERVATION_ID)
+		.single();
+
+	if (errorGettingCurrent || !currentData || !currentData.pending_bookers_ids) {
+		return new Response(`Error fetching reservation data: ${errorGettingCurrent?.message || "No data found"}`, {
+			status: 500,
+			statusText: `Error fetching reservation data: ${errorGettingCurrent?.message || "No data found"}`,
+		});
+	}
+
+	const updatedArray = currentData.pending_bookers_ids.filter((id: string) => id !== RESERVATION_ID);
 
 	const updatePayload: {
 		pending_bookers_ids: string[];
