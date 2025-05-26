@@ -265,31 +265,40 @@ export type Database = {
       }
       teams: {
         Row: {
+          admins: string[]
           contactEmail: string
           contactPhone: string
           description: string | null
           images: string[] | null
+          isPublic: boolean
           name: string
+          playerRequests: string[]
           players: string[]
           sport: string
           team_id: string
         }
         Insert: {
+          admins: string[]
           contactEmail: string
           contactPhone: string
           description?: string | null
           images?: string[] | null
+          isPublic: boolean
           name: string
+          playerRequests: string[]
           players: string[]
           sport: string
           team_id?: string
         }
         Update: {
+          admins?: string[]
           contactEmail?: string
           contactPhone?: string
           description?: string | null
           images?: string[] | null
+          isPublic?: boolean
           name?: string
+          playerRequests?: string[]
           players?: string[]
           sport?: string
           team_id?: string
