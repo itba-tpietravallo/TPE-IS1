@@ -46,22 +46,22 @@ export function ReservationSheet({
 					<div className="space-y-1 text-sm text-gray-400">
 						<p>
 							<strong>Dueño de la reserva:</strong>
-							{usersData.data?.find((user) => user.id === reservation.owner_id)?.full_name ||
+							{usersData.data?.find((user) => user.id === reservation?.owner_id)?.full_name ||
 								"Desconocido"}
 						</p>
 						<p>
-							<strong>Id de la reserva:</strong> {reservation.id}
+							<strong>Id de la reserva:</strong> {reservation?.id}
 						</p>
 					</div>
 					<p className="text-lg">
-						<strong>Equipo:</strong> {team.name}
+						<strong>Equipo:</strong> {team?.name}
 					</p>
 					<div>
 						<ul className="mt-2 space-y-1">
-							{team.players.map((playerId: string) => {
+							{team?.players.map((playerId: string) => {
 								const user = usersData.data?.find((user) => user.id === playerId) || null;
 								const name = user?.full_name || "Desconocido";
-								const pending = reservation.pending_bookers_ids.includes(playerId);
+								const pending = !reservation.confirmed;
 								// console.log("players id", team.players);
 								// console.log("pendientes", reservation.payments_ids);
 								return (

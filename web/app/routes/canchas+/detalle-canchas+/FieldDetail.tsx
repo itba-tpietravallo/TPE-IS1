@@ -53,7 +53,7 @@ export function FieldDetail(props: FieldProps) {
 	const teamsData = getAllTeams(supabase);
 	const [sheetOpen, setSheetOpen] = useState(false);
 	const user = getUserAuthSession(supabase);
-	const isOwner = !!getIsFieldOwner(supabase, id!, user.data?.user.id!)?.count;
+	const isOwner = !!getIsFieldOwner(supabase, id!, user.data?.user.id!)?.data?.id;
 
 	return (
 		<div className="h-full bg-[#f2f4f3]">

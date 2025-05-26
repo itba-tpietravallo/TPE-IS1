@@ -79,6 +79,7 @@ export const fieldsTable = pgTable(
 		city: varchar({ length: 255 }).notNull(),
 		avatar_url: text(),
 		images: text().array(),
+		adminedBy: text().array().default([]).notNull(),
 	},
 	(table) => [
 		// index("spatial_index").using("gist", table.location),
