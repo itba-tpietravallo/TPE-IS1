@@ -10,8 +10,9 @@ type PropsTeam = {
 	sport: string;
 	description: string;
 	players: string[];
+	playerRequests: string[];
 	images: string[];
-	//players: Player[];
+	isPublic: boolean;
 };
 
 function TeamPost(props: PropsTeam) {
@@ -26,7 +27,7 @@ function TeamPost(props: PropsTeam) {
 				<ImageBackground
 					style={styles.container}
 					imageStyle={{ borderRadius: 15, opacity: 0.9 }}
-					source={{ uri: props.images[0] }}
+					source={props.images.length == 0 ? require("@/assets/images/people-logo.jpg") : props.images[0]}   //@TODO: IMAGENES
 				>
 					<View style={styles.topContent}>
 						<Text style={styles.title}>{props.name}</Text>
@@ -47,7 +48,8 @@ function TeamPost(props: PropsTeam) {
 						sport={props.sport}
 						description={props.description}
 						players={props.players}
-						public={false}   //TODO; LEVANTAR DE LA DB !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+						playerRequests={props.playerRequests}   
+						public={props.isPublic}   
 					/>
 				</View>
 			</Modal>

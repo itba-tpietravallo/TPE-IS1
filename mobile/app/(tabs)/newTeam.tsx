@@ -40,7 +40,12 @@ export default function PostTeam() {
 				description: description,
 				images: null,
 				//availability: availability, // Disponibilidad ingresada
-				players: [user?.full_name!], // Cuando crea el equipo automaticamente se une el creador
+				players: [user?.id!], // Cuando crea el equipo automaticamente se une el creador
+				playerRequests: [""],
+				admins: [user?.id!], 
+				isPublic: isPublic,
+				contactPhone: "",
+				contactEmail: "",
 			},
 		]);
 		router.push("/(tabs)/teams");

@@ -17,8 +17,8 @@ type PropsPopUpTeam = {
 	name: string;
 	sport: string;
 	description: string;
-	players: string[]; //solucion provisoria
-	//players: Player[];
+	players: string[]; 
+	playerRequests: string[];
 	public: boolean;
 };
 
@@ -27,8 +27,9 @@ function PopUpTeam(props: PropsPopUpTeam) {
 	const usersData = getAllUsers(supabase);
 
 	const [players, setPlayers] = useState<string[]>(props.players);
+	const [requests, setRequests] = useState<string[]>(props.playerRequests);  
 
-	const [isModalVisible, setIsModalVisible] = useState(false);
+	const [isModalVisible, setIsModalVisible] = useState(false); //PopUpJoinRequests
 	const handleCloseModal = () => {
 		setIsModalVisible(false);
 	};
@@ -41,15 +42,30 @@ function PopUpTeam(props: PropsPopUpTeam) {
 	}
 
 	const handleJoinTeam = async () => {
-		const updatedMembers = [...(players || []), user?.id!];
 
-		const { data, error } = await supabase
-			.from("teams")
-			.update({ players: updatedMembers })
-			.eq("team_id", props.team_id)
-			.throwOnError();
+		if(props.public){
+			const updatedMembers = [...(players || []), user?.id!];
 
-		setPlayers(updatedMembers);
+			const { data, error } = await supabase
+				.from("teams")
+				.update({ players: updatedMembers })
+				.eq("team_id", props.team_id)
+				.throwOnError();
+
+			setPlayers(updatedMembers);
+			console.log("joined public team")
+		}else{
+			const updatedRequests = [...(requests || []), user?.id!];
+
+			const { data, error } = await supabase
+				.from("teams")
+				.update({ players: updatedRequests })
+				.eq("team_id", props.team_id)
+				.throwOnError();
+
+			setRequests(updatedRequests);
+			console.log("requested to join private team")
+		}
 	};
 
 	const handleLeaveTeam = async () => {
@@ -92,7 +108,7 @@ function PopUpTeam(props: PropsPopUpTeam) {
 
 				{/* Boton join requests (arriba a la derecha) */}
 				{userAlreadyOnTeam(user?.id!) &&
-				<TouchableOpacity style={{ padding: 10, alignItems: "flex-start" }} onPress={() => setIsModalVisible(true)}>
+				<TouchableOpacity style={{ padding: 10, alignItems: "flex-start" }} onPress={() => {setIsModalVisible(true)}}>
 					<Icon name="users" size={24} color="black" style={{ marginTop: 10 }} />
 				</TouchableOpacity> 
 				}
@@ -110,6 +126,7 @@ function PopUpTeam(props: PropsPopUpTeam) {
 							team_id={props.team_id}
 							name={props.name}
 							players={props.players}
+							playerRequests={props.playerRequests}
 						/>
 					</View>
 				</Modal>
@@ -153,7 +170,7 @@ function PopUpTeam(props: PropsPopUpTeam) {
 			</View>
 
 			{/* Boton Join team */}
-			{props.public && !userAlreadyOnTeam(user?.id!) && (
+			{!userAlreadyOnTeam(user?.id!) && (
 				<TouchableOpacity
 					style={[styles.joinTeamButton]}
 					onPress={() =>
@@ -162,21 +179,7 @@ function PopUpTeam(props: PropsPopUpTeam) {
 							.catch((e) => console.log("Error joining team", e))
 					}
 				>
-					<Text style={styles.buttonText}>Join Team</Text>
-				</TouchableOpacity>
-			)}
-
-			{/* Boton Request Join team */}
-			{!props.public && !userAlreadyOnTeam(user?.id!) && (
-				<TouchableOpacity
-					style={[styles.joinTeamButton]}
-					onPress={() =>
-						handleJoinTeam()     //CAMBIAR POR HANDLEREQUEST!!!!!!!!!!!!!!!!
-							.then(() => console.log("Joined team"))
-							.catch((e) => console.log("Error joining team", e))
-					}
-				>
-					<Text style={styles.buttonText}>Request to Join Team</Text>
+					<Text style={styles.buttonText}>{props.public ? "Join Team" : "Request to Join Team"}</Text>
 				</TouchableOpacity>
 			)}
 

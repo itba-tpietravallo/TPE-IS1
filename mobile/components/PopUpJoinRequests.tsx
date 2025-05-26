@@ -12,7 +12,7 @@ type PropsPopUpJoinRequests = {
 	team_id: string;
 	name: string;
 	players: string[]; 
-	//playerRequests: string[];
+	playerRequests: string[];
 };
 
 function PopUpJoinRequests(props: PropsPopUpJoinRequests) {
@@ -20,32 +20,36 @@ function PopUpJoinRequests(props: PropsPopUpJoinRequests) {
 	const usersData = getAllUsers(supabase);
 
 	const [players, setPlayers] = useState<string[]>(props.players);
+	const [requests, setRequests] = useState<string[]>(props.playerRequests); 
 
 	const handleAcceptPlayer = async (player: string) => {
-			// const updatedMembers = [...(players || []), user?.id!];
+			const updatedMembers = [...(players || []), player];
 	
-			// const { data, error } = await supabase
-			// 	.from("teams")
-			// 	.update({ players: updatedMembers })
-			// 	.eq("team_id", props.team_id)
-			// 	.throwOnError();
+			const { data, error } = await supabase
+				.from("teams")
+				.update({ players: updatedMembers })
+				.eq("team_id", props.team_id)
+				.throwOnError();
 	
-			// setPlayers(updatedMembers);
+			setPlayers(updatedMembers);
 			console.log("accept")
+
+			handleDeleteRequest(player);
 		};
 
 	
-	const handleRejectPlayer = async (player: string) => {
-			// const updatedMembers = [...(players || []), user?.id!];
+	const handleDeleteRequest = async (player: string) => {
+			const updatedRequests = requests.filter(member => member !== player);
 	
-			// const { data, error } = await supabase
-			// 	.from("teams")
-			// 	.update({ players: updatedMembers })
-			// 	.eq("team_id", props.team_id)
-			// 	.throwOnError();
+			const { data, error } = await supabase
+				.from("teams")
+				.update({ playerRequests: updatedRequests })
+				.eq("team_id", props.team_id)
+				.throwOnError();
 	
-			// setPlayers(updatedMembers);
-			console.log("decline")
+			setRequests(updatedRequests);
+			console.log("deleted")
+			console.log(updatedRequests)
 		};
 
 	return (
@@ -61,36 +65,44 @@ function PopUpJoinRequests(props: PropsPopUpJoinRequests) {
 			<View style={styles.mainInfo}>
 				{/* Nombre del equipo */}
 				<View style={styles.topInfo}>
-					<Text style={styles.teamName}>{props.name}</Text>
+					{/* <Text style={styles.teamName}>{props.name}</Text> */}
 					<Text style={{ fontSize: 16, color: "gray", marginBottom: 10 }}>Join Requests</Text>
 				</View>
 
 				{/* Miembros del Equipo */}
-				<ScrollView style={styles.scrollArea}>
-					<View style={{ width: "100%" }}>
-						{players?.map((member) => (
-							<View key={member} style={styles.row}>
-								<View style={{ height: 60, width: 30 }}></View>
-								<Icon name="user" size={24} color="black">
-									{" "}
-								</Icon>
-								<View style={styles.info}>
-									<Text style={styles.name}>
-										{usersData.data?.find((user) => user.id === member)?.full_name}
-									</Text>
+				{props.playerRequests?.length != 0 &&
+					<ScrollView style={styles.scrollArea}>
+						<View style={{ width: "100%" }}>
+							{props.playerRequests?.map((member) => (
+								<View key={member} style={styles.row}>
+									<View style={{ height: 60, width: 30 }}></View>
+									<Icon name="user" size={24} color="black">
+										{" "}
+									</Icon>
+									<View style={styles.info}>
+										<Text style={styles.name}>
+											{usersData.data?.find((user) => user.id === member)?.full_name}
+										</Text>
+									</View>
+									<TouchableOpacity style={{ padding: 3, alignItems: "flex-start", marginLeft: 10 }} onPress={()=>handleAcceptPlayer(usersData.data?.find((user) => user.id === member)?.id!)}>
+										<Icon name="check-square" size={24} color="#f18f01" style={{ marginTop: 10 }} />
+									</TouchableOpacity>
+									<TouchableOpacity style={{ padding: 3, alignItems: "flex-start", marginLeft: 10 }} onPress={()=>handleDeleteRequest(usersData.data?.find((user) => user.id === member)?.id!)}>
+										<Icon name="square-xmark" size={24} color="black" style={{ marginTop: 10 }} />
+									</TouchableOpacity>
+									
 								</View>
-                                <TouchableOpacity style={{ padding: 3, alignItems: "flex-start", marginLeft: 10 }} onPress={()=>handleAcceptPlayer(usersData.data?.find((user) => user.id === member)?.id!)}>
-					                <Icon name="check-square" size={24} color="#f18f01" style={{ marginTop: 10 }} />
-				                </TouchableOpacity>
-                                <TouchableOpacity style={{ padding: 3, alignItems: "flex-start", marginLeft: 10 }} onPress={()=>handleRejectPlayer(usersData.data?.find((user) => user.id === member)?.id!)}>
-					                <Icon name="square-xmark" size={24} color="black" style={{ marginTop: 10 }} />
-				                </TouchableOpacity>
-								
-							</View>
-						))}
+							))}
+						</View>
+					</ScrollView>
+				}
+				{props.playerRequests?.length == 0 &&
+					<View style={styles.topInfo}>
+						<Text style={styles.name}>
+							No hay solicitdes para unirse al equipo!
+						</Text>
 					</View>
-				</ScrollView>
-
+				}
 			</View>
             
 		</View>
