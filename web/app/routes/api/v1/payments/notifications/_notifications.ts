@@ -127,7 +127,10 @@ async function processMercadoPagoNotification(
 					)
 				)
 			),
-			date_time
+			date_time,
+			payments_ids,
+			pending_bookers_ids,
+			team_id
 		`,
 		)
 		.eq("id", reservation_id)
@@ -172,51 +175,35 @@ async function processMercadoPagoNotification(
 				});
 			}
 
-			const { data: reservation, error: fetchError } = await supabaseClient
+			const newPaymentId = Number(data.data.id);
+			const updatedPaymentIdsArray = [...(res.data.payments_ids || []), newPaymentId];
+
+			const updatedPendingBookersArray = res.data.pending_bookers_ids.filter((id: string) => id !== user_id);
+
+			const updatePayload: {
+				payments_ids: number[];
+				pending_bookers_ids: string[];
+				confirmed?: boolean;
+			} = {
+				payments_ids: updatedPaymentIdsArray,
+				pending_bookers_ids: updatedPendingBookersArray,
+			};
+
+			if (updatedPendingBookersArray.length === 0) {
+				updatePayload.confirmed = true;
+			}
+
+			const { error: updateError } = await supabaseClient
 				.from("reservations")
-				.select("payments_ids, pending_bookers_ids")
-				.eq("id", reservation_id)
-				.single();
+				.update(updatePayload)
+				.eq("id", reservation_id);
 
-			if (fetchError) {
-				console.error("Error fetching reservation:", fetchError);
-				return new Response("Error fetching reservation", {
+			if (updateError) {
+				console.error("Error updating reservation:", updateError);
+				return new Response("Error updating reservation", {
 					status: 500,
-					statusText: "Error fetching reservation",
+					statusText: "Error updating reservation",
 				});
-			} else {
-				const newPaymentId = Number(data.data.id);
-				const updatedPaymentIdsArray = [...(reservation.payments_ids || []), newPaymentId];
-
-				const updatedPendingBookersArray = reservation.pending_bookers_ids.filter(
-					(id: string) => id !== user_id,
-				);
-
-				const updatePayload: {
-					payments_ids: number[];
-					pending_bookers_ids: string[];
-					confirmed?: boolean;
-				} = {
-					payments_ids: updatedPaymentIdsArray,
-					pending_bookers_ids: updatedPendingBookersArray,
-				};
-
-				if (updatedPendingBookersArray.length === 0) {
-					updatePayload.confirmed = true;
-				}
-
-				const { error: updateError } = await supabaseClient
-					.from("reservations")
-					.update(updatePayload)
-					.eq("id", reservation_id);
-
-				if (updateError) {
-					console.error("Error updating reservation:", updateError);
-					return new Response("Error updating reservation", {
-						status: 500,
-						statusText: "Error updating reservation",
-					});
-				}
 			}
 
 			try {
