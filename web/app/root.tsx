@@ -50,7 +50,7 @@ export default function App() {
 						staleTime: 1000 * 60 * 5,
 						refetchOnWindowFocus: "always",
 						refetchOnReconnect: true,
-					},
+					}, 
 				},
 			}),
 	);
