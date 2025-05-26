@@ -8,8 +8,7 @@ import { Badge } from "~/components/ui/badge";
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
 import { authenticateUser } from "~/lib/auth.server";
-import { CreditCard, Mail, Phone, User, CalendarDays} from "lucide-react"
-
+import { CreditCard, Mail, Phone, User, CalendarDays } from "lucide-react";
 
 type Field = {
 	avatar_url: string;
@@ -33,13 +32,13 @@ type ProfileInfoProps = {
 	email?: string;
 	userName?: string;
 	phone?: string;
-	url_origin?:string;
+	url_origin?: string;
 };
 
 type ReservsProps = {
-	date:string
-	fieldName:string;
-	reservator:string;
+	date: string;
+	fieldName: string;
+	reservator: string;
 };
 
 type ReservsListProps = {
@@ -60,39 +59,43 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export default function Index() {
-	
-const { user, avatar_url, email, phone, full_name, env, URL_ORIGIN } = useLoaderData<typeof loader>();
-//const supabase = createBrowserClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
-//const { data } = getAllReservationsForOwner(supabase, user.id);
-//console.log(data, user.id);
+	const { user, avatar_url, email, phone, full_name, env, URL_ORIGIN } = useLoaderData<typeof loader>();
+	//const supabase = createBrowserClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
+	//const { data } = getAllReservationsForOwner(supabase, user.id);
+	//console.log(data, user.id);
 
-// const reservs = data?.map((reserv) => ({
-// 	date: reserv.date_time,
-// 	fieldName: reserv.fields?.name,
-// 	reservator: reserv.users?.full_name,
-// })) ?? [];
-
+	// const reservs = data?.map((reserv) => ({
+	// 	date: reserv.date_time,
+	// 	fieldName: reserv.fields?.name,
+	// 	reservator: reserv.users?.full_name,
+	// })) ?? [];
 
 	return (
 		<>
 			<Card className="m-16">
 				<CardContent className="pt-6">
-					<div className="flex flex-col md:flex-row items-center gap-6">
+					<div className="flex flex-col items-center gap-6 md:flex-row">
 						<Avatar className="h-24 w-24 border-4 border-white shadow-md">
 							<AvatarImage src={avatar_url || undefined} alt="Profile picture" />
-							<AvatarFallback>MW</AvatarFallback>
+							<AvatarFallback>
+								{full_name
+									?.split(" ")
+									.slice(0, 2)
+									.map((e) => e.charAt(0))
+									.join("")}
+							</AvatarFallback>
 						</Avatar>
 						<div className="flex-1 text-center md:text-left">
 							<h1 className="text-2xl font-bold">{full_name}</h1>
 							<p className="text-muted-foreground">
 								<Badge variant="outline" className="mt-1">
-								<CalendarDays className="mr-1 h-3 w-3" />
+									<CalendarDays className="mr-1 h-3 w-3" />
 									Miembro desde {new Date(user?.created_at).toLocaleDateString()}
 								</Badge>
 							</p>
 						</div>
 					</div>
-			</CardContent>
+				</CardContent>
 			</Card>
 
 			<ProfileInfo
@@ -101,7 +104,7 @@ const { user, avatar_url, email, phone, full_name, env, URL_ORIGIN } = useLoader
 				phone={phone ?? undefined}
 				url_origin={URL_ORIGIN ?? undefined}
 			/>
-			
+
 			{/* RIP imprimir Reservas */}
 
 			{/* <div className="m-16">
@@ -120,18 +123,22 @@ const { user, avatar_url, email, phone, full_name, env, URL_ORIGIN } = useLoader
 	);
 }
 
-
 export function ReservsList({ reservs }: ReservsListProps) {
-	
-return (
+	return (
 		<div className="p-4">
-			<h2 className="text-xl font-semibold mb-4">Reservations</h2>
+			<h2 className="mb-4 text-xl font-semibold">Reservations</h2>
 			<ul className="space-y-4">
 				{reservs?.map((reservation, index) => (
-					<li key={index} className="p-4 border rounded-lg shadow-sm">
-						<p><strong>Date:</strong> {new Date(reservation.date).toLocaleString()}</p>
-						<p><strong>Field:</strong> {reservation.fieldName}</p>
-						<p><strong>User:</strong> {reservation.reservator}</p>
+					<li key={index} className="rounded-lg border p-4 shadow-sm">
+						<p>
+							<strong>Date:</strong> {new Date(reservation.date).toLocaleString()}
+						</p>
+						<p>
+							<strong>Field:</strong> {reservation.fieldName}
+						</p>
+						<p>
+							<strong>User:</strong> {reservation.reservator}
+						</p>
 					</li>
 				))}
 			</ul>
@@ -139,96 +146,93 @@ return (
 	);
 }
 
-export function ProfileInfo({ email, userName, phone, url_origin}: ProfileInfoProps) {
-	const [phoneSaved, setPhoneSaved] = useState(phone ?? "")
-	const [phoneInput, setPhoneInput] = useState("")
+export function ProfileInfo({ email, userName, phone, url_origin }: ProfileInfoProps) {
+	const [phoneSaved, setPhoneSaved] = useState(phone ?? "");
+	const [phoneInput, setPhoneInput] = useState("");
 
 	const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-	setPhoneInput(e.target.value)
-	}
+		setPhoneInput(e.target.value);
+	};
 
 	const handleSave = () => {
-	setPhoneSaved(phoneInput)
-	setPhoneInput("") 
-	}
+		setPhoneSaved(phoneInput);
+		setPhoneInput("");
+	};
 
 	const handleCancel = () => {
-	setPhoneInput("") 
-	}
+		setPhoneInput("");
+	};
 
-	const phoneDisplayed = phoneInput !== "" ? phoneInput : phoneSaved
+	const phoneDisplayed = phoneInput !== "" ? phoneInput : phoneSaved;
 
-  return (
-    <Card className="mt-16 ml-16 mr-16 mb-6">
-      <CardHeader>
-        <CardTitle>Información de tu cuenta</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+	return (
+		<Card className="mb-6 ml-16 mr-16 mt-16">
+			<CardHeader>
+				<CardTitle>Información de tu cuenta</CardTitle>
+			</CardHeader>
+			<CardContent className="space-y-6">
+				<div className="space-y-4">
+					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+						<div className="space-y-2">
+							<div className="flex items-center gap-2">
+								<Mail className="h-4 w-4 text-muted-foreground" />
+								<Label htmlFor="email">Email</Label>
+							</div>
+							<Input id="email" value={email ?? ""} readOnly />
+						</div>
 
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Mail className="h-4 w-4 text-muted-foreground" />
-                <Label htmlFor="email">Email</Label>
-              </div>
-              <Input id="email" value={email ?? ""} readOnly />
-            </div>
+						<div className="space-y-2">
+							<div className="flex items-center gap-2">
+								<User className="h-4 w-4 text-muted-foreground" />
+								<Label htmlFor="username">Nombre de usuario</Label>
+							</div>
+							<Input id="username" value={userName || "(no vinculado)"} readOnly />
+						</div>
+					</div>
 
+					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+						<div className="space-y-2">
+							<div className="flex items-center gap-2">
+								<Phone className="h-4 w-4 text-muted-foreground" />
+								<Label htmlFor="phone">Teléfono</Label>
+							</div>
+							<Input
+								id="phone"
+								placeholder="Agregar número de teléfono"
+								value={phoneDisplayed}
+								onChange={handlePhoneChange}
+							/>
+							{!phoneSaved && phoneInput === "" && (
+								<p className="text-sm text-muted-foreground">(no vinculado)</p>
+							)}
+						</div>
 
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <User className="h-4 w-4 text-muted-foreground" />
-                <Label htmlFor="username">Nombre de usuario</Label>
-              </div>
-              <Input id="username" value={userName || "(no vinculado)"} readOnly />
-            </div>
-          </div>
+						<div className="space-y-2">
+							<div className="flex items-center gap-2">
+								<CreditCard className="h-4 w-4 text-muted-foreground" />
+								<Label htmlFor="payment">Método de pago</Label>
+							</div>
+							<div className="flex gap-2">
+								<Link to={`${new URL("/api/v1/payments/oauth/mercadopago", url_origin)}`}>
+									<Button variant="outline" className="w-full">
+										<CreditCard className="mr-2 h-4 w-4" />
+										Vincular a Mercado Pago
+									</Button>
+								</Link>
+							</div>
+						</div>
+					</div>
+				</div>
+			</CardContent>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Phone className="h-4 w-4 text-muted-foreground" />
-                <Label htmlFor="phone">Teléfono</Label>
-              </div>
-              <Input
-                id="phone"
-                placeholder="Agregar número de teléfono"
-                value={phoneDisplayed}
-                onChange={handlePhoneChange}
-              />
-              {!phoneSaved && phoneInput === "" && (
-                <p className="text-sm text-muted-foreground">(no vinculado)</p>
-              )}
-            </div>
-
- 
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <CreditCard className="h-4 w-4 text-muted-foreground" />
-                <Label htmlFor="payment">Método de pago</Label>
-              </div>
-              <div className="flex gap-2">
-                <Link to={`${new URL("/api/v1/payments/oauth/mercadopago", url_origin)}`}>
-                  <Button variant="outline" className="w-full">
-                    <CreditCard className="mr-2 h-4 w-4" />
-                    Vincular a Mercado Pago
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </CardContent>
-
-     
-      {phoneInput && (
-        <CardFooter className="flex justify-between border-t pt-6">
-          <Button variant="outline" onClick={handleCancel}>Cancelar</Button>
-          <Button onClick={handleSave}>Guardar cambios</Button>
-        </CardFooter>
-      )}
-    </Card>
-  )
+			{phoneInput && (
+				<CardFooter className="flex justify-between border-t pt-6">
+					<Button variant="outline" onClick={handleCancel}>
+						Cancelar
+					</Button>
+					<Button onClick={handleSave}>Guardar cambios</Button>
+				</CardFooter>
+			)}
+		</Card>
+	);
 }
