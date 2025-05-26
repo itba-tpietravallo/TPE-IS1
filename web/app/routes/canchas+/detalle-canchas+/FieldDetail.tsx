@@ -3,23 +3,19 @@ import type { Database } from "@lib/autogen/database.types";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import { DollarSign, MapPin, Loader2 } from "lucide-react";
+import { DollarSign, MapPin, Loader2, Info, OctagonAlert, Check } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "~/components/ui/carousel";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "~/components/ui/sheet";
 import { TorneosSheet } from "./TorneosSheet";
+import { ReservationSheet } from "./ReseravtionSheet";
 import { DeleteFieldButton } from "./DeleteFieldButton";
 import type { UseQueryResult } from "@tanstack/react-query";
+import { getAllTeams } from "@lib/autogen/queries";
 
 type CarouselProps = {
 	imgSrc: string[];
-};
-
-export type Reservation = {
-	id: string;
-	date_time: string;
-	owner_id: string;
 };
 
 type FieldProps = {
@@ -30,7 +26,7 @@ type FieldProps = {
 	location: string;
 	price: number;
 	description: string;
-	reservations: Reservation[];
+	reservations: any[];
 	tournaments: any[];
 	users: any[];
 	dependantQueries?: UseQueryResult[];
@@ -53,6 +49,9 @@ export function FieldDetail(props: FieldProps) {
 		onSave,
 		loading,
 	} = props;
+
+	const teamsData = getAllTeams(supabase);
+	const [sheetOpen, setSheetOpen] = useState(false);
 
 	return (
 		<div className="h-full bg-[#f2f4f3]">
@@ -84,48 +83,65 @@ export function FieldDetail(props: FieldProps) {
 									<h2 className="mb-4 border-gray-500 text-left text-xl font-semibold text-[#f2f4f3]">
 										Reservas:
 									</h2>
-									<div className="rounded-lg border border-white p-6 shadow-md">
-										<div className="grid grid-cols-3 gap-4 border-gray-500 px-6 py-4 text-[#f2f4f3]">
-											<div className="text-lg font-semibold">Fecha</div>
-											<div className="text-lg font-semibold">Horario</div>
-											<div className="text-lg font-semibold">Nombre</div>
+									<div className="rounded-xl border border-white bg-[#2b3a39] p-6 shadow-md">
+										<div className="grid grid-cols-5 gap-4 border-b border-gray-400 pb-3 text-center text-sm font-semibold text-white">
+											<span>Fecha</span>
+											<span>Horario</span>
+											<span>Nombre Equipo</span>
+											<span>Pago</span>
+											<span>Info</span>
 										</div>
-										<div>
+										<div className="divide-y divide-gray-600">
 											{reservations.length > 0 ? (
-												reservations.map((reservations) => (
-													<div className="gap- grid grid-cols-3 border-t border-gray-500 px-6 py-4 text-[#f2f4f3]">
-														<div>
-															{new Date(reservations.date_time).toLocaleDateString(
-																"es-ES",
-																{
-																	year: "numeric",
-																	month: "2-digit",
-																	day: "2-digit",
-																},
-															)}{" "}
+												reservations.map((reservation) => {
+													const team = teamsData.data?.find(
+														(team) => team.team_id === reservation.team_id,
+													);
+
+													return (
+														<div
+															key={reservation.id}
+															className="grid grid-cols-5 items-center gap-4 rounded-md py-3 text-center text-sm text-white transition hover:bg-[#364845]"
+														>
+															<div>
+																{new Date(reservation.date_time).toLocaleDateString(
+																	"es-ES",
+																	{
+																		year: "numeric",
+																		month: "2-digit",
+																		day: "2-digit",
+																	},
+																)}
+															</div>
+															<div>
+																{new Date(reservation.date_time).toLocaleTimeString(
+																	"es-ES",
+																	{
+																		hour: "2-digit",
+																		minute: "2-digit",
+																	},
+																)}
+															</div>
+															<div>{team?.name || "Desconocido"}</div>
+															<div className="flex justify-center">
+																{reservation.paid ? (
+																	<Check className="h-5 w-5 text-green-400" />
+																) : (
+																	<OctagonAlert className="h-5 w-5 text-yellow-400" />
+																)}
+															</div>
+															<div>
+																<ReservationSheet
+																	reservation={reservation}
+																	team={team}
+																	supabase={supabase}
+																/>
+															</div>
 														</div>
-														<div>
-															{" "}
-															{new Date(reservations.date_time).toLocaleTimeString(
-																"es-ES",
-																{
-																	hour: "2-digit",
-																	minute: "2-digit",
-																},
-															)}{" "}
-														</div>
-														<div>
-															{" "}
-															{
-																(users || [])?.find(
-																	(user) => user.id === reservations.owner_id,
-																)?.full_name
-															}
-														</div>
-													</div>
-												))
+													);
+												})
 											) : (
-												<div className="flex h-full w-full items-center justify-center border-t border-gray-500 text-lg italic text-white">
+												<div className="flex h-full w-full items-center justify-center py-6 text-sm italic text-gray-300">
 													No hay reservas
 												</div>
 											)}
