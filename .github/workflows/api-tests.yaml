@@ -28,22 +28,8 @@ jobs:
 
             - name: Install dependencies
               if: steps.cache-modules.outputs.cache-hit != 'true'
-              run: npm ci
+              run: npm ci && cd web && npm ci && cd ..
               shell: bash
-            
-            - uses: actions/cache@v3
-              id: web-cache
-              with:
-                  path: |
-                      'web/node_modules'
-                  key: "${{ runner.os }}-web-${{ hashFiles('web/package-lock.json') }}"
-                  restore-keys: |
-                      ${{ runner.os }}-web-
-            
-            - name: Install web dependencies
-              if: steps.web-cache.outputs.cache-hit != 'true'
-              run: |
-                cd web && npm ci && cd ..
                           
             - name: Load web env
               run: |
