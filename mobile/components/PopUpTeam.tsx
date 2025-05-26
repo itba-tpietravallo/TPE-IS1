@@ -106,8 +106,8 @@ function PopUpTeam(props: PropsPopUpTeam) {
 					<Icon name="xmark" size={24} color="black" style={{ marginTop: 10 }} />
 				</TouchableOpacity>
 
-				{/* Boton join requests (arriba a la derecha) */}
-				{userAlreadyOnTeam(user?.id!) &&
+				{/* Boton join requests (arriba a la derecha) (si es publico no aparece) */}
+				{userAlreadyOnTeam(user?.id!) && !props.public &&
 				<TouchableOpacity style={{ padding: 10, alignItems: "flex-start" }} onPress={() => {setIsModalVisible(true)}}>
 					<Icon name="users" size={24} color="black" style={{ marginTop: 10 }} />
 				</TouchableOpacity> 
