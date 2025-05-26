@@ -12,7 +12,7 @@ import { TorneosSheet } from "./TorneosSheet";
 import { ReservationSheet } from "./ReseravtionSheet";
 import { DeleteFieldButton } from "./DeleteFieldButton";
 import type { UseQueryResult } from "@tanstack/react-query";
-import { getAllTeams } from "@lib/autogen/queries";
+import { getAllTeams, getIsFieldOwner, getUserAuthSession } from "@lib/autogen/queries";
 
 type CarouselProps = {
 	imgSrc: string[];
@@ -52,6 +52,8 @@ export function FieldDetail(props: FieldProps) {
 
 	const teamsData = getAllTeams(supabase);
 	const [sheetOpen, setSheetOpen] = useState(false);
+	const user = getUserAuthSession(supabase);
+	const isOwner = !!getIsFieldOwner(supabase, id!, user.data?.user.id!)?.count;
 
 	return (
 		<div className="h-full bg-[#f2f4f3]">
@@ -149,11 +151,13 @@ export function FieldDetail(props: FieldProps) {
 									</div>
 								</div>
 								<TorneosSheet fieldId={id || ""} tournaments={tournaments} />
-								<DeleteFieldButton
-									supabase={supabase}
-									fieldId={id || ""}
-									dependantQueries={props?.dependantQueries || []}
-								/>
+								{isOwner && (
+									<DeleteFieldButton
+										supabase={supabase}
+										fieldId={id || ""}
+										dependantQueries={props?.dependantQueries || []}
+									/>
+								)}
 							</CardContent>
 						</>
 					)}

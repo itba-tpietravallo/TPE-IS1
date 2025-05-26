@@ -22,7 +22,15 @@ export const queries = {
   ) => supabase.rpc("nearby_fields", { lat, long, lim: limit || 5 }),
 
   getAllFieldsByOwner: (supabase: SupabaseClient<Database>, ownerId: string) =>
-    supabase.from("fields").select("*").eq("owner", ownerId),
+    supabase.from("fields").select("*").eq("owner", ownerId).or(`adminedBy.cs.{${ownerId}}`),
+
+  getIsFieldOwner: (supabase: SupabaseClient<Database>, fieldId: string, userId: string) =>
+    supabase
+      .from("fields")
+      .select("id")
+      .eq("id", fieldId)
+      .eq("owner", userId as string)
+      .single(),
 
   getFieldById: (supabase: SupabaseClient<Database>, fieldId: string) =>
     supabase.from("fields").select("*").eq("id", fieldId).single(),
@@ -118,6 +126,18 @@ export function getAllFields(
   opts: any = undefined
 ) {
   return useQuerySupabase(queries.getAllFields(supabase), opts);
+}
+
+export function getIsFieldOwner(
+  supabase: SupabaseClient<Database>,
+  fieldId: string,
+  userId: string,
+  opts: any = undefined
+) {
+  return useQuerySupabase(
+    queries.getIsFieldOwner(supabase, fieldId, userId),
+    { enabled: fieldId && userId, ...opts }
+  );
 }
 
 export function getNearbyFields(
