@@ -212,55 +212,6 @@ async function getMercadoPagoRedirectURL(
 		});
 	}
 
-	// const resp = await supabaseClient.from("reservations").insert({
-	// 	id: RESERVATION_ID,
-	// 	date_time: new Date(date_time),
-	// 	owner_id: user?.id,
-	// 	payments_id: null,
-	// 	field_id: fieldId,
-	// } as typeof reservationsTable.$inferInsert);
-
-	// const { data: currentData, error: errorGettingCurrent } = await supabaseClient
-	// 	.from("reservations")
-	// 	.select("pending_bookers_ids")
-	// 	.eq("id", RESERVATION_ID)
-	// 	.single();
-
-	// if (errorGettingCurrent || !currentData || !currentData.pending_bookers_ids) {
-	// 	return new Response(`Error fetching reservation data: ${errorGettingCurrent?.message || "No data found"}`, {
-	// 		status: 500,
-	// 		statusText: `Error fetching reservation data: ${errorGettingCurrent?.message || "No data found"}`,
-	// 	});
-	// }
-
-	// const updatedArray = currentData.pending_bookers_ids.filter((id: string) => id !== reqBody.userId);
-
-	// const updatePayload: {
-	// 	pending_bookers_ids: string[];
-	// 	confirmed?: boolean;
-	// } = {
-	// 	pending_bookers_ids: updatedArray,
-	// };
-
-	// if (updatedArray.length === 0) {
-	// 	updatePayload.confirmed = true;
-	// }
-
-	// console.log("Updating reservation", {
-	// 	reservationId: RESERVATION_ID,
-	// 	updatedArray,
-	// 	updatePayload,
-	// });
-
-	// const resp = await supabaseClient.from("reservations").update(updatePayload).eq("id", RESERVATION_ID);
-
-	// if (resp.error) {
-	// 	return new Response(`Error updating reservation: ${resp.error.message}. ${date_time}`, {
-	// 		status: 500,
-	// 		statusText: `Error updating reservation: ${resp.error.message}. ${date_time}`,
-	// 	});
-	// }
-
 	return new Response(preference.init_point, {
 		status: 200,
 	});

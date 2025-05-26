@@ -6,7 +6,6 @@ import { MercadoPagoConfig, MerchantOrder, Payment, PaymentRefund } from "mercad
 
 import createHmac from "create-hmac";
 
-import { mpPaymentsTable } from "@/../../db/schema";
 import { Database } from "@lib/autogen/database.types";
 
 type NotificationType = {
