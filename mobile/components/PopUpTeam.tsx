@@ -10,6 +10,7 @@ import { getUsername, getAllUsers } from "@lib/autogen/queries.ts";
 import { getUserSession } from "@/lib/autogen/queries";
 import { router } from "expo-router";
 import PopUpJoinRequests from "./PopUpJoinRequests.tsx";
+import { join } from "path";
 
 type PropsPopUpTeam = {
 	onClose: () => void;
@@ -36,6 +37,13 @@ function PopUpTeam(props: PropsPopUpTeam) {
 
 	function userAlreadyOnTeam(userId: string) {
 		if (players?.includes(userId)) {
+			return true;
+		}
+		return false;
+	}
+
+	function joinRequested(userId: string) {
+		if (requests?.includes(userId)) {
 			return true;
 		}
 		return false;
@@ -169,8 +177,8 @@ function PopUpTeam(props: PropsPopUpTeam) {
 				<Text style={styles.description}>{props.description}</Text>
 			</View>
 
-			{/* Boton Join team */}
-			{!userAlreadyOnTeam(user?.id!) && (
+			{/* Boton Join team - request to join team */}
+			{!userAlreadyOnTeam(user?.id!) && !joinRequested(user?.id!) && (
 				<TouchableOpacity
 					style={[styles.joinTeamButton]}
 					onPress={() =>
@@ -181,6 +189,13 @@ function PopUpTeam(props: PropsPopUpTeam) {
 				>
 					<Text style={styles.buttonText}>{props.public ? "Join Team" : "Request to Join Team"}</Text>
 				</TouchableOpacity>
+			)}
+
+			{/* Boton request to join sent */}
+			{!userAlreadyOnTeam(user?.id!) && joinRequested(user?.id!) && (
+				<View style={[styles.joinTeamButton]}>
+					<Text style={styles.buttonText}>{"Request sent!"}</Text>
+				</View>
 			)}
 
 			{/* Boton leave team */}
