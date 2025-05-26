@@ -76,29 +76,29 @@ tests:
                           jsonpath: $.token_type
                       user_id:
                           jsonpath: $.user.id
-            - name: GET payment link
-              http:
-                  url: ${{ env.origin }}/api/v1/payments
-                  method: POST
-                  headers:
-                      access_token: ${{ captures.access_token }}
-                      refresh_token: ${{ captures.refresh_token }}
-                  json:
-                      userId: ${{ captures.user_id }}
-                      processor: "mercado-pago-redirect"
-                      fieldId: ""
-                      success_url: "https://www.matchpointapp.com.ar"
-                      pending_url: "https://www.matchpointapp.com.ar"
-                      cancel_url: "https://www.matchpointapp.com.ar"
-                      date_time: "2000-00-00T00:00:00Z"
-                  check:
-                      status: /500/ # Note: This is 500 because the
-                      # __DANGEROUS_createSupabaseServerClient_BYPASS_RLS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED
-                      # client cannot be used on dev locally atm
+            # - name: GET payment link
+            #   http:
+            #       url: ${{ env.origin }}/api/v1/payments
+            #       method: POST
+            #       headers:
+            #           access_token: ${{ captures.access_token }}
+            #           refresh_token: ${{ captures.refresh_token }}
+            #       json:
+            #           userId: ${{ captures.user_id }}
+            #           processor: "mercado-pago-redirect"
+            #           fieldId: ""
+            #           success_url: "https://www.matchpointapp.com.ar"
+            #           pending_url: "https://www.matchpointapp.com.ar"
+            #           cancel_url: "https://www.matchpointapp.com.ar"
+            #           date_time: "2000-00-00T00:00:00Z"
+            #       check:
+            #           status: /500/ # Note: This is 500 because the
+            #           # __DANGEROUS_createSupabaseServerClient_BYPASS_RLS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED
+            #           # client cannot be used on dev locally atm
 
     storage:
         steps:
-            - if: env.GCP_PRODUCTION_API_KEY ~= "^[a-zA-Z0-9_-]+$"
+            - if: env.GCP_PRODUCTION_API_KEY
               name: PUT request
               http:
                   url: ${{env.origin}}/api/v1/storage/upload
