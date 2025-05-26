@@ -230,7 +230,7 @@ export function NewField() {
 		() =>
 			(sports || [])?.map((item) => ({
 				label: item.name,
-				value: item.name.toLowerCase(),
+				value: item.name,
 			})),
 		[sports],
 	);
