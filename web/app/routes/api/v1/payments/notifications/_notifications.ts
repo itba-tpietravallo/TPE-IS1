@@ -7,6 +7,7 @@ import { MercadoPagoConfig, MerchantOrder, Payment, PaymentRefund } from "mercad
 import createHmac from "create-hmac";
 
 import { Database } from "@lib/autogen/database.types";
+import { __GET_PUBLIC_ENV } from "@lib/getenv.server";
 
 type NotificationType = {
 	action: string;
@@ -234,7 +235,7 @@ async function processMercadoPagoNotification(
 						statusText: "Player info not found",
 					});
 
-				await fetch(new URL("/api/v1/send-email", "https://matchpointapp.com.ar/").toString(), {
+				await fetch(new URL("/api/v1/send-email", __GET_PUBLIC_ENV().URL_ORIGIN).toString(), {
 					method: "POST",
 					body: JSON.stringify({
 						player_email: player_info.email,
