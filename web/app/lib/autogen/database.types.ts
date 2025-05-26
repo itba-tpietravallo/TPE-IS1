@@ -11,6 +11,7 @@ export type Database = {
     Tables: {
       fields: {
         Row: {
+          adminedBy: string[]
           avatar_url: string | null
           city: string
           description: string | null
@@ -26,6 +27,7 @@ export type Database = {
           street_number: string
         }
         Insert: {
+          adminedBy?: string[]
           avatar_url?: string | null
           city: string
           description?: string | null
@@ -41,6 +43,7 @@ export type Database = {
           street_number: string
         }
         Update: {
+          adminedBy?: string[]
           avatar_url?: string | null
           city?: string
           description?: string | null
