@@ -1,5 +1,7 @@
 import { test, expect } from "@playwright/test";
 
+const authFile = "./web/tests-e2e/.auth/user.json";
+
 const BASE_URL = "http://localhost:5173";
 const TEST_USER_EMAIL = process.env.TEST_USER_EMAIL || "";
 const TEST_USER_PASSWORD = process.env.TEST_USER_PASSWORD || "";
@@ -22,6 +24,8 @@ const TEST_FIELD_DETAILS = {
 };
 
 test.describe("Fields", () => {
+	test.use({ storageState: authFile });
+
 	test("Publish field", async ({ page }) => {
 		// Publishing
 		await page.goto(`${BASE_URL}/canchas`);
@@ -30,6 +34,7 @@ test.describe("Fields", () => {
 		await page.waitForLoadState("load");
 		await page.waitForRequest(/.*maps\.googleapis\.com\/.*main.*/);
 		await page.waitForRequest(/.*maps\.googleapis\.com\/.*map.*/);
+		await page.waitForRequest(/.*maps\.googleapis\.com\/.*/);
 		await page.getByRole("textbox", { name: "Nombre" }).click();
 		await page.getByRole("textbox", { name: "Nombre" }).fill(TEST_FIELD_DETAILS.FIELD_NAME);
 		await page.getByRole("textbox", { name: "Calle" }).click();
@@ -40,8 +45,8 @@ test.describe("Fields", () => {
 		await page.getByRole("textbox", { name: "Barrio" }).fill(TEST_FIELD_DETAILS.FIELD_NEIGHBORHOOD);
 		await page.getByRole("textbox", { name: "Ciudad" }).click();
 		await page.getByRole("textbox", { name: "Ciudad" }).fill(TEST_FIELD_DETAILS.FIELD_CITY);
-		await page.waitForRequest(/.*\/api\/v1\/geocode.*/);
-		await page.waitForTimeout(150);
+		await page.waitForTimeout(100 * 2 + 10);
+		await page.waitForLoadState("networkidle");
 		await page.getByPlaceholder("Escribir el deporte si no").click();
 		await page.getByRole("option", { name: TEST_FIELD_DETAILS.FIELD_SPORT }).click();
 		await page.locator('input[name="price"]').click();
