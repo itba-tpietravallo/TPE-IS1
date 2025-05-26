@@ -28,6 +28,7 @@ import { getAllSports } from "@/lib/autogen/queries";
 import { APIProvider, Map, AdvancedMarker, Pin, InfoWindow } from "@vis.gl/react-google-maps";
 import debounce from "lodash.debounce";
 import { Database } from "@lib/autogen/database.types";
+import { __GET_PUBLIC_ENV } from "@lib/getenv.server";
 
 // Zod schema for form validation
 const fieldSchema = z.object({
@@ -78,6 +79,7 @@ export async function loader(args: LoaderFunctionArgs) {
 		env,
 		URL_ORIGIN: new URL(args.request.url).origin,
 		GOOGLE_MAPS_API_KEY: process.env.GOOGLE_MAPS_API_KEY,
+		__GET_PUBLIC_ENV: __GET_PUBLIC_ENV((process.env.VERCEL_ENV || "development") as "production" | "development"),
 		user,
 		headers: {
 			"Access-Control-Allow-Origin": "*",
@@ -86,7 +88,7 @@ export async function loader(args: LoaderFunctionArgs) {
 }
 
 export function NewField() {
-	const { user, URL_ORIGIN, env, GOOGLE_MAPS_API_KEY } = useLoaderData<typeof loader>();
+	const { user, URL_ORIGIN, env, GOOGLE_MAPS_API_KEY, __GET_PUBLIC_ENV } = useLoaderData<typeof loader>();
 	const submit = useSubmit();
 	const supabase = createBrowserClient<Database>(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
 	const [formError, setFormError] = useState(false);
@@ -178,7 +180,7 @@ export function NewField() {
 				const { downloadURL, signedPUTURL } =
 					await // @todo: Refactor once migration to /api/v1/env is implemented
 					(
-						await fetch(new URL("/api/v1/storage/upload", "https://matchpointapp.com.ar").toString(), {
+						await fetch(new URL("/api/v1/storage/upload", __GET_PUBLIC_ENV.URL_ORIGIN).toString(), {
 							method: "POST",
 							body: JSON.stringify({ fileName: file.name }),
 							headers,

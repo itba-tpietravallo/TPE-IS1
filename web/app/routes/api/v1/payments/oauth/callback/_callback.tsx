@@ -7,6 +7,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 	// Mercado Pago sends code with the format ?code=TG-68XXXXX4deeff00010XXXXX-XX96307XXX
 	// If more processorts were added, we could regex this to infer the processor
 	const code = url.searchParams.get("code");
+	const origin = url.origin;
 
 	const mercadoPagoConfig = new MercadoPagoConfig({ accessToken: process.env.MERCADO_PAGO_ACCESS_TOKEN! });
 
@@ -15,7 +16,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 			client_id: process.env.MERCADO_PAGO_PUBLIC_CLIENT_ID!,
 			client_secret: process.env.MERCADO_PAGO_CLIENT_SECRET!,
 			code: code!,
-			redirect_uri: new URL(`/api/v1/payments/oauth/callback`, `https://matchpointapp.com.ar`).toString(),
+			redirect_uri: new URL(`/api/v1/payments/oauth/callback`, origin).toString(),
 		},
 	});
 

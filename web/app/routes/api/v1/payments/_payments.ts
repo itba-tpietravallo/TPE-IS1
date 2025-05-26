@@ -8,6 +8,7 @@ import {
 } from "~/lib/supabase.server";
 import { reservationsTable, mpPaymentsTable } from "@/../../../db/schema";
 import { PreferenceCreateData } from "mercadopago/dist/clients/preference/create/types";
+import { __GET_PUBLIC_ENV } from "@lib/getenv.server";
 
 type PaymentRequest = {
 	userId: string;
@@ -152,10 +153,7 @@ async function getMercadoPagoRedirectURL(
 
 	const RESERVATION_ID = reqBody.reservationId;
 
-	const URL =
-		process.env.VERCEL_ENV === "production"
-			? "https://matchpointapp.com.ar/"
-			: "https://tpe-is1-itba-p9nkukv55-tomas-pietravallos-projects-3cd242b1.vercel.app/";
+	const url = __GET_PUBLIC_ENV().URL_ORIGIN;
 
 	const BODY: PreferenceCreateData = {
 		body: {
@@ -183,7 +181,10 @@ async function getMercadoPagoRedirectURL(
 				email: user.email,
 			},
 			binary_mode: true,
-			notification_url: `${URL}api/v1/payments/notifications?user_id=${user.id}&reservation_id=${RESERVATION_ID}&amount=${price === undefined ? data.price : price}&merchant_fee=${0}`,
+			notification_url: new URL(
+				`api/v1/payments/notifications?user_id=${user.id}&reservation_id=${RESERVATION_ID}&amount=${price === undefined ? data.price : price}&merchant_fee=${0}`,
+				url,
+			).toString(),
 			external_reference: `${RESERVATION_ID}`,
 			marketplace: "8221763286725670",
 			marketplace_fee: 0,

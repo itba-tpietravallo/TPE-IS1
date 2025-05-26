@@ -57,29 +57,37 @@ export default function PayPending({
 				throw new Error(res.error?.message || "Authentication error");
 			}
 
-			await fetch("https://matchpointapp.com.ar/api/v1/payments", {
-				method: "POST",
-				body: JSON.stringify({
-					userId: res.data.session?.user.id,
-					fieldId,
-					reservationId,
-					processor: "mercado-pago-redirect",
-					pending_url: Linking.createURL(`${path}?pending`),
-					success_url: Linking.createURL(`${path}?success`),
-					failure_url: Linking.createURL(`${path}?failure`),
-					date_time,
-					price,
-					// Failure redirect example:
-					// exp://10.7.218.143:8081?collection_id=null&collection_status=null&payment_id=null&status=null&external_reference=field:3ae59ad0-57d4-4cbc-bd39-99a29ba7d12e-user:85a36c63-97f6-4c8d-b967-94c8d452a8b1&payment_type=null&merchant_order_id=null&preference_id=449538966-3da6a0e8-89e8-438f-b5ea-4737c408158f&site_id=MLA&processing_mode=aggregator&merchant_account_id=null
-				}),
-				headers: {
-					"Content-Type": "application/json",
-					Accept: "application/json",
-					apiKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!,
-					access_token: `${res.data.session!.access_token}`,
-					refresh_token: `${res.data.session!.refresh_token}`,
+			await fetch(
+				new URL(
+					"/api/v1/payments",
+					__DEBUG__
+						? "https://tpe-is1-itba-p9nkukv55-tomas-pietravallos-projects-3cd242b1.vercel.app/"
+						: "https://matchpointapp.com.ar/",
+				).toString(),
+				{
+					method: "POST",
+					body: JSON.stringify({
+						userId: res.data.session?.user.id,
+						fieldId,
+						reservationId,
+						processor: "mercado-pago-redirect",
+						pending_url: Linking.createURL(`${path}?pending`),
+						success_url: Linking.createURL(`${path}?success`),
+						failure_url: Linking.createURL(`${path}?failure`),
+						date_time,
+						price,
+						// Failure redirect example:
+						// exp://10.7.218.143:8081?collection_id=null&collection_status=null&payment_id=null&status=null&external_reference=field:3ae59ad0-57d4-4cbc-bd39-99a29ba7d12e-user:85a36c63-97f6-4c8d-b967-94c8d452a8b1&payment_type=null&merchant_order_id=null&preference_id=449538966-3da6a0e8-89e8-438f-b5ea-4737c408158f&site_id=MLA&processing_mode=aggregator&merchant_account_id=null
+					}),
+					headers: {
+						"Content-Type": "application/json",
+						Accept: "application/json",
+						apiKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!,
+						access_token: `${res.data.session!.access_token}`,
+						refresh_token: `${res.data.session!.refresh_token}`,
+					},
 				},
-			}).then(async (res) => {
+			).then(async (res) => {
 				if (res.status >= 200 && res.status < 300) {
 					const data = await res.text();
 					await openBrowserAsync(data);

@@ -79,8 +79,8 @@ export default function CheckoutButton({
 			}
 
 			const URL = __DEBUG__
-				? "https://matchpointapp.com.ar/"
-				: "https://tpe-is1-itba-p9nkukv55-tomas-pietravallos-projects-3cd242b1.vercel.app/";
+				? "https://tpe-is1-itba-p9nkukv55-tomas-pietravallos-projects-3cd242b1.vercel.app/"
+				: "https://matchpointapp.com.ar/";
 
 			await fetch(`${URL}api/v1/payments`, {
 				method: "POST",
