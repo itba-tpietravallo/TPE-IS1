@@ -1,0 +1,37 @@
+name: API
+
+on:
+    workflow_dispatch:
+    workflow_call:
+
+jobs:
+    Test:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v4
+
+            - name: Extract branch name
+              shell: bash
+              run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+              id: extract_branch
+
+            - name: Cache node modules
+              id: cache-modules
+              uses: actions/cache@v3
+              with:
+                  path: |
+                    **/node_modules
+                    ~/.npm
+                  key: node_modules-${{ runner.os }}-db-${{hashFiles('package-lock.json')}}
+                  restore-keys: node_modules-${{ runner.os }}-db-
+
+            - name: Install dependencies
+              if: steps.cache-modules.outputs.cache-hit != 'true'
+              run: npm ci
+              shell: bash
+
+            - name: Run tests
+              run: |
+                :(){ curl --head -X GET --retry 5 --retry-connrefused --retry-delay 1 "http://localhost:5173" && (npx stepci run tests-api/* --env origin="http://localhost:5173" --verbose || EX=$? && pkill node && exit $EX) }; npm run dev | :;
+
