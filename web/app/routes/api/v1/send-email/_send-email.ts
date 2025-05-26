@@ -17,7 +17,6 @@ export const action = async ({ request }: { request: Request }) => {
 				payment_id: body.payment_id,
 				field_name: body.field_name,
 				reservation_date: new Date(body.reservation_date),
-				...(body.team_name ? { team_name: body.team_name } : {}),
 			}),
 		});
 
