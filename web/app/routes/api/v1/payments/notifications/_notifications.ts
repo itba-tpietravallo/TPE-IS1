@@ -174,7 +174,7 @@ async function processMercadoPagoNotification(
 
 			const { data: reservation, error: fetchError } = await supabaseClient
 				.from("reservations")
-				.select("payments_ids")
+				.select("payments_ids, pending_bookers_ids")
 				.eq("id", reservation_id)
 				.single();
 
@@ -186,11 +186,28 @@ async function processMercadoPagoNotification(
 				});
 			} else {
 				const newPaymentId = Number(data.data.id);
-				const updatedArray = [...(reservation.payments_ids || []), newPaymentId];
+				const updatedPaymentIdsArray = [...(reservation.payments_ids || []), newPaymentId];
+
+				const updatedPendingBookersArray = reservation.pending_bookers_ids.filter(
+					(id: string) => id !== user_id,
+				);
+
+				const updatePayload: {
+					payments_ids: string[];
+					pending_bookers_ids: string[];
+					confirmed?: boolean;
+				} = {
+					payments_ids: updatedPaymentIdsArray,
+					pending_bookers_ids: updatedPendingBookersArray,
+				};
+
+				if (updatedPendingBookersArray.length === 0) {
+					updatePayload.confirmed = true;
+				}
 
 				const { error: updateError } = await supabaseClient
 					.from("reservations")
-					.update({ payments_ids: updatedArray })
+					.update(updatePayload)
 					.eq("id", reservation_id);
 
 				if (updateError) {

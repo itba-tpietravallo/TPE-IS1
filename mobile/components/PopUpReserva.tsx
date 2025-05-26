@@ -236,7 +236,6 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 					userId={user.id}
 					fieldId={fieldId}
 					fieldName={selectedRenter.name}
-					// preActionFunction={preActionFunction}
 					teamId={selectedRenter.id}
 					date_time={selectedDateTime.toISOString()}
 				/>

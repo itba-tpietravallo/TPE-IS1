@@ -220,40 +220,46 @@ async function getMercadoPagoRedirectURL(
 	// 	field_id: fieldId,
 	// } as typeof reservationsTable.$inferInsert);
 
-	const { data: currentData, error: errorGettingCurrent } = await supabaseClient
-		.from("reservations")
-		.select("pending_bookers_ids")
-		.eq("id", RESERVATION_ID)
-		.single();
+	// const { data: currentData, error: errorGettingCurrent } = await supabaseClient
+	// 	.from("reservations")
+	// 	.select("pending_bookers_ids")
+	// 	.eq("id", RESERVATION_ID)
+	// 	.single();
 
-	if (errorGettingCurrent || !currentData || !currentData.pending_bookers_ids) {
-		return new Response(`Error fetching reservation data: ${errorGettingCurrent?.message || "No data found"}`, {
-			status: 500,
-			statusText: `Error fetching reservation data: ${errorGettingCurrent?.message || "No data found"}`,
-		});
-	}
+	// if (errorGettingCurrent || !currentData || !currentData.pending_bookers_ids) {
+	// 	return new Response(`Error fetching reservation data: ${errorGettingCurrent?.message || "No data found"}`, {
+	// 		status: 500,
+	// 		statusText: `Error fetching reservation data: ${errorGettingCurrent?.message || "No data found"}`,
+	// 	});
+	// }
 
-	const updatedArray = currentData.pending_bookers_ids.filter((id: string) => id !== reqBody.userId);
+	// const updatedArray = currentData.pending_bookers_ids.filter((id: string) => id !== reqBody.userId);
 
-	const updatePayload: {
-		pending_bookers_ids: string[];
-		confirmed?: boolean;
-	} = {
-		pending_bookers_ids: updatedArray,
-	};
+	// const updatePayload: {
+	// 	pending_bookers_ids: string[];
+	// 	confirmed?: boolean;
+	// } = {
+	// 	pending_bookers_ids: updatedArray,
+	// };
 
-	if (updatedArray.length === 0) {
-		updatePayload.confirmed = true;
-	}
+	// if (updatedArray.length === 0) {
+	// 	updatePayload.confirmed = true;
+	// }
 
-	const resp = await supabaseClient.from("reservations").update(updatePayload).eq("id", reqBody.reservationId);
+	// console.log("Updating reservation", {
+	// 	reservationId: RESERVATION_ID,
+	// 	updatedArray,
+	// 	updatePayload,
+	// });
 
-	if (resp.error) {
-		return new Response(`Error updating reservation: ${resp.error.message}. ${date_time}`, {
-			status: 500,
-			statusText: `Error updating reservation: ${resp.error.message}. ${date_time}`,
-		});
-	}
+	// const resp = await supabaseClient.from("reservations").update(updatePayload).eq("id", RESERVATION_ID);
+
+	// if (resp.error) {
+	// 	return new Response(`Error updating reservation: ${resp.error.message}. ${date_time}`, {
+	// 		status: 500,
+	// 		statusText: `Error updating reservation: ${resp.error.message}. ${date_time}`,
+	// 	});
+	// }
 
 	return new Response(preference.init_point, {
 		status: 200,
