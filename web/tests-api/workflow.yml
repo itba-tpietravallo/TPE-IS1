@@ -4,6 +4,7 @@ name: Status Check
 env:
     test_username: "test-ci-cd@matchpointapp.com.ar"
     test_password: "2unfaxj-23pe-d$xpkjJ"
+    GCP_PRODUCTION_API_KEY: ""
 
 tests:
     healthcheck:
@@ -95,26 +96,26 @@ tests:
                       # __DANGEROUS_createSupabaseServerClient_BYPASS_RLS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED
                       # client cannot be used on dev locally atm
 
-    # storage:
-    #     steps:
-    #         - name: PUT request
-    #           if: false
-    #           http:
-    #               url: ${{env.origin}}/api/v1/storage/upload
-    #               method: PUT
-    #               json:
-    #                   fileName: "test.txt"
-    #               check:
-    #                   status: /^20/
-    #                   headers:
-    #                       Content-Type: application/json
-    #                   schema:
-    #                       type: object
-    #                       properties:
-    #                           signedPUTURL:
-    #                               type: string
-    #                           downloadURL:
-    #                               type: string
-    #                       required:
-    #                           - signedPUTURL
-    #                           - downloadURL
+    storage:
+        steps:
+            - if: env.GCP_PRODUCTION_API_KEY ~= "^[a-zA-Z0-9_-]+$"
+              name: PUT request
+              http:
+                  url: ${{env.origin}}/api/v1/storage/upload
+                  method: PUT
+                  json:
+                      fileName: "test.txt"
+                  check:
+                      status: /^20/
+                      headers:
+                          Content-Type: application/json
+                      schema:
+                          type: object
+                          properties:
+                              signedPUTURL:
+                                  type: string
+                              downloadURL:
+                                  type: string
+                          required:
+                              - signedPUTURL
+                              - downloadURL

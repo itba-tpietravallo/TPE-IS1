@@ -21,8 +21,8 @@ jobs:
               uses: actions/cache@v3
               with:
                   path: |
-                    **/node_modules
-                    ~/.npm
+                      **/node_modules
+                      ~/.npm
                   key: node_modules-${{ runner.os }}-api-${{hashFiles('package-lock.json')}}
                   restore-keys: node_modules-${{ runner.os }}-api-
 
@@ -30,12 +30,11 @@ jobs:
               if: steps.cache-modules.outputs.cache-hit != 'true'
               run: npm ci && cd web && npm ci && cd ..
               shell: bash
-                          
+
             - name: Load web env
               run: |
-                cat ./web/.env | grep '^[^#]' >> "$GITHUB_ENV"
+                  cat ./web/.env | grep '^[^#]' >> "$GITHUB_ENV"
 
             - name: Run tests
               run: |
-                cd web && :(){ curl --head -X GET --retry 10 --retry-connrefused --retry-delay 3 "http://localhost:5173" && (npx stepci run tests-api/* --env origin="http://localhost:5173" --verbose || EX=$? && pkill node && exit $EX) }; npm run dev | :;
-
+                  cd web && :(){ curl --head -X GET --retry 10 --retry-connrefused --retry-delay 3 "http://localhost:5173" && (npx stepci run tests-api/* --env origin="http://localhost:5173" GCP_PRODUCTION_API_KEY=${{ secrets.GCP_PRODUCTION_API_KEY }} --verbose || EX=$? && pkill node && exit $EX) }; npm run dev | :;
