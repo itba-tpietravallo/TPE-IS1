@@ -11,7 +11,6 @@ export type Database = {
     Tables: {
       fields: {
         Row: {
-          adminedBy: string[]
           avatar_url: string | null
           city: string
           description: string | null
@@ -27,7 +26,6 @@ export type Database = {
           street_number: string
         }
         Insert: {
-          adminedBy?: string[]
           avatar_url?: string | null
           city: string
           description?: string | null
@@ -43,7 +41,6 @@ export type Database = {
           street_number: string
         }
         Update: {
-          adminedBy?: string[]
           avatar_url?: string | null
           city?: string
           description?: string | null
@@ -195,37 +192,25 @@ export type Database = {
       }
       reservations: {
         Row: {
-          bookers_count: number
-          confirmed: boolean
           date_time: string
           field_id: string
           id: string
           owner_id: string
-          payments_ids: number[] | null
-          pending_bookers_ids: string[]
-          team_id: string | null
+          payments_id: number | null
         }
         Insert: {
-          bookers_count: number
-          confirmed?: boolean
-          date_time?: string
+          date_time: string
           field_id: string
           id?: string
           owner_id: string
-          payments_ids?: number[] | null
-          pending_bookers_ids: string[]
-          team_id?: string | null
+          payments_id?: number | null
         }
         Update: {
-          bookers_count?: number
-          confirmed?: boolean
           date_time?: string
           field_id?: string
           id?: string
           owner_id?: string
-          payments_ids?: number[] | null
-          pending_bookers_ids?: string[]
-          team_id?: string | null
+          payments_id?: number | null
         }
         Relationships: [
           {
@@ -241,13 +226,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "reservations_team_id_teams_team_id_fk"
-            columns: ["team_id"]
-            isOneToOne: false
-            referencedRelation: "teams"
-            referencedColumns: ["team_id"]
           },
         ]
       }
@@ -265,53 +243,36 @@ export type Database = {
       }
       teams: {
         Row: {
-          admins: string[]
           contactEmail: string
-          contactPhone: string
+          contactPhone: number
           description: string | null
           images: string[] | null
-          isPublic: boolean
           name: string
-          playerRequests: string[]
           players: string[]
           sport: string
           team_id: string
         }
         Insert: {
-          admins: string[]
           contactEmail: string
-          contactPhone: string
+          contactPhone: number
           description?: string | null
           images?: string[] | null
-          isPublic: boolean
           name: string
-          playerRequests: string[]
           players: string[]
           sport: string
           team_id?: string
         }
         Update: {
-          admins?: string[]
           contactEmail?: string
-          contactPhone?: string
+          contactPhone?: number
           description?: string | null
           images?: string[] | null
-          isPublic?: boolean
           name?: string
-          playerRequests?: string[]
           players?: string[]
           sport?: string
           team_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "teams_sport_sports_name_fk"
-            columns: ["sport"]
-            isOneToOne: false
-            referencedRelation: "sports"
-            referencedColumns: ["name"]
-          },
-        ]
+        Relationships: []
       }
       tournaments: {
         Row: {
@@ -354,13 +315,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "fields"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tournaments_sport_sports_name_fk"
-            columns: ["sport"]
-            isOneToOne: false
-            referencedRelation: "sports"
-            referencedColumns: ["name"]
           },
         ]
       }
