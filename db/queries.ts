@@ -167,7 +167,6 @@ export function getUsername(supabase: SupabaseClient<Database>, userId: string, 
 			const { data, error } = await queries.getUsername(supabase, userId);
 
 			if (error || !data.username) {
-				console.error("Error fetching username:", error, data);
 				const base_username = data?.full_name?.toLowerCase().split(" ").join("_")! || "user";
 				const similar = await supabase.from("users").select("username").like("username", base_username);
 				const def =
@@ -181,6 +180,8 @@ export function getUsername(supabase: SupabaseClient<Database>, userId: string, 
 
 			return username;
 		},
+		enabled: !!userId,
+		...opts,
 	});
 }
 
