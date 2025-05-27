@@ -1,16 +1,12 @@
-import React, { useState, useEffect, useRef } from "react";
-import { View, Text, Button, StyleSheet, Image, TouchableOpacity, Modal, Alert, ScrollView } from "react-native";
-import { ScreenHeight, ScreenWidth } from "@rneui/themed/dist/config";
+import React, { useState, useEffect } from "react";
+import { View, Text, StyleSheet, TouchableOpacity, Modal, Alert, ScrollView } from "react-native";
+import { ScreenWidth } from "@rneui/themed/dist/config";
 import { supabase } from "@/lib/supabase";
-import { Session } from "@supabase/supabase-js";
 import Icon from "react-native-vector-icons/FontAwesome6";
-import { Player } from "../app/(tabs)/teams.tsx";
-import PlayerPreview from "./PlayerPreview.tsx";
-import { getUsername, getAllUsers } from "@lib/autogen/queries.ts";
+import { getAllUsers } from "@lib/autogen/queries.ts";
 import { getUserSession } from "@/lib/autogen/queries";
 import { router } from "expo-router";
 import PopUpJoinRequests from "./PopUpJoinRequests.tsx";
-import { join } from "path";
 
 type PropsPopUpTeam = {
 	onClose: () => void;
@@ -193,7 +189,7 @@ function PopUpTeam(props: PropsPopUpTeam) {
 
 			{/* Boton request to join sent */}
 			{!userAlreadyOnTeam(user?.id!) && joinRequested(user?.id!) && (
-				<View style={[styles.joinTeamButton]}>
+				<View style={[styles.joinRequestSentLabel]}>
 					<Text style={styles.buttonText}>{"Request sent!"}</Text>
 				</View>
 			)}
@@ -234,10 +230,6 @@ const styles = StyleSheet.create({
 		overflow: "hidden",
 		width: ScreenWidth * 0.9,
 	},
-	scrollContainer: {
-		flexGrow: 1,
-		paddingBottom: 20,
-	},
 	scrollArea: {
 		backgroundColor: "#f0f0f0",
 		marginBottom: 10,
@@ -252,27 +244,6 @@ const styles = StyleSheet.create({
 		justifyContent: "space-between",
 		alignItems: "center",
 		gap: 15,
-	},
-	selection: {
-		padding: 20,
-		gap: 30,
-		flexDirection: "row",
-		justifyContent: "space-between",
-		alignItems: "center",
-	},
-	select: {
-		fontWeight: "bold",
-		fontSize: 16,
-		marginBottom: 10,
-	},
-	selected: {
-		backgroundColor: "white",
-		borderWidth: 1,
-		borderColor: "#747775",
-		borderRadius: 20,
-		paddingHorizontal: 12,
-		height: 20,
-		flexDirection: "row",
 	},
 	row: {
 		flexDirection: "row",
@@ -302,6 +273,14 @@ const styles = StyleSheet.create({
 	},
 	joinTeamButton: {
 		backgroundColor: "#f18f04",
+		width: "100%",
+		padding: 17,
+		alignItems: "center",
+		justifyContent: "center",
+		marginTop: 10,
+	},
+	joinRequestSentLabel: {
+		backgroundColor: "#5fd700",
 		width: "100%",
 		padding: 17,
 		alignItems: "center",

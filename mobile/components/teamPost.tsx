@@ -2,7 +2,6 @@ import { ScreenHeight } from "@rneui/themed/dist/config";
 import React, { useState } from "react";
 import PopUpTeam from "./PopUpTeam";
 import { StyleSheet, Text, View, ImageBackground, Image, TouchableOpacity, Modal } from "react-native";
-import { Player } from "../app/(tabs)/teams.tsx";
 
 type PropsTeam = {
 	team_id: string;
@@ -71,18 +70,6 @@ const styles = StyleSheet.create({
 		alignItems: "center",
 		marginTop: 40,
 	},
-	bottomContent: {
-		backgroundColor: "black",
-		borderColor: "#747775",
-		paddingHorizontal: 12,
-		height: 30,
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "center",
-		opacity: 0.6,
-		borderBottomEndRadius: 15,
-		borderBottomStartRadius: 15,
-	},
 	title: {
 		fontSize: 28,
 		fontWeight: "bold",
@@ -99,11 +86,6 @@ const styles = StyleSheet.create({
 		color: "#fff",
 		marginTop: 1,
 		fontWeight: "bold",
-	},
-	icon: {
-		width: 25,
-		height: 25,
-		borderRadius: 25,
 	},
 	centeredView: {
 		flex: 1,

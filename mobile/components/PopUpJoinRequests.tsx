@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useRef } from "react";
-import { View, Text, Button, StyleSheet, Image, TouchableOpacity, Modal, Alert, ScrollView } from "react-native";
+import React, { useState } from "react";
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
 import { ScreenWidth } from "@rneui/themed/dist/config";
 import { supabase } from "@/lib/supabase";
 import Icon from "react-native-vector-icons/FontAwesome6";
 import { getAllUsers } from "@lib/autogen/queries.ts";
 import { getUserSession } from "@/lib/autogen/queries";
-import { router } from "expo-router";
 
 type PropsPopUpJoinRequests = {
 	onClose: () => void;
@@ -49,7 +48,6 @@ function PopUpJoinRequests(props: PropsPopUpJoinRequests) {
 	
 			setRequests(updatedRequests);
 			console.log("deleted")
-			console.log(updatedRequests)
 		};
 
 	return (
@@ -116,21 +114,12 @@ const styles = StyleSheet.create({
 		justifyContent: "center",
 		color: "#f18f01",
 	},
-	description: {
-		paddingTop: 20,
-		paddingBottom: 10,
-		fontSize: 18,
-	},
 	modalView: {
 		backgroundColor: "white",
 		borderRadius: 20,
 		color: "#00ff00",
 		overflow: "hidden",
 		width: ScreenWidth * 0.9,
-	},
-	scrollContainer: {
-		flexGrow: 1,
-		paddingBottom: 20,
 	},
 	scrollArea: {
 		backgroundColor: "#f0f0f0",
@@ -147,27 +136,6 @@ const styles = StyleSheet.create({
 		alignItems: "center",
 		gap: 15,
 	},
-	selection: {
-		padding: 20,
-		gap: 30,
-		flexDirection: "row",
-		justifyContent: "space-between",
-		alignItems: "center",
-	},
-	select: {
-		fontWeight: "bold",
-		fontSize: 16,
-		marginBottom: 10,
-	},
-	selected: {
-		backgroundColor: "white",
-		borderWidth: 1,
-		borderColor: "#747775",
-		borderRadius: 20,
-		paddingHorizontal: 12,
-		height: 20,
-		flexDirection: "row",
-	},
 	row: {
 		flexDirection: "row",
 		alignItems: "center",
@@ -175,11 +143,6 @@ const styles = StyleSheet.create({
 		borderColor: "#ccc",
 		backgroundColor: "white",
 		width: "100%",
-	},
-	avatar: {
-		width: 48,
-		height: 48,
-		borderRadius: 24,
 	},
 	info: {
 		flex: 1,
@@ -189,41 +152,9 @@ const styles = StyleSheet.create({
 		fontSize: 16,
 		fontWeight: "bold",
 	},
-	number: {
-		fontSize: 18,
-		fontWeight: "bold",
-		padding: 20,
-	},
-	joinTeamButton: {
-		backgroundColor: "#f18f04",
-		width: "100%",
-		padding: 17,
-		alignItems: "center",
-		justifyContent: "center",
-		marginTop: 10,
-	},
-	leaveTeamButton: {
-		backgroundColor: "#c7c7c7",
-		width: "100%",
-		padding: 17,
-		alignItems: "center",
-		justifyContent: "center",
-		marginTop: 10,
-	},
-	buttonText: {
-		color: "#fff",
-		fontSize: 16,
-		fontWeight: "bold",
-	},
 	modal: {
 		justifyContent: "center",
 		alignItems: "center",
-	},
-	centeredView: {
-		flex: 1,
-		justifyContent: "center",
-		alignItems: "center",
-		backgroundColor: "rgba(0, 0, 0, 0.5)",
 	},
     button: {
 		flex: 1,
@@ -232,12 +163,6 @@ const styles = StyleSheet.create({
 		alignItems: "center",
 		justifyContent: "center",
 	},
-    acceptButton: {
-        backgroundColor: "#f18f01",
-    },
-    declineButton: {
-        backgroundColor: "black",
-    }
 });
 
 export default PopUpJoinRequests;
