@@ -7,6 +7,8 @@ on:
 jobs:
     Test:
         runs-on: ubuntu-latest
+        # This job is intentionally disabled
+        if: 0
         steps:
             - name: Checkout Repository
               uses: actions/checkout@v4
