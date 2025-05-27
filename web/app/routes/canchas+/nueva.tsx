@@ -169,7 +169,7 @@ export function NewField() {
 					"Por favor, ingrese una dirección válida para ubicarla en el mapa antes de publicar.",
 				);
 				setFormError(true);
-				return;
+				// return;
 			}
 
 			const files = data.image || [];
@@ -208,7 +208,7 @@ export function NewField() {
 				sports: data.sports.map((s) => s.value),
 				images: uploadedImageUrls,
 				price: Number(data.price),
-				location: `POINT(${latitude} ${longitude})`,
+				location: `POINT(${latitude || 0} ${longitude || 0})`,
 				description: data.description || "",
 				avatar_url: user.avatar_url,
 			});
