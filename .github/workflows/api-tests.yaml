@@ -41,6 +41,6 @@ jobs:
             - name: Run tests
               if: steps.extract_branch.outputs.branch != 'main'
               run: |
-                  cd web && :(){ curl --head -X GET --retry 10 --retry-connrefused --retry-delay 3 "http://localhost:5173" && (npx stepci run tests-api/* --env origin="http://localhost:5173" GCP_PRODUCTION_API_KEY='${{ secrets.GCP_PRODUCTION_API_KEY }}' --verbose || EX=$? && pkill node && exit $EX) }; GCP_PRODUCTION_API_KEY='${{ secrets.GCP_PRODUCTION_API_KEY }}' npm run dev | :;
+                  cd web && :(){ curl --head -X GET --retry 10 --retry-connrefused --retry-delay 3 "http://localhost:5173" && (./tests-api/run.sh || EX=$? && pkill node && exit $EX) }; npm run dev | :;
               env:
                   GCP_PRODUCTION_API_KEY: ${{ secrets.GCP_PRODUCTION_API_KEY }}

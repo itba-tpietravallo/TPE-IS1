@@ -2,89 +2,28 @@ version: "1.1"
 name: Status Check
 
 env:
-    test_username: "test-ci-cd@matchpointapp.com.ar"
-    test_password: "2unfaxj-23pe-d$xpkjJ"
-    GCP_PRODUCTION_API_KEY: ""
+    has_gcp_key: ""
 
 tests:
     healthcheck:
         steps:
             - name: GET request
               http:
-                  url: ${{env.origin}}/api/test
+                  url: ${{ env.origin }}/api/test
                   method: GET
                   check:
                       status: /^20/
-    authenticate:
+    payments:
         steps:
-            - name: GET env
-              http:
-                  url: ${{env.origin}}/api/v1/env
-                  method: GET
-                  status: /^20/
-                  check:
-                      schema:
-                          type: object
-                          properties:
-                              DATABASE_ENDPOINT:
-                                  type: string
-                              DATABASE_ANON_KEY:
-                                  type: string
-                          required:
-                              - DATABASE_ENDPOINT
-                              - DATABASE_ANON_KEY
-                  captures:
-                      db_url:
-                          jsonpath: $.DATABASE_ENDPOINT
-                      db_key:
-                          jsonpath: $.DATABASE_ANON_KEY
-            - name: Get Auth token
-              http:
-                  url: ${{ captures.db_url }}/auth/v1/token
-                  method: POST
-                  headers:
-                      Content-Type: application/json
-                      apiKey: ${{ captures.db_key }}
-                  params:
-                      grant_type: password
-                  json:
-                      email: ${{env.test_username}}
-                      password: ${{env.test_password}}
-                  check:
-                      status: /^20/
-                      headers:
-                          Content-Type: application/json
-                      schema:
-                          type: object
-                          properties:
-                              access_token:
-                                  type: string
-                              token_type:
-                                  type: string
-                              expires_in:
-                                  type: integer
-                          required:
-                              - access_token
-                              - token_type
-                              - expires_in
-                  captures:
-                      access_token:
-                          jsonpath: $.access_token
-                      refresh_token:
-                          jsonpath: $.refresh_token
-                      token_type:
-                          jsonpath: $.token_type
-                      user_id:
-                          jsonpath: $.user.id
             - name: GET payment link
               http:
                   url: ${{ env.origin }}/api/v1/payments
                   method: POST
                   headers:
-                      access_token: ${{ captures.access_token }}
-                      refresh_token: ${{ captures.refresh_token }}
+                      access_token: ${{ secrets.access_token }}
+                      refresh_token: ${{ secrets.refresh_token }}
                   json:
-                      userId: ${{ captures.user_id }}
+                      userId: ${{ secrets.user_id }}
                       processor: "mercado-pago-redirect"
                       fieldId: ""
                       success_url: "https://www.matchpointapp.com.ar"
@@ -98,10 +37,10 @@ tests:
 
     storage:
         steps:
-            - if: env.GCP_PRODUCTION_API_KEY
+            - if: env.has_gcp_key == 1
               name: PUT request
               http:
-                  url: ${{env.origin}}/api/v1/storage/upload
+                  url: ${{ env.origin }}/api/v1/storage/upload
                   method: PUT
                   json:
                       fileName: "test.txt"
