@@ -10,9 +10,9 @@
 		"newArchEnabled": true,
 		"ios": {
 			"supportsTablet": true,
-			"bundleIdentifier": "com.anonymous.mobile",
+			"bundleIdentifier": "ar.com.matchpointapp.mobile",
 			"config": {
-				"googleMapsApiKey": "AIzaSyBw6wwGh_tfBhOikkUtc8uibxX1GPbr1ew"
+				"googleMapsApiKey": "AIzaSyA98IS1wruUCnFkGmTxht9teTE9CXy4tv4"
 			}
 		},
 		"android": {
@@ -20,9 +20,9 @@
 				"foregroundImage": "./assets/images/adaptive-icon.png",
 				"backgroundColor": "#ffffff"
 			},
-			"package": "com.anonymous.mobile",
+			"package": "ar.com.matchpointapp.mobile",
 			"config": {
-				"googleMapsApiKey": "AIzaSyBw6wwGh_tfBhOikkUtc8uibxX1GPbr1ew"
+				"googleMapsApiKey": "AIzaSyA1BW0dtUbR2WWrwksMXnZ8dUnwzFvdXug"
 			}
 		},
 		"web": {

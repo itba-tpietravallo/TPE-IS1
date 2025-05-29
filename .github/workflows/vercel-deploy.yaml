@@ -6,7 +6,9 @@ env:
 
 on:
     workflow_dispatch:
-    push:
+    workflow_call:
+    pull_request:
+        branches: [main, dev]
         paths:
             - "web/**"
             - "db/**"
