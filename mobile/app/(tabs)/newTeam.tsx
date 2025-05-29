@@ -131,14 +131,15 @@ export default function PostTeam() {
 				{/* Privacidad */}    
 				<Text style={styles.label}>Privacidad</Text>
 				<SelectDropdown
+					defaultValue={true}
 					data={["Público", "Privado"]}
-					onSelect={(itemValue) => setIsPublic(itemValue==="Público")}
+					onSelect={(itemValue) => setIsPublic(itemValue=="Público")}
 					dropdownStyle={{ backgroundColor: "white", gap: 5, borderRadius: 8 }}
 					renderButton={(selectedItem, isOpened) => {
 						return (
 							<View style={styles.dropdownButtonStyle}>
 								<Text style={styles.dropdownButtonTxtStyle}>
-									{selectedItem === true ? "Público" : selectedItem === false ? "Privado" : "Público"}
+									{isPublic == true ? "Público" : "Privado"}
 								</Text>
 							</View>
 						);
