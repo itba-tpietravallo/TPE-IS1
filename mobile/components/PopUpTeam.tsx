@@ -7,6 +7,7 @@ import { getAllUsers } from "@lib/autogen/queries.ts";
 import { getUserSession } from "@/lib/autogen/queries";
 import { router } from "expo-router";
 import PopUpJoinRequests from "./PopUpJoinRequests.tsx";
+import { Image } from "@rneui/themed";
 
 type PropsPopUpTeam = {
 	onClose: () => void;
@@ -149,14 +150,18 @@ function PopUpTeam(props: PropsPopUpTeam) {
 					<View style={{ width: "100%" }}>
 						{players?.map((member) => (
 							<View key={member} style={styles.row}>
-								<View style={{ height: 60, width: 30 }}></View>
-								{/* <Image
-									source={{ uri: "https://github.com/tomaspietravallo.png" }}
-									style={styles.avatar}
-								/> */}
-								<Icon name="user" size={24} color="black">
-									{" "}
-								</Icon>
+								<View style={{ height: 60, width: 15 }}></View>
+								
+								{usersData.data?.find((user) => user.id === member)?.avatar_url ? (
+										<Image
+											source={{ uri: usersData.data?.find((user) => user.id === member)?.avatar_url || "undefined_image" }}
+											style={{ width: 35, height: 35, borderRadius: 100 }}
+										/>
+									) : (
+										<Icon name="user" size={35} color="black" />
+									)
+								}
+								
 								<View style={styles.info}>
 									<Text style={styles.name}>
 										{usersData.data?.find((user) => user.id === member)?.full_name}
