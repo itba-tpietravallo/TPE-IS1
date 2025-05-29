@@ -9,7 +9,8 @@
 		"lint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
 		"start": "remix-serve ./build/server/index.js",
 		"typecheck": "tsc",
-		"test": "cd .. && npx playwright test"
+		"test": "cd .. && npx playwright test",
+		"test-api": "cd .. && ./web/tests-api/run.sh"
 	},
 	"dependencies": {
 		"@google-cloud/storage": "^7.16.0",

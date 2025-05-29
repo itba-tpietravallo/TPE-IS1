@@ -137,7 +137,7 @@ export function NewField() {
 						setMapView({ center: { lat: data.lat, lng: data.lng }, zoom: 15 });
 					}
 				},
-				100,
+				250,
 				{ leading: false },
 			),
 		[],
