@@ -10,7 +10,11 @@ import {
 	ScrollView,
 	KeyboardAvoidingView,
 	Platform,
+	Image,
+	ActivityIndicator,
 } from "react-native";
+
+import * as ImagePicker from "expo-image-picker";
 
 import SelectDropdown from "react-native-select-dropdown";
 
@@ -27,6 +31,9 @@ export default function PostTeam() {
 	const [newMember, setNewMember] = useState("");
 	const [availability, setAvailability] = useState(0);
 	const [isPublic, setIsPublic] = useState(true);
+	//const [images, setImages] = useState<string[]>([]); //para array de imagenes. Asi esta definido en la bd pero no se si es necesario tener multiples imagenes de un equipo
+	const [image, setImage] = useState<string | null>(null);
+	const [uploading, setUploading] = useState(false); //para la subida de la imagen
 
 	const { data: user } = getUserSession(supabase);
 
@@ -38,12 +45,29 @@ export default function PostTeam() {
 				name: teamName,
 				sport: sport,
 				description: description,
-				images: null,
+				//images: images, multiples imagenes
+				images: image ? [image] : [],
 				//availability: availability, // Disponibilidad ingresada
 				players: [user?.full_name!], // Cuando crea el equipo automaticamente se une el creador
 			},
 		]);
 		router.push("/(tabs)/teams");
+	};
+
+	const handlePickImage = async () => {
+		let result = await ImagePicker.launchImageLibraryAsync({
+			mediaTypes: "images",
+			quality: 0.7,
+			allowsEditing: true,
+		});
+
+		if (!result.canceled) {
+			const uri = result.assets[0].uri;
+			//setImages((prev) => [...prev, uri]); (si quisiese permitir multiples imagenes)
+			setImage(uri);
+		} else {
+			alert("No selecciona");
+		}
 	};
 
 	const handleCancel = () => {
@@ -69,6 +93,16 @@ export default function PostTeam() {
 	// 	const updatedMembers: string[] = members.filter((_, i: number) => i !== index);
 	// 	setMembers(updatedMembers);
 	// };
+
+	//TODO LOLA
+	// useEffect(() => {
+	// 	(async () => {
+	// 		const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+	// 		if (status !== "granted") {
+	// 			Alert.alert("Permiso requerido", "Se necesita permiso para acceder a la galería.");
+	// 		}
+	// 	})();
+	// }, []);
 
 	return (
 		<KeyboardAvoidingView style={styles.container} behavior={Platform.OS === "ios" ? "padding" : undefined}>
@@ -183,18 +217,16 @@ export default function PostTeam() {
 					numberOfLines={4}
 				/>
 
-				{/* Privacidad */}     
+				{/* Privacidad */}
 				<Text style={styles.label}>Privacidad</Text>
 				<SelectDropdown
 					onSelect={(itemValue, index) => setIsPublic(itemValue)}
-					data={[true, false]?.map((e) => e == true ? "Público" : "Privado" ) || []}
+					data={[true, false]?.map((e) => (e == true ? "Público" : "Privado")) || []}
 					dropdownStyle={{ backgroundColor: "white", gap: 5, borderRadius: 8 }}
 					renderButton={(selectedItem, isOpened) => {
 						return (
 							<View style={styles.dropdownButtonStyle}>
-								<Text style={styles.dropdownButtonTxtStyle}>
-									{selectedItem || "Público"}
-								</Text>
+								<Text style={styles.dropdownButtonTxtStyle}>{selectedItem || "Público"}</Text>
 							</View>
 						);
 					}}
@@ -210,7 +242,29 @@ export default function PostTeam() {
 							</View>
 						);
 					}}
-				/> 
+				/>
+
+				{/* Imagenes */}
+				<Text style={styles.label}>Imágen del equipo</Text>
+				<TouchableOpacity style={styles.addButton} onPress={handlePickImage}>
+					<Text style={styles.addButtonText}>Seleccionar imágen</Text>
+				</TouchableOpacity>
+				{uploading && <ActivityIndicator size="small" color="#f18f01" />}
+				<View style={{ flexDirection: "row", flexWrap: "wrap", marginVertical: 10 }}>
+					{/* {images.map((img, idx) => (
+						<Image
+							key={idx}
+							source={{ uri: img }}
+							style={{ width: 80, height: 80, borderRadius: 8, marginRight: 8, marginBottom: 8 }}
+						/>
+					))} Si quisiese multiples imagenes esto te arma el ""carusel"" */}
+					{image && (
+						<Image
+							source={{ uri: image }}
+							style={{ width: 120, height: 120, borderRadius: 8, marginVertical: 10 }}
+						/>
+					)}
+				</View>
 
 				<Text style={{ color: "#464545" }}>* Indica que el campo es obligatorio.</Text>
 
