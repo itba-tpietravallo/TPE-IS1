@@ -102,6 +102,7 @@ function TeamsFeed() {
 							description={team.description || ""}
 							images={team.images || []}
 							isPublic={team.isPublic}  
+							admins={team.admins}
 						/>
 					))}
 

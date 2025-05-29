@@ -99,6 +99,7 @@ function PopUpJoinRequests(props: PropsPopUpJoinRequests) {
 						<Text style={styles.name}>
 							No hay solicitdes para unirse al equipo!
 						</Text>
+						<Text/>
 					</View>
 				}
 			</View>

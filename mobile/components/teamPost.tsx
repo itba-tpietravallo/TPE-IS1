@@ -12,6 +12,7 @@ type PropsTeam = {
 	playerRequests: string[];
 	images: string[];
 	isPublic: boolean;
+	admins: string[];
 };
 
 function TeamPost(props: PropsTeam) {
@@ -49,6 +50,7 @@ function TeamPost(props: PropsTeam) {
 						players={props.players}
 						playerRequests={props.playerRequests}   
 						public={props.isPublic}   
+						admins={props.admins}
 					/>
 				</View>
 			</Modal>

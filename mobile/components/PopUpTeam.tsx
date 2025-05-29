@@ -8,6 +8,7 @@ import { getUserSession } from "@/lib/autogen/queries";
 import { router } from "expo-router";
 import PopUpJoinRequests from "./PopUpJoinRequests.tsx";
 import { Image } from "@rneui/themed";
+import PopUpTeamMemberInfo from "./PopUpTeamMemberInfo.tsx";
 
 type PropsPopUpTeam = {
 	onClose: () => void;
@@ -18,6 +19,7 @@ type PropsPopUpTeam = {
 	players: string[]; 
 	playerRequests: string[];
 	public: boolean;
+	admins: string[];
 };
 
 function PopUpTeam(props: PropsPopUpTeam) {
@@ -27,9 +29,11 @@ function PopUpTeam(props: PropsPopUpTeam) {
 	const [players, setPlayers] = useState<string[]>(props.players);
 	const [requests, setRequests] = useState<string[]>(props.playerRequests);  
 
-	const [isModalVisible, setIsModalVisible] = useState(false); //PopUpJoinRequests
-	const handleCloseModal = () => {
-		setIsModalVisible(false);
+	const [isModalVisibleJoinRequests, setIsModalVisibleJoinRequests] = useState(false); //PopUpJoinRequests
+	const [selectedMember, setSelectedMember] = useState<string | null>(null);  
+
+	const handleCloseModalJoinRequest = () => {
+		setIsModalVisibleJoinRequests(false);
 	};
 
 	function userAlreadyOnTeam(userId: string) {
@@ -113,7 +117,7 @@ function PopUpTeam(props: PropsPopUpTeam) {
 
 				{/* Boton join requests (arriba a la derecha) (si es publico no aparece) */}
 				{userAlreadyOnTeam(user?.id!) && !props.public &&
-				<TouchableOpacity style={{ padding: 10, alignItems: "flex-start" }} onPress={() => {setIsModalVisible(true)}}>
+				<TouchableOpacity style={{ padding: 10, alignItems: "flex-start" }} onPress={() => {setIsModalVisibleJoinRequests(true)}}>
 					<Icon name="users" size={24} color="black" style={{ marginTop: 10 }} />
 				</TouchableOpacity> 
 				}
@@ -121,13 +125,13 @@ function PopUpTeam(props: PropsPopUpTeam) {
 				{/* PopUpJoinRequests */}
 				<Modal
 					style={styles.modal}
-					visible={isModalVisible}
+					visible={isModalVisibleJoinRequests}
 					transparent={true}
-					onRequestClose={() => setIsModalVisible(false)}
+					onRequestClose={() => setIsModalVisibleJoinRequests(false)}
 				>
 					<View style={styles.centeredView}>
 						<PopUpJoinRequests
-							onClose={handleCloseModal}
+							onClose={handleCloseModalJoinRequest}
 							team_id={props.team_id}
 							name={props.name}
 							players={props.players}
@@ -167,15 +171,48 @@ function PopUpTeam(props: PropsPopUpTeam) {
 										{usersData.data?.find((user) => user.id === member)?.full_name}
 									</Text>
 								</View>
+
+								{/* PopUpTeamMemberInfo */}
+
+								{user?.id != member && 
+								<TouchableOpacity onPress={() => setSelectedMember(member)}>
+									<Icon name="circle-info" size={24} color="black" />
+								</TouchableOpacity>}
+
+								<Modal
+								style={styles.modal}
+								visible={selectedMember !== null}
+								transparent={true}
+								onRequestClose={() => setSelectedMember(null)}
+								>
+								<View style={styles.centeredView}>
+									{selectedMember && (() => {
+									const memberData = usersData.data?.find((user) => user.id === selectedMember)!;
+									return user ? (
+										<PopUpTeamMemberInfo
+										onClose={() => setSelectedMember(null)}
+										id={memberData.id}
+										full_name={memberData.full_name}
+										username={memberData.username!}
+										avatar={memberData.avatar_url!}
+										admins={props.admins}
+										players={props.players}
+										team_id={props.team_id}
+										/>
+									) : null;
+									})()}
+								</View>
+								</Modal>
+
 								{/* <Text style={styles.number}/>FEAT: NUMEROS DE JUGADORES */}
-								{/* <PlayerPreview key={member} player_name={member}></PlayerPreview> */}
 							</View>
 						))}
 					</View>
 				</ScrollView>
 
 				{/* Descripcion del equipo */}
-				<Text style={styles.description}>{props.description}</Text>
+				{props.description && 
+				<Text style={styles.description}>{props.description}</Text>}
 			</View>
 
 			{/* Boton Join team - request to join team */}

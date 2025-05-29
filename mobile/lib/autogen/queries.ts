@@ -49,7 +49,8 @@ export const queries = {
 	getTeamIdByName: (supabase: SupabaseClient<Database>, name: string) =>
 		supabase.from("teams").select("team_id").eq("name", name),
 
-	getAllUsers: (supabase: SupabaseClient<Database>) => supabase.from("users").select("id, full_name, avatar_url"),
+	getAllUsers: (supabase: SupabaseClient<Database>) => supabase.from("users").select("id, full_name, avatar_url, username"),  
+	//porque no estaba username aca?????
 
 	getUserAvatar: (supabase: SupabaseClient<Database>, user_name: string) =>
 		supabase.from("users").select("avatar_url").eq("full_name", user_name).single(),

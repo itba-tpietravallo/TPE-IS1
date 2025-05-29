@@ -1,0 +1,164 @@
+import React, { useState } from "react";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { ScreenWidth } from "@rneui/themed/dist/config";
+import Icon from "react-native-vector-icons/FontAwesome6";
+import { Image } from "@rneui/themed";
+import { supabase } from "@lib/supabase";
+import { getUserSession } from "@/lib/autogen/queries";
+
+type PropsPopUpTeamMemberInfo = {
+	onClose: () => void;
+	id: string;
+	full_name: string;
+	username: string;
+    avatar: string;
+	admins: string[];
+	players: string[];
+	team_id: string;
+};
+
+function PopUpTeamMemberInfo(props: PropsPopUpTeamMemberInfo) {
+
+	const { data: user } = getUserSession(supabase);
+
+	const [players, setPlayers] = useState<string[]>(props.players);
+	const [admins, setAdmins] = useState<string[]>(props.admins); 
+
+	const handleDeletePlayer = async (player: string) => {
+		const updatedPlayers = players.filter(member => member !== player);
+
+		const { data, error } = await supabase
+			.from("teams")
+			.update({ players: updatedPlayers })
+			.eq("team_id", props.team_id)
+			.throwOnError();
+		
+			setPlayers(updatedPlayers);
+			console.log("deleted")
+	};
+
+	const handleMakeAdmin = async (player: string) => {
+		const updatedAdmins = [...(admins || []), player];
+
+		const { data, error } = await supabase
+			.from("teams")
+			.update({ admins: updatedAdmins })
+			.eq("team_id", props.team_id)
+			.throwOnError();
+		
+			setAdmins(updatedAdmins);
+			console.log("new admin")
+	};
+
+	function userIsAdmin(userId: string) {
+		if (admins?.includes(userId)) {
+			return true;
+		}
+		return false;
+	}
+
+	return (
+		<View style={styles.modalView}>
+
+			<View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+				{/* Boton cerrar PopUp */}
+				<TouchableOpacity style={{ padding: 10, alignItems: "flex-start", marginLeft: 10 }} onPress={props.onClose}>
+					<Icon name="xmark" size={24} color="black" style={{ marginTop: 10 }} />
+				</TouchableOpacity>
+			</View>	
+
+			<View style={styles.mainInfo}>
+
+				{props.avatar ? (
+					<Image
+						source={{ uri: props.avatar || "undefined_image" }}
+						style={styles.avatar}
+					/>
+					) : (
+					<Icon name="user" size={35} color="black" />
+					)
+				}
+
+				{/* full_name y username */}
+				<View style={styles.topInfo}>
+					<Text style={styles.name}>{props.full_name}</Text>
+					{props.username && <Text style={{ fontSize: 16, color: "gray", marginBottom: 10 }}>{props.username}</Text>} 
+				</View>
+			</View>
+
+			{(userIsAdmin(user?.id!)) && 
+				<View style={styles.buttonsContainer}>
+					{!userIsAdmin(props.id) && 
+					<TouchableOpacity style={styles.button} onPress={()=>handleMakeAdmin(props.id)}>
+						<Icon name="user-check" size={18} color="black" style={{marginRight: 10}} />
+						<Text style={styles.buttonText}>Hacer admin del equipo</Text>
+					</TouchableOpacity>}
+					{userIsAdmin(props.id) &&
+					<TouchableOpacity style={styles.button} onPress={()=>handleMakeAdmin(props.id)}>
+						<Icon name="user-minus" size={18} color="black" style={{marginRight: 10}} />
+						<Text style={styles.buttonText}>{userIsAdmin(props.id) ? "Sacar como admin del equipo" : "Hacer admin del equipo" }</Text>
+					</TouchableOpacity>}
+					<TouchableOpacity style={styles.button} onPress={()=>handleDeletePlayer(props.id)}>
+						<Icon name="user-xmark" size={18} color="black" style={{marginRight: 10}} />
+						<Text style={styles.buttonText}>Eliminar del equipo</Text>
+					</TouchableOpacity>
+				</View>}
+	
+		</View>
+	);
+}
+
+const styles = StyleSheet.create({
+	name: {
+		fontSize: 22,
+		fontWeight: "bold",
+		justifyContent: "center",
+		color: "#f18f01",
+	},
+	modalView: {
+		backgroundColor: "white",
+		borderRadius: 20,
+		color: "#00ff00",
+		overflow: "hidden",
+		width: ScreenWidth * 0.9,
+	},
+	mainInfo: {
+		padding: 15,
+		alignItems: "center",
+	},
+	topInfo: {
+		flexDirection: "column",
+		justifyContent: "space-between",
+		alignItems: "center",
+		gap: 15,
+	},
+	avatar: {
+		width: 100, 
+		height: 100, 
+		borderRadius: 100, 
+		marginBottom: 20
+	},
+	buttonsContainer: {
+		flexDirection: "column",
+		justifyContent: "space-between",
+		alignItems: "center",
+		marginBottom: 20,
+	},
+	buttonText: {
+		color: "#000",
+		fontSize: 16,
+		fontWeight: "bold",
+		textAlign: "center",
+	},
+	button: {
+		flexDirection: "row",
+		width: "80%",
+		padding: 17,
+		justifyContent: "center",
+		alignItems: "center",
+		borderWidth: 1,
+		borderColor: "#ccc",
+	}
+});
+
+export default PopUpTeamMemberInfo;
