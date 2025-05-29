@@ -37,17 +37,30 @@ function PopUpTeamMemberInfo(props: PropsPopUpTeamMemberInfo) {
 			console.log("deleted")
 	};
 
-	const handleMakeAdmin = async (player: string) => {
-		const updatedAdmins = [...(admins || []), player];
+	const handleManageAdmin = async (player: string) => {
+		if(!userIsAdmin(player)){
+			const updatedAdmins = [...(admins || []), player];
 
-		const { data, error } = await supabase
-			.from("teams")
-			.update({ admins: updatedAdmins })
-			.eq("team_id", props.team_id)
-			.throwOnError();
-		
-			setAdmins(updatedAdmins);
-			console.log("new admin")
+			const { data, error } = await supabase
+				.from("teams")
+				.update({ admins: updatedAdmins })
+				.eq("team_id", props.team_id)
+				.throwOnError();
+			
+				setAdmins(updatedAdmins);
+				console.log("new admin")
+		}else{
+			const updatedAdmins = admins.filter(admin => admin !== player);
+
+			const { data, error } = await supabase
+				.from("teams")
+				.update({ admins: updatedAdmins })
+				.eq("team_id", props.team_id)
+				.throwOnError();
+			
+				setAdmins(updatedAdmins);
+				console.log("dismiss as admin")
+		}
 	};
 
 	function userIsAdmin(userId: string) {
@@ -89,12 +102,12 @@ function PopUpTeamMemberInfo(props: PropsPopUpTeamMemberInfo) {
 			{(userIsAdmin(user?.id!)) && 
 				<View style={styles.buttonsContainer}>
 					{!userIsAdmin(props.id) && 
-					<TouchableOpacity style={styles.button} onPress={()=>handleMakeAdmin(props.id)}>
+					<TouchableOpacity style={styles.button} onPress={()=>handleManageAdmin(props.id)}>
 						<Icon name="user-check" size={18} color="black" style={{marginRight: 10}} />
 						<Text style={styles.buttonText}>Hacer admin del equipo</Text>
 					</TouchableOpacity>}
 					{userIsAdmin(props.id) &&
-					<TouchableOpacity style={styles.button} onPress={()=>handleMakeAdmin(props.id)}>
+					<TouchableOpacity style={styles.button} onPress={()=>handleManageAdmin(props.id)}>
 						<Icon name="user-minus" size={18} color="black" style={{marginRight: 10}} />
 						<Text style={styles.buttonText}>{userIsAdmin(props.id) ? "Sacar como admin del equipo" : "Hacer admin del equipo" }</Text>
 					</TouchableOpacity>}
