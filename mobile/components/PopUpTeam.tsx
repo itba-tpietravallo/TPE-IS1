@@ -86,6 +86,7 @@ function PopUpTeam(props: PropsPopUpTeam) {
 			.eq("team_id", props.team_id);
 
 		setPlayers(updatedMembers);
+		//todo: Si el unico admin abandona se hace admin a otro automaticamente
 	};
 
 	useEffect(() => {
@@ -134,8 +135,8 @@ function PopUpTeam(props: PropsPopUpTeam) {
 							onClose={handleCloseModalJoinRequest}
 							team_id={props.team_id}
 							name={props.name}
-							players={props.players}
-							playerRequests={props.playerRequests}
+							players={players}
+							playerRequests={requests}
 						/>
 					</View>
 				</Modal>
@@ -196,7 +197,7 @@ function PopUpTeam(props: PropsPopUpTeam) {
 										username={memberData.username!}
 										avatar={memberData.avatar_url!}
 										admins={props.admins}
-										players={props.players}
+										players={players}
 										team_id={props.team_id}
 										/>
 									) : null;

@@ -34,7 +34,8 @@ function PopUpTeamMemberInfo(props: PropsPopUpTeamMemberInfo) {
 			.throwOnError();
 		
 			setPlayers(updatedPlayers);
-			console.log("deleted")
+			props.onClose();
+			console.log("deleted");
 	};
 
 	const handleManageAdmin = async (player: string) => {

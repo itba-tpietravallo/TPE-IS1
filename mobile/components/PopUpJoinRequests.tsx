@@ -4,7 +4,6 @@ import { ScreenWidth } from "@rneui/themed/dist/config";
 import { supabase } from "@/lib/supabase";
 import Icon from "react-native-vector-icons/FontAwesome6";
 import { getAllUsers } from "@lib/autogen/queries.ts";
-import { getUserSession } from "@/lib/autogen/queries";
 
 type PropsPopUpJoinRequests = {
 	onClose: () => void;
@@ -15,7 +14,6 @@ type PropsPopUpJoinRequests = {
 };
 
 function PopUpJoinRequests(props: PropsPopUpJoinRequests) {
-	const { data: user } = getUserSession(supabase);
 	const usersData = getAllUsers(supabase);
 
 	const [players, setPlayers] = useState<string[]>(props.players);
@@ -67,8 +65,8 @@ function PopUpJoinRequests(props: PropsPopUpJoinRequests) {
 					<Text style={{ fontSize: 16, color: "gray", marginBottom: 10 }}>Join Requests</Text>
 				</View>
 
-				{/* Miembros del Equipo */}
-				{props.playerRequests?.length != 0 &&
+				{/* Solicitudes de Union al Equipo */}
+				{requests?.length != 0 &&
 					<ScrollView style={styles.scrollArea}>
 						<View style={{ width: "100%" }}>
 							{props.playerRequests?.map((member) => (
@@ -82,19 +80,18 @@ function PopUpJoinRequests(props: PropsPopUpJoinRequests) {
 											{usersData.data?.find((user) => user.id === member)?.full_name}
 										</Text>
 									</View>
-									<TouchableOpacity style={{ padding: 3, alignItems: "flex-start", marginLeft: 10 }} onPress={()=>handleAcceptPlayer(usersData.data?.find((user) => user.id === member)?.id!)}>
+									<TouchableOpacity style={{ padding: 3, alignItems: "flex-start", marginLeft: 10 }} onPress={()=>handleAcceptPlayer(member)}>
 										<Icon name="check-square" size={24} color="#f18f01" style={{ marginTop: 10 }} />
 									</TouchableOpacity>
-									<TouchableOpacity style={{ padding: 3, alignItems: "flex-start", marginLeft: 10 }} onPress={()=>handleDeleteRequest(usersData.data?.find((user) => user.id === member)?.id!)}>
+									<TouchableOpacity style={{ padding: 3, alignItems: "flex-start", marginLeft: 10 }} onPress={()=>handleDeleteRequest(member)}>
 										<Icon name="square-xmark" size={24} color="black" style={{ marginTop: 10 }} />
-									</TouchableOpacity>
-									
+									</TouchableOpacity>						
 								</View>
 							))}
 						</View>
 					</ScrollView>
 				}
-				{props.playerRequests?.length == 0 &&
+				{requests?.length == 0 &&
 					<View style={styles.topInfo}>
 						<Text style={styles.name}>
 							No hay solicitdes para unirse al equipo!
