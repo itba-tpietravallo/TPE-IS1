@@ -15,13 +15,18 @@ on:
 
 jobs:
     Test:
+        name: ${{ matrix.browser }} (${{ matrix.os }})
         timeout-minutes: 5
-        runs-on: ubuntu-latest
+        runs-on: ${{ matrix.os }}
         strategy:
             max-parallel: 3
             fail-fast: true
             matrix:
-                browser: ["Desktop Chrome", "Desktop Firefox", "Desktop Safari"]
+                os: [ubuntu-latest]
+                browser: ["Desktop Chrome", "Desktop Firefox"]
+                include:
+                    - os: macos-latest
+                      browser: "Desktop Safari"
         steps:
             - uses: actions/checkout@v4
 
@@ -55,6 +60,7 @@ jobs:
                         
             - name: Load web env
               run: |
+                echo "Running Playwright tests on ${{ matrix.os }} with ${{ matrix.browser }}"
                 cat ./web/.env | grep '^[^#]' >> "$GITHUB_ENV"
 
             - name: Install dependencies
