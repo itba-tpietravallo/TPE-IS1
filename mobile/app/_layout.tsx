@@ -8,17 +8,21 @@ import { Session } from "@supabase/supabase-js";
 import { StatusBar } from "expo-status-bar";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AutocompleteDropdownContextProvider } from "react-native-autocomplete-dropdown";
+import * as Sentry from "@sentry/react-native";
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
+Sentry.init({
+	dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
+	// Adds more context data to events (IP address, cookies, user, etc.)
+	// For more information, visit: https://docs.sentry.io/platforms/react-native/data-management/data-collected/
+	sendDefaultPii: true,
+});
 
-export default function RootLayout() {
+export function RootLayout() {
 	const init = initializeSupabaseClient();
 	const [loaded, setLoaded] = useState(false);
 	const [session, setSession] = useState<Session | null>(null);
 
 	init.then(() => {
-		console.log("Supabase client initialized successfully.");
 		setLoaded(true);
 	});
 
@@ -77,3 +81,5 @@ export default function RootLayout() {
 		</QueryClientProvider>
 	);
 }
+
+export default Sentry.wrap(RootLayout);
