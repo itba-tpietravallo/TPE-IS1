@@ -13,12 +13,10 @@ import { MODE_BASE_URL } from "./mode";
 export let supabase: ReturnType<typeof createClient>;
 
 export const initializeSupabaseClient = async () => {
-	console.log("Initializing Supabase client...");
 	if (supabase) {
 		return supabase;
 	}
 
-	console.log("Fetching Supabase configuration from:", MODE_BASE_URL);
 	const res = await fetch(new URL(`/api/v1/env`, MODE_BASE_URL).toString(), {
 		method: "GET",
 		headers: {
@@ -34,7 +32,6 @@ export const initializeSupabaseClient = async () => {
 	}
 
 	const data = (await res.json()) as { DATABASE_ENDPOINT: string; DATABASE_ANON_KEY: string };
-	console.log("Supabase configuration fetched successfully:", data);
 
 	const supabaseUrl = data.DATABASE_ENDPOINT!;
 	const supabaseAnonKey = data.DATABASE_ANON_KEY!;
