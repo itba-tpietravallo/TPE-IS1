@@ -17,6 +17,11 @@ jobs:
     Test:
         timeout-minutes: 5
         runs-on: ubuntu-latest
+        strategy:
+            max-parallel: 3
+            fail-fast: true
+            matrix:
+                browser: ["Desktop Chrome", "Desktop Firefox", "Desktop Safari"]
         steps:
             - uses: actions/checkout@v4
 
@@ -67,6 +72,7 @@ jobs:
               env:
                   TEST_USER_EMAIL: ${{ env.TEST_USER_EMAIL }}
                   TEST_USER_PASSWORD: ${{ env.TEST_USER_PASSWORD }}
+                  BROWSER: ${{ matrix.browser }}
 
             - uses: actions/upload-artifact@v4
               if: ${{ !cancelled() }}

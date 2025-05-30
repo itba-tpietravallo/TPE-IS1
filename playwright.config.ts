@@ -50,9 +50,9 @@ export default defineConfig({
 	projects: [
 		{ name: "setup", testMatch: /.*\.setup\.ts/ },
 		{
-			name: "chromium",
+			name: `${process.env.BROWSER?.toLowerCase().split(" ").join("-") || "chromium"}`,
 			use: {
-				...devices["Desktop Chrome"],
+				...devices[`${process.env.BROWSER || "Desktop Chrome"}`],
 				storageState: path.resolve(__dirname, "./web/tests-e2e/.auth/user.json"),
 			},
 			dependencies: ["setup"],
