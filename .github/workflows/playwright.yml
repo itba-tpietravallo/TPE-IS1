@@ -83,6 +83,6 @@ jobs:
             - uses: actions/upload-artifact@v4
               if: ${{ !cancelled() }}
               with:
-                  name: playwright-report
+                  name: playwright-report-${{ matrix.os }}-${{ matrix.browser }}-${{ github.run_id }}
                   path: playwright-report/
                   retention-days: 30
