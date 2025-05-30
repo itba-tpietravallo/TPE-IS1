@@ -8,19 +8,47 @@ import { onlineManager } from "@tanstack/react-query";
 import * as Network from "expo-network";
 import { useFocusEffect } from "@react-navigation/native";
 import { useCallback, useRef } from "react";
+import { MODE_BASE_URL } from "./mode";
 
-const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!;
+export let supabase: ReturnType<typeof createClient>;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-	auth: {
-		storage: AsyncStorage,
-		autoRefreshToken: true,
-		persistSession: true,
-		detectSessionInUrl: false,
-		debug: false, // enable to print Supabase auth logs
-	},
-});
+export const initializeSupabaseClient = async () => {
+	console.log("Initializing Supabase client...");
+	if (supabase) {
+		return supabase;
+	}
+
+	console.log("Fetching Supabase configuration from:", MODE_BASE_URL);
+	const res = await fetch(new URL(`/api/v1/env`, MODE_BASE_URL).toString(), {
+		method: "GET",
+		headers: {
+			"Content-Type": "application/json",
+			"Cache-Control": "no-cache",
+			Pragma: "no-cache",
+			Expires: "0",
+		},
+	});
+
+	if (!res.ok) {
+		throw new Error(`Failed to fetch Supabase configuration: ${res.status} ${res.statusText}`);
+	}
+
+	const data = (await res.json()) as { DATABASE_ENDPOINT: string; DATABASE_ANON_KEY: string };
+	console.log("Supabase configuration fetched successfully:", data);
+
+	const supabaseUrl = data.DATABASE_ENDPOINT!;
+	const supabaseAnonKey = data.DATABASE_ANON_KEY!;
+
+	supabase = createClient(supabaseUrl, supabaseAnonKey, {
+		auth: {
+			storage: AsyncStorage,
+			autoRefreshToken: true,
+			persistSession: true,
+			detectSessionInUrl: false,
+			debug: false, // enable to print Supabase auth logs
+		},
+	});
+};
 
 onlineManager.setEventListener((setOnline) => {
 	const eventSubscription = Network.addNetworkStateListener((state) => {

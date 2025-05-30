@@ -9,6 +9,7 @@ import { fetch } from "expo/fetch";
 import { Image, Text } from "@rneui/themed";
 import { supabase } from "@/lib/supabase";
 import { usePathname } from "expo-router";
+import { IS_DEV_MODE, MODE_BASE_URL } from "@lib/mode";
 
 const ButtonStyles = {
 	error: {
@@ -49,7 +50,7 @@ export default function CheckoutButton({
 	const path = usePathname();
 	const singleBooker = [userId];
 
-	const DEV_MODE = Linking.getLinkingURL()?.includes("exp://");
+	const DEV_MODE = false;
 
 	async function handlePress() {
 		setPending(true);
@@ -79,7 +80,7 @@ export default function CheckoutButton({
 				throw new Error(res.error?.message || "Authentication error");
 			}
 
-			const url = DEV_MODE ? "https://dev.matchpointapp.com.ar/" : "https://matchpointapp.com.ar/";
+			const url = MODE_BASE_URL;
 
 			console.log(url);
 			await fetch(`${url}api/v1/payments`, {

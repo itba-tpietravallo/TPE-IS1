@@ -2,7 +2,7 @@ import { SplashScreen, Stack } from "expo-router";
 
 import "react-native-url-polyfill/auto";
 import { useState, useEffect } from "react";
-import { supabase } from "../lib/supabase";
+import { initializeSupabaseClient, supabase } from "../lib/supabase";
 import Auth from "../components/Auth";
 import { Session } from "@supabase/supabase-js";
 import { StatusBar } from "expo-status-bar";
@@ -13,10 +13,16 @@ import { AutocompleteDropdownContextProvider } from "react-native-autocomplete-d
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+	const init = initializeSupabaseClient();
+	const [loaded, setLoaded] = useState(false);
 	const [session, setSession] = useState<Session | null>(null);
 
+	init.then(() => {
+		console.log("Supabase client initialized successfully.");
+		setLoaded(true);
+	});
+
 	// This loads instantly, but is set up so it can await fonts or other critical resources.
-	const [loaded, setLoaded] = useState(true);
 
 	useEffect(() => {
 		if (loaded) {
@@ -24,19 +30,21 @@ export default function RootLayout() {
 		}
 	}, [loaded]);
 
+	useEffect(() => {
+		init.then(() => {
+			supabase.auth.getSession().then(({ data: { session } }) => {
+				setSession(session);
+			});
+
+			supabase.auth.onAuthStateChange((_event, session) => {
+				setSession(session);
+			});
+		});
+	}, []);
+
 	if (!loaded) {
 		return null;
 	}
-
-	useEffect(() => {
-		supabase.auth.getSession().then(({ data: { session } }) => {
-			setSession(session);
-		});
-
-		supabase.auth.onAuthStateChange((_event, session) => {
-			setSession(session);
-		});
-	}, []);
 
 	const queryClient = new QueryClient({
 		defaultOptions: {
