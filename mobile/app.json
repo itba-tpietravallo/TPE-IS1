@@ -25,11 +25,6 @@
 				"googleMapsApiKey": "AIzaSyA1BW0dtUbR2WWrwksMXnZ8dUnwzFvdXug"
 			}
 		},
-		"web": {
-			"bundler": "metro",
-			"output": "static",
-			"favicon": "./assets/images/favicon.png"
-		},
 		"plugins": [
 			"expo-router",
 			[
@@ -39,6 +34,14 @@
 					"imageWidth": 200,
 					"resizeMode": "contain",
 					"backgroundColor": "#ffffff"
+				}
+			],
+			[
+				"@sentry/react-native/expo",
+				{
+					"url": "https://sentry.io/",
+					"project": "react-native",
+					"organization": "matchpoint-0z"
 				}
 			]
 		],
