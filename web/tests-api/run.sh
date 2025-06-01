@@ -7,8 +7,6 @@ if [[ -z "$access_token" || -z "$refresh_token" || -z "$user_id" ]]; then
   exit 1
 fi
 
-echo "Running tests with the following user_id: $user_id"
-
 if [[ -z "$GCP_PRODUCTION_API_KEY" ]]; then
   has_gcp_key=0
 else

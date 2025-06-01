@@ -28,11 +28,11 @@ jobs:
         uses: ./.github/workflows/api-tests.yaml
         secrets: inherit
     Browser-Tests:
-        needs: [Database-Changes]
+        needs: [Database-Changes, API-Tests]
         uses: ./.github/workflows/playwright.yml
         secrets: inherit
     Deploy:
-        needs: [Browser-Tests, API-Tests]
+        needs: [Browser-Tests]
         runs-on: ubuntu-latest
         defaults:
             run:
