@@ -21,7 +21,7 @@ export default $config({
 						input.stage === "production"
 							? vars.GCP_PROJECT_NAME.PRODUCTION
 							: vars.GCP_PROJECT_NAME.DEVELOPMENT,
-					region: vars.GCP_STORAGE_REGION,
+					region: vars.GCP_STORAGE_REGION.toLowerCase(),
 					version: "8.31.0",
 				},
 				vercel: {
@@ -61,8 +61,9 @@ async function createPublicStorageBuckets(name: string, vars: typeof import("./v
 		cors: vars.AWS_DEFAULT_CORS,
 		access: "public",
 	});
+
 	const gcpBucket = new gcp.storage.Bucket(name, {
-		location: vars.GCP_STORAGE_REGION,
+		location: vars.GCP_STORAGE_REGION.toLowerCase(),
 		storageClass: vars.GCP_BUCKET_STORAGE_CLASS,
 		publicAccessPrevention: "inherited",
 		cors: vars.GCP_DEFAULT_CORS,
@@ -70,11 +71,26 @@ async function createPublicStorageBuckets(name: string, vars: typeof import("./v
 			retentionDurationSeconds: 0,
 		},
 	});
+
+	gcpBucket.onObjectFinalized(name, {
+		location: vars.GCP_STORAGE_REGION.toLowerCase(),
+		bucket: gcpBucket,
+		callback: async (event) => {
+			await fetch(new URL(event.name, 'https://matchpointapp.com.ar/pubsub/').toString(), {
+				method: 'GET',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+			});
+		}
+	});
+
 	new gcp.storage.BucketAccessControl("matchpoint-images-access-policy", {
 		bucket: gcpBucket.name,
 		entity: "allUsers",
 		role: "READER",
 	});
+	
 	return [
 		{ bucket: awsBucket, url: awsBucket.domain.apply((d) => `https://${d}/`) },
 		{
