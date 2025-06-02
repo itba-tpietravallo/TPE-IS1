@@ -45,7 +45,7 @@ test.describe("Fields", () => {
 		await page.getByRole("textbox", { name: "Barrio" }).fill(TEST_FIELD_DETAILS.FIELD_NEIGHBORHOOD);
 		await page.getByRole("textbox", { name: "Ciudad" }).click();
 		await page.getByRole("textbox", { name: "Ciudad" }).fill(TEST_FIELD_DETAILS.FIELD_CITY);
-		await page.waitForTimeout(100 * 2 + 10);
+		await page.waitForTimeout(300);
 		await page.waitForLoadState("networkidle");
 		await page.getByPlaceholder("Escribir el deporte si no").click();
 		await page.getByRole("option", { name: TEST_FIELD_DETAILS.FIELD_SPORT }).click();
