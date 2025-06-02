@@ -87,7 +87,7 @@ export default function Index() {
 									Encontrá tu equipo
 								</Button>
 								<Button
-									onClick={() => navigate("./cancha")}
+									onClick={() => navigate("./canchas")}
 									className="w-full bg-black text-[#F2F4F3] hover:bg-[#f18f01]/50 sm:w-auto"
 									size={"xl"}
 								>
