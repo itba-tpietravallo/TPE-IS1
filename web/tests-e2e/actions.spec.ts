@@ -85,7 +85,7 @@ test.describe("Publishing things", () => {
 		await page.getByRole("button", { name: "Agregar Torneo" }).click();
 		await page.getByRole("textbox", { name: "Nombre" }).click();
 		await page.getByRole("textbox", { name: "Nombre" }).fill(TEST_TOURNAMENT_DETAILS.TOURNAMENT_NAME);
-		await page.getByRole("combobox", { name: "Deporte/s" }).click();
+		await page.getByLabel("", { exact: true }).click();
 		await page.getByRole("option", { name: TEST_TOURNAMENT_DETAILS.TOURNAMENT_SPORT }).click();
 		await page.getByRole("textbox", { name: "Descripción" }).click();
 		await page.getByRole("textbox", { name: "Descripción" }).fill(TEST_TOURNAMENT_DETAILS.TOURNAMENT_DESCRIPTION);
