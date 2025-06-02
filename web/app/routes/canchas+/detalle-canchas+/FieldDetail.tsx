@@ -70,8 +70,6 @@ export function FieldDetail(props: FieldProps) {
 	const user = getUserAuthSession(supabase);
 	const isOwner = !!getIsFieldOwner(supabase, id!, user.data?.user.id!)?.data?.id;
 
-	console.log("FIELD", props.field, props);
-
 	return (
 		<div className="h-full bg-[#f2f4f3]">
 			<div className="flex h-full flex-row items-center justify-center space-x-12">
@@ -202,10 +200,6 @@ export function FieldDetail(props: FieldProps) {
 															}
 
 															if (email && ff) {
-																console.log("AAAAA", [
-																	...(ff?.data?.adminedBy || []),
-																	u.data.id,
-																]);
 																await supabase
 																	.from("fields")
 																	.update({

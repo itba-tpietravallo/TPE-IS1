@@ -7,15 +7,20 @@ if [[ -z "$access_token" || -z "$refresh_token" || -z "$user_id" ]]; then
   exit 1
 fi
 
-echo "Running tests with the following user_id: $user_id"
-
 if [[ -z "$GCP_PRODUCTION_API_KEY" ]]; then
   has_gcp_key=0
 else
   has_gcp_key=1
 fi
 
+if [[ -z "$GOOGLE_MAPS_WEB_API_KEY" ]]; then
+  has_gmaps_key=0
+else
+  has_gmaps_key=1
+fi
+
 echo "GCP_PRODUCTION_API_KEY is set: $has_gcp_key"
+echo "GOOGLE_MAPS_WEB_API_KEY is set: $has_gmaps_key"
 
 npx stepci run $(dirname $0)/*.yml --env origin="http://localhost:5173" --secret has_gcp_key=$has_gcp_key access_token="$access_token" refresh_token="$refresh_token" user_id="$user_id" "$@"
 
