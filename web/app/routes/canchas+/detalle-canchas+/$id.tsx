@@ -70,7 +70,7 @@ export default function FieldDetailPage() {
 			setDescription(field.data.description);
 			setPrice(field.data.price);
 		}
-		tournaments.refetch;
+		tournaments.refetch();
 	}, [field.data]);
 
 	const isLoading = field.isLoading || reservations.isLoading || tournaments.isLoading || usersQuery.isLoading;

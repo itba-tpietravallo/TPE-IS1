@@ -133,7 +133,7 @@ export function TournamentForm({ fieldId, onClose = () => {} }: { fieldId: strin
 			},
 		]);
 
-		field.refetch;
+		field.refetch();
 
 		onClose();
 	};
@@ -312,7 +312,7 @@ export function SingleTournamentInfo({ tournament_id }: { tournament_id: string 
 	const [inscriptions, setInscriptions] = useState<any[]>([]);
 
 	const teamsData = getAllTeams(supabase);
-	teamsData.refetch;
+	teamsData.refetch();
 
 	useEffect(() => {
 		const fetchInscriptions = async () => {
