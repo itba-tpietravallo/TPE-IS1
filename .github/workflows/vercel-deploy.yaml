@@ -91,7 +91,7 @@ jobs:
               if: always()
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
-                  name: "Check: Vercel Deployment"
+                  name: "Check: Deployment"
                   conclusion: ${{ job.status }}
                   output: |
                       {"summary":"${{ steps.deploy.outputs.summary }}"}
