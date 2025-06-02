@@ -312,7 +312,6 @@ export function SingleTournamentInfo({ tournament_id }: { tournament_id: string 
 	const [inscriptions, setInscriptions] = useState<any[]>([]);
 
 	const teamsData = getAllTeams(supabase);
-	teamsData.refetch();
 
 	useEffect(() => {
 		const fetchInscriptions = async () => {
@@ -368,16 +367,13 @@ export function TorneosSheet({ fieldId, tournaments }: TorneosSheetProps) {
 	const { env, URL_ORIGIN, id } = useLoaderData<typeof loader>();
 	const supabase = createBrowserClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
 	const field = getFieldById(supabase, fieldId || "");
+	const tournamentQuery = getAllTournamentsForFieldById(supabase, fieldId, { enabled: !!fieldId });
 	const [showForm, setShowForm] = useState(false);
 
 	const handleDelete = async (t_id: string) => {
 		const { error } = await supabase.from("tournaments").delete().eq("id", t_id);
 
-		// if (error) {
-		// 	console.error("Error eliminando torneo:", error);
-		// } else {
-		// 	console.log("Torneo eliminado con éxito");
-		// }
+		await Promise.all([field.refetch(), tournamentQuery.refetch()]);
 	};
 
 	return (

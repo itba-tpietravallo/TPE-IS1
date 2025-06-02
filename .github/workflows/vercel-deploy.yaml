@@ -85,13 +85,13 @@ jobs:
                   npx vercel whoami # force auth refresh just in case
                   npx vercel alias ${{ steps.deploy.outputs.url }} dev.matchpointapp.com.ar
               timeout-minutes: 2
-            
+
             - name: Check
               uses: LouisBrunner/checks-action@v2.0.0
               if: always()
               with:
-                token: ${{ secrets.GITHUB_TOKEN }}
-                name: Vercel ${{ steps.extract_branch.outputs.branch == 'main' && 'Production' || 'Preview' }} Deployment
-                conclusion: ${{ job.status }}
-                output: |
-                  {"summary":"${{ steps.deploy.outputs.summary }}"}
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  name: "Check: Deployment"
+                  conclusion: ${{ job.status }}
+                  output: |
+                      {"summary":"${{ steps.deploy.outputs.summary }}"}
