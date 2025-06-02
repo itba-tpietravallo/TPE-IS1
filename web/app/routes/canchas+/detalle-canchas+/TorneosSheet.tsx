@@ -133,8 +133,6 @@ export function TournamentForm({ fieldId, onClose = () => {} }: { fieldId: strin
 			},
 		]);
 
-		console.log("SAVED");
-
 		field.refetch;
 
 		onClose();
@@ -332,8 +330,6 @@ export function SingleTournamentInfo({ tournament_id }: { tournament_id: string 
 		}
 	}, [tournament_id]);
 
-	console.log("Inscriptions:", inscriptions);
-
 	return (
 		<div className="mt-4 flex flex-col items-center text-sm text-gray-700">
 			{inscriptions.length > 0 ? (
@@ -375,15 +371,13 @@ export function TorneosSheet({ fieldId, tournaments }: TorneosSheetProps) {
 	const [showForm, setShowForm] = useState(false);
 
 	const handleDelete = async (t_id: string) => {
-		console.log("Eliminando torneo con ID:", t_id);
-
 		const { error } = await supabase.from("tournaments").delete().eq("id", t_id);
 
-		if (error) {
-			console.error("Error eliminando torneo:", error);
-		} else {
-			console.log("Torneo eliminado con éxito");
-		}
+		// if (error) {
+		// 	console.error("Error eliminando torneo:", error);
+		// } else {
+		// 	console.log("Torneo eliminado con éxito");
+		// }
 	};
 
 	return (
