@@ -133,6 +133,10 @@ export function TournamentForm({ fieldId, onClose = () => {} }: { fieldId: strin
 			},
 		]);
 
+		console.log("SAVED");
+
+		field.refetch;
+
 		onClose();
 	};
 
@@ -310,6 +314,7 @@ export function SingleTournamentInfo({ tournament_id }: { tournament_id: string 
 	const [inscriptions, setInscriptions] = useState<any[]>([]);
 
 	const teamsData = getAllTeams(supabase);
+	teamsData.refetch;
 
 	useEffect(() => {
 		const fetchInscriptions = async () => {
@@ -404,10 +409,17 @@ export function TorneosSheet({ fieldId, tournaments }: TorneosSheetProps) {
 							<div key={tournament.id} className="w-full rounded-lg p-4 shadow-md">
 								<div className="flex items-center justify-between">
 									<h2 className="text-lg font-bold">{tournament.name}</h2>
-									{/* <Trash2
-										className="h-5 w-5 cursor-pointer text-gray-500 hover:text-red-600"
-										onClick={() => handleDelete(tournament.id)}
-									/> */}
+									<div className="flex items-center justify-between">
+										<h2 className="text-lg font-bold">{tournament.name}</h2>
+										<Button
+											variant="destructive"
+											className="ml-4 bg-red-600 text-white hover:bg-red-700"
+											onClick={() => handleDelete(tournament.id)}
+										>
+											<Trash2 className="mr-2 h-4 w-4" />
+											Borrar
+										</Button>
+									</div>
 								</div>
 								<p>Fecha de inicio: {new Date(tournament.startDate).toLocaleDateString()}</p>
 								<p className="pt-3 text-sm text-gray-600">Inscriptos:</p>
