@@ -1,0 +1,20 @@
+diff --git a/node_modules/expo-router/build/utils/splash.js b/node_modules/expo-router/build/utils/splash.js
+index 20826ff..c2e1733 100644
+--- a/node_modules/expo-router/build/utils/splash.js
++++ b/node_modules/expo-router/build/utils/splash.js
+@@ -39,12 +39,12 @@ async function _internal_preventAutoHideAsync() {
+         }
+         _initializedErrorHandler = true;
+     }
+-    return SplashModule.internalPreventAutoHideAsync();
++    return SplashModule?.internalPreventAutoHideAsync?.();
+ }
+ async function _internal_maybeHideAsync() {
+     if (!SplashModule) {
+         return false;
+     }
+-    return SplashModule.internalMaybeHideAsync();
++    return SplashModule?.internalMaybeHideAsync?.();
+ }
+ //# sourceMappingURL=splash.js.map
+\ No newline at end of file

@@ -72,11 +72,36 @@ export async function action({
 
 	switch (processor) {
 		case "mercado-pago-redirect": {
+			let ___DANGEROUS_createSupabaseServerClient_BYPASS_RLS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED: SupabaseClient<Database>;
+			try {
+				if (
+					!process.env.PROD_DANGEROUS_SUPABASE_SECRET_SERVICE_KEY &&
+					!process.env.DEV_DANGEROUS_SUPABASE_SECRET_SERVICE_KEY
+				) {
+					throw new Error("Missing environment variables for Supabase secret service key.");
+				}
+				___DANGEROUS_createSupabaseServerClient_BYPASS_RLS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED =
+					__DANGEROUS_createSupabaseServerClient_BYPASS_RLS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED(
+						request,
+					).supabaseClient;
+			} catch (e) {
+				if (request.url.includes("localhost")) {
+					return new Response("Unauthorized access", {
+						status: 401,
+						statusText: "Unauthorized access.",
+					});
+				} else {
+					return new Response("Internal Server Error", {
+						status: 500,
+						statusText: "Internal Server Error",
+					});
+				}
+			}
+
 			return await getMercadoPagoRedirectURL(
 				user,
 				reqBody,
-				__DANGEROUS_createSupabaseServerClient_BYPASS_RLS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED(request)
-					.supabaseClient,
+				___DANGEROUS_createSupabaseServerClient_BYPASS_RLS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED,
 			);
 		}
 
@@ -91,7 +116,7 @@ export async function action({
 async function getMercadoPagoRedirectURL(
 	user: User,
 	reqBody: PaymentRequest,
-	supabaseClient: SupabaseClient<Database>,
+	___DANGEROUS_createSupabaseServerClient_BYPASS_RLS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED: SupabaseClient<Database>,
 ): Promise<Response> {
 	const { success_url, failure_url, pending_url, fieldId, date_time, price } = reqBody;
 
@@ -103,7 +128,7 @@ async function getMercadoPagoRedirectURL(
 	}
 
 	// GET FIELD MP OAUTH_ACCESS_TOKEN
-	const { data, error } = await supabaseClient
+	const { data, error } = await ___DANGEROUS_createSupabaseServerClient_BYPASS_RLS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED
 		.from("fields")
 		.select(
 			`
@@ -195,8 +220,6 @@ async function getMercadoPagoRedirectURL(
 			idempotencyKey: `${RESERVATION_ID}-${Math.floor(new Date().getTime() / 1000 / 60)}`,
 		},
 	};
-
-	console.log("BODY", JSON.stringify(BODY));
 
 	const preference = await new Preference(mercadoPagoConfig).create(BODY);
 

@@ -78,7 +78,7 @@ export async function loader(args: LoaderFunctionArgs) {
 	return {
 		env,
 		URL_ORIGIN: new URL(args.request.url).origin,
-		GOOGLE_MAPS_API_KEY: process.env.GOOGLE_MAPS_API_KEY,
+		GOOGLE_MAPS_API_KEY: process.env.GOOGLE_MAPS_WEB_API_KEY,
 		__GET_PUBLIC_ENV: __GET_PUBLIC_ENV((process.env.VERCEL_ENV || "development") as "production" | "development"),
 		user,
 		headers: {
