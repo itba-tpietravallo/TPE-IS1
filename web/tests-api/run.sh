@@ -22,5 +22,5 @@ fi
 echo "GCP_PRODUCTION_API_KEY is set: $has_gcp_key"
 echo "GOOGLE_MAPS_WEB_API_KEY is set: $has_gmaps_key"
 
-npx stepci run $(dirname $0)/*.yml --env origin="http://localhost:5173" --secret has_gcp_key=$has_gcp_key access_token="$access_token" refresh_token="$refresh_token" user_id="$user_id" "$@"
+npx stepci run $(dirname $0)/*.yml --env origin="http://localhost:5173" --secret has_gcp_key=$has_gcp_key has_gmaps_key=$has_gmaps_key access_token="$access_token" refresh_token="$refresh_token" user_id="$user_id" "$@"
 
