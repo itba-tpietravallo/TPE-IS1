@@ -1,89 +1,89 @@
 name: Playwright Tests
 
 on:
-    workflow_call:
-    workflow_dispatch:
-    # push:
-    #     branches: [main, dev]
-    #     paths:
-    #         - "web/tests/**"
-    #         - "playwright.config.ts"
-    pull_request:
-        branches: [main, dev]
-        paths:
-            - "web/**"
+  workflow_call:
+  workflow_dispatch:
+  # push:
+  #     branches: [main, dev]
+  #     paths:
+  #         - "web/tests/**"
+  #         - "playwright.config.ts"
+  pull_request:
+    branches: [main, dev]
+    paths:
+      - "web/**"
 
 jobs:
-    Test:
-        name: ${{ matrix.browser }} (${{ matrix.os }})
-        timeout-minutes: 5
-        runs-on: ${{ matrix.os }}
-        strategy:
-            max-parallel: 3
-            fail-fast: true
-            matrix:
-                os: [ubuntu-latest]
-                browser: ["Desktop Chrome", "Desktop Firefox"]
-                include:
-                    - os: macos-latest
-                      browser: "Desktop Safari"
-        steps:
-            - uses: actions/checkout@v4
+  Test:
+    name: ${{ matrix.browser }} (${{ matrix.os }})
+    timeout-minutes: 5
+    runs-on: ${{ matrix.os }}
+    strategy:
+      max-parallel: 3
+      fail-fast: true
+      matrix:
+        os: [ubuntu-latest]
+        browser: ["Desktop Chrome", "Desktop Firefox"]
+        include:
+          - os: macos-latest
+            browser: "Desktop Safari"
+    steps:
+      - uses: actions/checkout@v4
 
-            - uses: actions/setup-node@v4
-              with:
-                  node-version: lts/*
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
 
-            - name: Get installed Playwright version
-              id: playwright-version
-              run: |
-                echo "PLAYWRIGHT_VERSION=$(jq -r '.devDependencies["@playwright/test"]' package.json | sed 's/^[^0-9]*//')" >> $GITHUB_ENV
-              shell: bash
+      - name: Get installed Playwright version
+        id: playwright-version
+        run: |
+          echo "PLAYWRIGHT_VERSION=$(jq -r '.devDependencies["@playwright/test"]' package.json | sed 's/^[^0-9]*//')" >> $GITHUB_ENV
+        shell: bash
 
-            - uses: actions/cache@v3
-              id: playwright-cache
-              with:
-                  path: ${{ startsWith(runner.os, 'macos') && '~/Library/Caches/ms-playwright' || '~/.cache/ms-playwright' }}
-                  key: "${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}"
-                  restore-keys: |
-                      ${{ runner.os }}-playwright-
-              env:
-                  PLAYWRIGHT_VERSION: ${{ env.PLAYWRIGHT_VERSION }}
+      - uses: actions/cache@v3
+        id: playwright-cache
+        with:
+          path: ${{ startsWith(runner.os, 'macos') && '~/Library/Caches/ms-playwright' || '~/.cache/ms-playwright' }}
+          key: "${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}"
+          restore-keys: |
+            ${{ runner.os }}-playwright-
+        env:
+          PLAYWRIGHT_VERSION: ${{ env.PLAYWRIGHT_VERSION }}
 
-            - uses: actions/cache@v3
-              id: node-cache
-              with:
-                  path: | 
-                      **/node_modules
-                  key: "${{ runner.os }}-playwright-node-${{ hashFiles('web/package-lock.json') }}"
-                  restore-keys: |
-                      ${{ runner.os }}-playwright-
-                        
-            - name: Load web env
-              run: |
-                echo "Running Playwright tests on ${{ matrix.os }} with ${{ matrix.browser }}"
-                cat ./web/.env | grep '^[^#]' >> "$GITHUB_ENV"
+      - uses: actions/cache@v3
+        id: node-cache
+        with:
+          path: |
+            **/node_modules
+          key: "${{ runner.os }}-playwright-node-${{ hashFiles('web/package-lock.json') }}"
+          restore-keys: |
+            ${{ runner.os }}-playwright-
 
-            - name: Install dependencies
-              if: steps.node-cache.outputs.cache-hit != 'true'
-              run: |
-                  npm i
-                  cd web && npm i && cd ..
+      - name: Load web env
+        run: |
+          echo "Running Playwright tests on ${{ matrix.os }} with ${{ matrix.browser }}"
+          cat ./web/.env | grep '^[^#]' >> "$GITHUB_ENV"
 
-            - name: Install Playwright Browsers
-              if: steps.playwright-cache.outputs.cache-hit != 'true'
-              run: npx playwright install --with-deps
+      - name: Install dependencies
+        if: steps.node-cache.outputs.cache-hit != 'true'
+        run: |
+          npm i
+          cd web && npm i && cd ..
 
-            - name: Run Playwright tests
-              run: npx playwright test
-              env:
-                  TEST_USER_EMAIL: ${{ env.TEST_USER_EMAIL }}
-                  TEST_USER_PASSWORD: ${{ env.TEST_USER_PASSWORD }}
-                  BROWSER: ${{ matrix.browser }}
+      - name: Install Playwright Browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps
 
-            - uses: actions/upload-artifact@v4
-              if: ${{ !cancelled() }}
-              with:
-                  name: playwright-report-${{ matrix.os }}-${{ matrix.browser }}-${{ github.run_id }}
-                  path: playwright-report/
-                  retention-days: 30
+      - name: Run Playwright tests
+        run: npx playwright test
+        env:
+          TEST_USER_EMAIL: ${{ env.TEST_USER_EMAIL }}
+          TEST_USER_PASSWORD: ${{ env.TEST_USER_PASSWORD }}
+          BROWSER: ${{ matrix.browser }}
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report-${{ matrix.os }}-${{ matrix.browser }}-${{ github.run_id }}
+          path: playwright-report/
+          retention-days: 30
