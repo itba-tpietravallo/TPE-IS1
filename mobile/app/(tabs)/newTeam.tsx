@@ -55,6 +55,11 @@ export default function PostTeam() {
 	};
 
 	const handlePickImage = async () => {
+		const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+		if (status !== "granted") {
+			Alert.alert("Permiso requerido", "Se necesita permiso para acceder a la galería.");
+			return;
+		}
 		let result = await ImagePicker.launchImageLibraryAsync({
 			mediaTypes: "images",
 			quality: 0.7,
@@ -93,16 +98,6 @@ export default function PostTeam() {
 	// 	const updatedMembers: string[] = members.filter((_, i: number) => i !== index);
 	// 	setMembers(updatedMembers);
 	// };
-
-	//TODO LOLA
-	// useEffect(() => {
-	// 	(async () => {
-	// 		const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-	// 		if (status !== "granted") {
-	// 			Alert.alert("Permiso requerido", "Se necesita permiso para acceder a la galería.");
-	// 		}
-	// 	})();
-	// }, []);
 
 	return (
 		<KeyboardAvoidingView style={styles.container} behavior={Platform.OS === "ios" ? "padding" : undefined}>
