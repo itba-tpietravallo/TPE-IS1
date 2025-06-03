@@ -31,8 +31,7 @@ export default function PostTeam() {
 	const [newMember, setNewMember] = useState("");
 	const [availability, setAvailability] = useState(0);
 	const [isPublic, setIsPublic] = useState(true);
-	//const [images, setImages] = useState<string[]>([]); //para array de imagenes. Asi esta definido en la bd pero no se si es necesario tener multiples imagenes de un equipo
-	const [image, setImage] = useState<string | null>(null);
+	const [images, setImages] = useState<string[]>([]);
 	const [uploading, setUploading] = useState(false); //para la subida de la imagen
 
 	const { data: user } = getUserSession(supabase);
@@ -45,8 +44,7 @@ export default function PostTeam() {
 				name: teamName,
 				sport: sport,
 				description: description,
-				//images: images, multiples imagenes
-				images: image ? [image] : [],
+				images: images.length > 0 ? images : [""], // Si no hay imagenes, se guarda un array con un string vacio
 				//availability: availability, // Disponibilidad ingresada
 				players: [user?.full_name!], // Cuando crea el equipo automaticamente se une el creador
 			},
@@ -69,7 +67,7 @@ export default function PostTeam() {
 		if (!result.canceled) {
 			const uri = result.assets[0].uri;
 			//setImages((prev) => [...prev, uri]); (si quisiese permitir multiples imagenes)
-			setImage(uri);
+			setImages((prev) => [...prev, uri]);
 		} else {
 			alert("No selecciona");
 		}
@@ -246,19 +244,13 @@ export default function PostTeam() {
 				</TouchableOpacity>
 				{uploading && <ActivityIndicator size="small" color="#f18f01" />}
 				<View style={{ flexDirection: "row", flexWrap: "wrap", marginVertical: 10 }}>
-					{/* {images.map((img, idx) => (
+					{images.map((img, idx) => (
 						<Image
 							key={idx}
 							source={{ uri: img }}
 							style={{ width: 80, height: 80, borderRadius: 8, marginRight: 8, marginBottom: 8 }}
 						/>
-					))} Si quisiese multiples imagenes esto te arma el ""carusel"" */}
-					{image && (
-						<Image
-							source={{ uri: image }}
-							style={{ width: 120, height: 120, borderRadius: 8, marginVertical: 10 }}
-						/>
-					)}
+					))}
 				</View>
 
 				<Text style={{ color: "#464545" }}>* Indica que el campo es obligatorio.</Text>
