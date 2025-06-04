@@ -22,6 +22,8 @@ import { supabase } from "@/lib/supabase";
 import { router } from "expo-router";
 import { getAllSports, getUserSession } from "@lib/autogen/queries";
 
+import { uploadImageToStorage } from "@/lib/uploadImage";
+
 export default function PostTeam() {
 	const [teamName, setTeamName] = useState("");
 	const [sport, setSport] = useState("");
@@ -65,9 +67,15 @@ export default function PostTeam() {
 		});
 
 		if (!result.canceled) {
-			const uri = result.assets[0].uri;
-			//setImages((prev) => [...prev, uri]); (si quisiese permitir multiples imagenes)
-			setImages((prev) => [...prev, uri]);
+			setUploading(true);
+			try {
+				const uri = result.assets[0].uri;
+				const publicUrl = await uploadImageToStorage(uri, user?.id || "anon");
+				setImages((prev) => [...prev, publicUrl]);
+			} catch (e) {
+				Alert.alert("Error", "No se pudo subir la imagen.");
+			}
+			setUploading(false);
 		} else {
 			alert("No selecciona");
 		}
