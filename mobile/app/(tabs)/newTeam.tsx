@@ -73,6 +73,7 @@ export default function PostTeam() {
 				const publicUrl = await uploadImageToStorage(uri, user?.id || "anon");
 				setImages((prev) => [...prev, publicUrl]);
 			} catch (e) {
+				console.log("Error al subir imagen:", e);
 				Alert.alert("Error", "No se pudo subir la imagen.");
 			}
 			setUploading(false);
