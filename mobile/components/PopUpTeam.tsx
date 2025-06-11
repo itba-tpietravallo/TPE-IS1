@@ -102,7 +102,7 @@ function PopUpTeam(props: PropsPopUpTeam) {
 		const deleteTeamIfEmpty = async () => {
 			if (players.length === 0) {
 				try {
-					await deleteTeamMutation.mutateAsync(props.team_id);
+					await deleteTeamMutation.mutateAsync({ team_id: props.team_id });
 					router.push("/(tabs)/teams");
 					Alert.alert("Equipo eliminado", "Equipo eliminado con éxito");
 				} catch (error) {
