@@ -63,7 +63,7 @@ export function LoginCard() {
 			</div>
 			<div className="flex flex-row items-start justify-start gap-4">
 				<Link className="text-sm text-gray-500 underline" to={"/privacy"} hrefLang="en">
-					Politica de Privacidad
+					Política de privacidad
 				</Link>
 				<Link className="text-sm text-gray-500 underline" to={"/tos"} hrefLang="en">
 					Terminos de Servicio
