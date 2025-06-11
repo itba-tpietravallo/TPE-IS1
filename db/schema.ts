@@ -80,7 +80,7 @@ export const fieldsTable = pgTable(
 		avatar_url: text(),
 		images: text().array(),
 		adminedBy: text().array().default([]).notNull(),
-		slotDuration: integer().default(60).notNull(),
+		slot_duration: integer().default(60).notNull(),
 	},
 	(table) => [
 		// index("spatial_index").using("gist", table.location),

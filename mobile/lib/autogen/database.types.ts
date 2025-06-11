@@ -22,6 +22,7 @@ export type Database = {
           neighborhood: string
           owner: string
           price: number
+          slot_duration: number
           sports: string[]
           street: string
           street_number: string
@@ -38,6 +39,7 @@ export type Database = {
           neighborhood: string
           owner: string
           price: number
+          slot_duration?: number
           sports: string[]
           street: string
           street_number: string
@@ -54,6 +56,7 @@ export type Database = {
           neighborhood?: string
           owner?: string
           price?: number
+          slot_duration?: number
           sports?: string[]
           street?: string
           street_number?: string

@@ -3,24 +3,34 @@
 import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
-import { ChevronLeft, ChevronRight, Clock } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "~/components/ui/dialog";
 import { Users, CreditCard, Trophy } from "lucide-react";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "~/lib/database.types";
+import { ReservationSlot } from "./reservation-slot";
 
 type Reservation = {
 	date_time: string;
-	slotDuration: number; // in minutes
+	slot_duration: number | undefined;
 	event_name: string;
-	team_members: string[];
 	payment_status: "pending" | "confirmed";
-	sport: string;
+	sport?: string;
+	team?: string;
+	owner: string;
+};
+
+type EnrichedReservation = Reservation & {
+	team_members: string[];
+	owner_name: string;
 };
 
 type WeekCalendarProps = {
 	reservations: Reservation[];
+	supabase: SupabaseClient<Database>;
 };
 
-export function WeekCalendar({ reservations }: WeekCalendarProps) {
+export function WeekCalendar({ reservations, supabase }: WeekCalendarProps) {
 	const [currentWeekStart, setCurrentWeekStart] = useState(() => {
 		const today = new Date();
 		const dayOfWeek = today.getDay();
@@ -31,7 +41,7 @@ export function WeekCalendar({ reservations }: WeekCalendarProps) {
 		return monday;
 	});
 
-	const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
+	const [selectedReservation, setSelectedReservation] = useState<EnrichedReservation | null>(null);
 
 	const weekDays = useMemo(() => {
 		const days = [];
@@ -71,14 +81,17 @@ export function WeekCalendar({ reservations }: WeekCalendarProps) {
 	};
 
 	const formatTime = (dateString: string) => {
-		return new Date(dateString).toLocaleTimeString("es-ES", {
-			hour: "2-digit",
-			minute: "2-digit",
-			hour12: false,
-		});
+		return new Date(dateString)
+			.toLocaleTimeString("es-ES", {
+				hour: "2-digit",
+				minute: "2-digit",
+				hour12: false,
+			})
+			.replace(/^\b\w/g, (char) => char.toUpperCase());
 	};
 
 	const formatDuration = (minutes: number) => {
+		if (!minutes) return minutes;
 		const hours = Math.floor(minutes / 60);
 		const mins = minutes % 60;
 		if (hours > 0 && mins > 0) {
@@ -103,6 +116,10 @@ export function WeekCalendar({ reservations }: WeekCalendarProps) {
 		} else {
 			return `${startMonth.charAt(0).toUpperCase() + startMonth.slice(1)} - ${endMonth.charAt(0).toUpperCase() + endMonth.slice(1)} ${year}`;
 		}
+	};
+
+	const handleReservationClick = (enrichedReservation: EnrichedReservation) => {
+		setSelectedReservation(enrichedReservation);
 	};
 
 	return (
@@ -147,37 +164,12 @@ export function WeekCalendar({ reservations }: WeekCalendarProps) {
 
 								<div className="space-y-2">
 									{dayReservations.map((reservation, reservationIndex) => (
-										<div
+										<ReservationSlot
 											key={reservationIndex}
-											onClick={() => setSelectedReservation(reservation)}
-											className={`cursor-pointer rounded-md border border-gray-200 p-2 shadow-sm transition-all hover:shadow-md ${
-												reservation.payment_status === "confirmed"
-													? "border-blue-200 bg-blue-50 hover:bg-blue-100"
-													: "bg-white hover:bg-gray-50"
-											}`}
-										>
-											<div className="mb-1 truncate text-sm font-medium text-gray-900">
-												{reservation.event_name}
-											</div>
-											<div className="flex items-center gap-1 text-xs text-muted-foreground">
-												<Clock className="h-3 w-3" />
-												{formatTime(reservation.date_time)}
-											</div>
-											<div className="mt-1 text-xs text-muted-foreground">
-												{formatDuration(reservation.slotDuration)}
-											</div>
-											<div
-												className={`mt-1 text-xs font-medium ${
-													reservation.payment_status === "confirmed"
-														? "text-blue-600"
-														: "text-orange-600"
-												}`}
-											>
-												{reservation.payment_status === "confirmed"
-													? "Confirmado"
-													: "Pendiente"}
-											</div>
-										</div>
+											reservation={reservation}
+											supabase={supabase}
+											onReservationClick={handleReservationClick}
+										/>
 									))}
 
 									{dayReservations.length === 0 && (
@@ -195,6 +187,7 @@ export function WeekCalendar({ reservations }: WeekCalendarProps) {
 					<div className="py-8 text-center text-muted-foreground">No hay reservas para esta semana</div>
 				)}
 			</CardContent>
+
 			<Dialog open={!!selectedReservation} onOpenChange={() => setSelectedReservation(null)}>
 				<DialogContent className="max-w-md">
 					<DialogHeader>
@@ -207,12 +200,14 @@ export function WeekCalendar({ reservations }: WeekCalendarProps) {
 								<div>
 									<span className="font-medium text-muted-foreground">Fecha:</span>
 									<p>
-										{new Date(selectedReservation.date_time).toLocaleDateString("es-ES", {
-											weekday: "long",
-											year: "numeric",
-											month: "long",
-											day: "numeric",
-										})}
+										{new Date(selectedReservation.date_time)
+											.toLocaleDateString("es-ES", {
+												weekday: "long",
+												year: "numeric",
+												month: "long",
+												day: "numeric",
+											})
+											.replace(/^\b\w/g, (char) => char.toUpperCase())}
 									</p>
 								</div>
 								<div>
@@ -224,24 +219,38 @@ export function WeekCalendar({ reservations }: WeekCalendarProps) {
 							<div className="grid grid-cols-2 gap-4 text-sm">
 								<div>
 									<span className="font-medium text-muted-foreground">Duración:</span>
-									<p>{formatDuration(selectedReservation.slotDuration)}</p>
+									{selectedReservation.slot_duration && (
+										<p>{formatDuration(selectedReservation.slot_duration)}</p>
+									)}
 								</div>
-								<div className="flex items-center gap-2">
-									<Trophy className="h-4 w-4 text-muted-foreground" />
-									<div>
-										<span className="font-medium text-muted-foreground">Deporte:</span>
-										<p>{selectedReservation.sport}</p>
+								{selectedReservation.sport && (
+									<div className="flex items-center gap-2">
+										<Trophy className="h-4 w-4 text-muted-foreground" />
+										<div>
+											<span className="font-medium text-muted-foreground">Deporte:</span>
+											<p>{selectedReservation.sport}</p>
+										</div>
 									</div>
-								</div>
+								)}
 							</div>
 
 							<div className="space-y-2">
 								<div className="flex items-center gap-2">
 									<Users className="h-4 w-4 text-muted-foreground" />
-									<span className="font-medium text-muted-foreground">Participantes:</span>
+									<span className="font-medium text-muted-foreground">Propietario:</span>
 								</div>
 								<div className="pl-6">
-									{selectedReservation.team_members.length > 0 ? (
+									<p className="text-sm">{selectedReservation.owner_name}</p>
+								</div>
+							</div>
+
+							{selectedReservation.team_members && selectedReservation.team_members.length > 0 && (
+								<div className="space-y-2">
+									<div className="flex items-center gap-2">
+										<Users className="h-4 w-4 text-muted-foreground" />
+										<span className="font-medium text-muted-foreground">Miembros del equipo:</span>
+									</div>
+									<div className="pl-6">
 										<ul className="space-y-1">
 											{selectedReservation.team_members.map((member, index) => (
 												<li key={index} className="text-sm">
@@ -249,13 +258,9 @@ export function WeekCalendar({ reservations }: WeekCalendarProps) {
 												</li>
 											))}
 										</ul>
-									) : (
-										<p className="text-sm text-muted-foreground">
-											No hay participantes registrados
-										</p>
-									)}
+									</div>
 								</div>
-							</div>
+							)}
 
 							<div className="flex items-center gap-2 rounded-lg border p-3">
 								<CreditCard className="h-4 w-4" />

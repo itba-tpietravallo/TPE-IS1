@@ -30,7 +30,8 @@ type FieldProps = {
 	location: string;
 	price: number;
 	description: string;
-	reservations: any[];
+	slot_duration: number | undefined;
+	reservations: NonNullable<UseQuerySingleReturn<Database["public"]["Tables"]["reservations"]["Row"]>["data"]>[];
 	tournaments: any[];
 	users: any[];
 	dependantQueries?: UseQueryResult[];
@@ -57,6 +58,7 @@ export function FieldDetail(props: FieldProps) {
 		name,
 		ff,
 		location,
+		slot_duration,
 		price,
 		description,
 		reservations,
@@ -69,7 +71,8 @@ export function FieldDetail(props: FieldProps) {
 	const teamsData = getAllTeams(supabase);
 	const [sheetOpen, setSheetOpen] = useState(false);
 	const user = getUserAuthSession(supabase);
-	const isOwner = !!getIsFieldOwner(supabase, id!, user.data?.user.id!)?.data?.id;
+	const isOwner = !!getIsFieldOwner(supabase, id!, user.data?.user.id!, { enabled: !!user.data?.user.id && !!id })
+		?.data?.id;
 
 	return (
 		<div className="mb-10 h-full min-h-fit bg-[#f2f4f3] py-10">
@@ -113,7 +116,7 @@ export function FieldDetail(props: FieldProps) {
 											{reservations.length > 0 ? (
 												reservations.map((reservation) => {
 													const team = teamsData.data?.find(
-														(team) => team.team_id === reservation.team_id,
+														(team) => team.team_id === reservation?.team_id,
 													);
 
 													return (
@@ -122,23 +125,21 @@ export function FieldDetail(props: FieldProps) {
 															className="grid grid-cols-5 items-center gap-4 rounded-md py-3 text-center text-sm text-white transition hover:bg-[#364845]"
 														>
 															<div>
-																{new Date(reservation.date_time).toLocaleDateString(
-																	"es-ES",
-																	{
+																{new Date(reservation.date_time)
+																	.toLocaleDateString("es-ES", {
 																		year: "numeric",
 																		month: "2-digit",
 																		day: "2-digit",
-																	},
-																)}
+																	})
+																	.replace(/^\b\w/g, (char) => char.toUpperCase())}
 															</div>
 															<div>
-																{new Date(reservation.date_time).toLocaleTimeString(
-																	"es-ES",
-																	{
+																{new Date(reservation.date_time)
+																	.toLocaleTimeString("es-ES", {
 																		hour: "2-digit",
 																		minute: "2-digit",
-																	},
-																)}
+																	})
+																	.replace(/^\b\w/g, (char) => char.toUpperCase())}
 															</div>
 															<div>{team?.name || "Desconocido"}</div>
 															<div className="flex justify-center">
@@ -317,54 +318,16 @@ export function FieldDetail(props: FieldProps) {
 				<hr className="w-4/5 border border-[#d9dbda]" />
 				<div className="mb-10 flex w-4/5 items-center justify-center bg-[#f2f4f3]">
 					<WeekCalendar
-						reservations={[
-							{
-								date_time: "2025-06-13T10:00:00Z",
-								slotDuration: 90,
-								event_name: "Fútbol - Equipo A vs Equipo B",
-								team_members: ["Carlos Rodríguez", "María González", "Juan Pérez", "Ana López"],
-								payment_status: "confirmed",
-								sport: "Fútbol",
-							},
-							{
-								date_time: "2025-06-13T14:30:00Z",
-								slotDuration: 60,
-								event_name: "Entrenamiento Personal",
-								team_members: ["Pedro Martínez"],
-								payment_status: "pending",
-								sport: "Fitness",
-							},
-							{
-								date_time: "2025-06-14T09:00:00Z",
-								slotDuration: 120,
-								event_name: "Torneo de Tenis",
-								team_members: ["Laura Silva", "Roberto Chen", "Sofia Morales", "Diego Vargas"],
-								payment_status: "confirmed",
-								sport: "Tenis",
-							},
-							{
-								date_time: "2025-06-15T16:00:00Z",
-								slotDuration: 75,
-								event_name: "Clase de Yoga",
-								team_members: ["Carmen Ruiz", "Elena Torres", "Patricia Vega"],
-								payment_status: "pending",
-								sport: "Yoga",
-							},
-							{
-								date_time: "2025-06-17T11:00:00Z",
-								slotDuration: 90,
-								event_name: "Partido de Básquet",
-								team_members: [
-									"Miguel Santos",
-									"Andrea Flores",
-									"Luis Herrera",
-									"Valeria Castro",
-									"Fernando Díaz",
-								],
-								payment_status: "confirmed",
-								sport: "Básquetbol",
-							},
-						]}
+						reservations={reservations.map((r) => ({
+							date_time: r.date_time,
+							slot_duration: ff?.data?.slot_duration,
+							event_name: "Reserva",
+							payment_status: r.pending_bookers_ids.length > 0 ? "pending" : "confirmed",
+							sport: undefined,
+							team: r.team_id,
+							owner: r.owner_id,
+						}))}
+						supabase={supabase}
 					/>
 				</div>
 			</div>
