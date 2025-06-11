@@ -1,7 +1,7 @@
 import { ActionFunctionArgs } from "@remix-run/node";
 
 export async function action({ request }: ActionFunctionArgs) {
-	const apiKey = process.env.GOOGLE_MAPS_API_KEY!;
+	const apiKey = process.env.GOOGLE_MAPS_WEB_API_KEY!;
 	const { street, street_number, city } = await request.json();
 	if (!street || !street_number || !city || !apiKey) {
 		return Response.json({ error: "Missing address components or API key" }, { status: 400 });

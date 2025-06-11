@@ -28,11 +28,11 @@ jobs:
         uses: ./.github/workflows/api-tests.yaml
         secrets: inherit
     Browser-Tests:
-        needs: [Database-Changes]
+        needs: [Database-Changes, API-Tests]
         uses: ./.github/workflows/playwright.yml
         secrets: inherit
     Deploy:
-        needs: [Browser-Tests, API-Tests]
+        needs: [Browser-Tests]
         runs-on: ubuntu-latest
         defaults:
             run:
@@ -85,3 +85,13 @@ jobs:
                   npx vercel whoami # force auth refresh just in case
                   npx vercel alias ${{ steps.deploy.outputs.url }} dev.matchpointapp.com.ar
               timeout-minutes: 2
+
+            - name: Check
+              uses: LouisBrunner/checks-action@v2.0.0
+              if: always()
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  name: "Check: Deployment"
+                  conclusion: ${{ job.status }}
+                  output: |
+                      {"summary":"${{ steps.deploy.outputs.summary }}"}

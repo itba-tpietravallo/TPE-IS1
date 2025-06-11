@@ -3,6 +3,7 @@ name: Status Check
 
 env:
     has_gcp_key: ""
+    has_gmaps_key: ""
 
 tests:
     healthcheck:
@@ -24,16 +25,43 @@ tests:
                       refresh_token: ${{ secrets.refresh_token }}
                   json:
                       userId: ${{ secrets.user_id }}
-                      processor: "mercado-pago-redirect"
+                      processor: ""
                       fieldId: ""
                       success_url: "https://www.matchpointapp.com.ar"
                       pending_url: "https://www.matchpointapp.com.ar"
                       cancel_url: "https://www.matchpointapp.com.ar"
                       date_time: "2000-00-00T00:00:00Z"
                   check:
-                      status: /500/ # Note: This is 500 because the
+                      status: /400/
+                      statusText: Invalid payment processor
+                      # Note
                       # __DANGEROUS_createSupabaseServerClient_BYPASS_RLS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED
-                      # client cannot be used on dev locally atm
+                      # client cannot be used on locally atm, missing credentials
+    geocode:
+        steps:
+            - if: env.has_gmaps_key == 1
+              name: Geocode
+              http:
+                  url: ${{ env.origin }}/api/v1/geocode
+                  method: POST
+                  json:
+                      street: "San Martin"
+                      street_number: "200"
+                      city: "Buenos Aires"
+                  check:
+                      status: /^20/
+                      headers:
+                          Content-Type: application/json
+                      schema:
+                          type: object
+                          properties:
+                              lat:
+                                  type: number
+                              lng:
+                                  type: number
+                          required:
+                              - lat
+                              - lng
 
     storage:
         steps:

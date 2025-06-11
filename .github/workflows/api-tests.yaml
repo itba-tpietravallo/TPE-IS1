@@ -28,7 +28,7 @@ jobs:
 
             - name: Install dependencies
               if: steps.cache-modules.outputs.cache-hit != 'true'
-              run: npm ci && cd web && npm ci && cd ..
+              run: npm ci && cd web && npm ci && cd .. && cd db && npm ci
               shell: bash
 
             - name: Load web env
@@ -39,6 +39,7 @@ jobs:
             - name: Run tests
               if: steps.extract_branch.outputs.branch != 'main'
               run: |
-                  cd web && :(){ curl --head -X GET --retry 10 --retry-connrefused --retry-delay 3 "http://localhost:5173" && (npm run test-api || EX=$? && pkill node && exit $EX) }; npm run dev | :;
+                  cd web && :(){ curl --head -X GET --retry 10 --retry-connrefused --retry-delay 3 "http://localhost:5173" && (GCP_PRODUCTION_API_KEY="$GCP_PRODUCTION_API_KEY" GOOGLE_MAPS_WEB_API_KEY="$GOOGLE_MAPS_WEB_API_KEY" npm run test-api || EX=$? && pkill node && exit $EX) }; npm run dev | :;
               env:
                   GCP_PRODUCTION_API_KEY: ${{ secrets.GCP_PRODUCTION_API_KEY }}
+                  GOOGLE_MAPS_WEB_API_KEY: ${{ secrets.GOOGLE_MAPS_WEB_API_KEY }}

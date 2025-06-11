@@ -8,10 +8,10 @@ on:
     #     paths:
     #         - "web/tests/**"
     #         - "playwright.config.ts"
-    pull_request:
-        branches: [main, dev]
-        paths:
-            - "web/**"
+    # pull_request:
+    #     branches: [main, dev]
+    #     paths:
+    #         - "web/**"
 
 jobs:
     Test:

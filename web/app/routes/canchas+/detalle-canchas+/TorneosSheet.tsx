@@ -133,6 +133,8 @@ export function TournamentForm({ fieldId, onClose = () => {} }: { fieldId: strin
 			},
 		]);
 
+		field.refetch();
+
 		onClose();
 	};
 
@@ -327,8 +329,6 @@ export function SingleTournamentInfo({ tournament_id }: { tournament_id: string 
 		}
 	}, [tournament_id]);
 
-	console.log("Inscriptions:", inscriptions);
-
 	return (
 		<div className="mt-4 flex flex-col items-center text-sm text-gray-700">
 			{inscriptions.length > 0 ? (
@@ -367,18 +367,13 @@ export function TorneosSheet({ fieldId, tournaments }: TorneosSheetProps) {
 	const { env, URL_ORIGIN, id } = useLoaderData<typeof loader>();
 	const supabase = createBrowserClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
 	const field = getFieldById(supabase, fieldId || "");
+	const tournamentQuery = getAllTournamentsForFieldById(supabase, fieldId, { enabled: !!fieldId });
 	const [showForm, setShowForm] = useState(false);
 
 	const handleDelete = async (t_id: string) => {
-		console.log("Eliminando torneo con ID:", t_id);
-
 		const { error } = await supabase.from("tournaments").delete().eq("id", t_id);
 
-		if (error) {
-			console.error("Error eliminando torneo:", error);
-		} else {
-			console.log("Torneo eliminado con éxito");
-		}
+		await Promise.all([field.refetch(), tournamentQuery.refetch()]);
 	};
 
 	return (
@@ -404,10 +399,17 @@ export function TorneosSheet({ fieldId, tournaments }: TorneosSheetProps) {
 							<div key={tournament.id} className="w-full rounded-lg p-4 shadow-md">
 								<div className="flex items-center justify-between">
 									<h2 className="text-lg font-bold">{tournament.name}</h2>
-									{/* <Trash2
-										className="h-5 w-5 cursor-pointer text-gray-500 hover:text-red-600"
-										onClick={() => handleDelete(tournament.id)}
-									/> */}
+									<div className="flex items-center justify-between">
+										<h2 className="text-lg font-bold">{tournament.name}</h2>
+										<Button
+											variant="destructive"
+											className="ml-4 bg-red-600 text-white hover:bg-red-700"
+											onClick={() => handleDelete(tournament.id)}
+										>
+											<Trash2 className="mr-2 h-4 w-4" />
+											Borrar
+										</Button>
+									</div>
 								</div>
 								<p>Fecha de inicio: {new Date(tournament.startDate).toLocaleDateString()}</p>
 								<p className="pt-3 text-sm text-gray-600">Inscriptos:</p>
