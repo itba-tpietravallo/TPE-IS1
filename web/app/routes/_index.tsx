@@ -76,7 +76,11 @@ export default function Index() {
 							</div>
 							<div className="mt-1 flex flex-col items-center justify-center gap-4 text-center sm:flex-row sm:gap-9">
 								<Button
-									onClick={() => window.location.replace("https://storage.googleapis.com/matchpointapp-android-apks/universal.apk")}
+									onClick={() =>
+										window.location.replace(
+											"https://storage.googleapis.com/matchpointapp-android-apks/universal.apk",
+										)
+									}
 									className="w-full bg-black text-[#F2F4F3] hover:bg-[#f18f01]/50 sm:w-auto"
 									size={"xl"}
 								>
@@ -173,10 +177,10 @@ export default function Index() {
 					<hr />
 					<div className="flex flex-row items-start justify-start gap-4">
 						<Link className="text-white underline" to={"/privacy"} hrefLang="en">
-							Privacy Policy
+							Politica de privacidad
 						</Link>
 						<Link className="text-white underline" to={"/tos"} hrefLang="en">
-							Terms of Service
+							Terminos de servicio
 						</Link>
 					</div>
 				</footer>

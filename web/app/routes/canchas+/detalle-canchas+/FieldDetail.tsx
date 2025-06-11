@@ -15,6 +15,7 @@ import type { UseQueryResult } from "@tanstack/react-query";
 import { getAllTeams, getIsFieldOwner, getUserAuthSession } from "@lib/autogen/queries";
 import { useQuery, UseQuerySingleReturn } from "@supabase-cache-helpers/postgrest-react-query";
 import { en } from "@supabase/auth-ui-shared";
+import { WeekCalendar } from "@components/calendar";
 
 type CarouselProps = {
 	imgSrc: string[];
@@ -71,8 +72,8 @@ export function FieldDetail(props: FieldProps) {
 	const isOwner = !!getIsFieldOwner(supabase, id!, user.data?.user.id!)?.data?.id;
 
 	return (
-		<div className="h-full bg-[#f2f4f3]">
-			<div className="flex h-full flex-row items-center justify-center space-x-12">
+		<div className="mb-10 h-full min-h-fit bg-[#f2f4f3] py-10">
+			<div className="flex h-full max-h-fit flex-row items-center justify-center space-x-12">
 				<Card className="w-full max-w-3xl bg-[#223332] p-10 shadow-lg">
 					{loading ? (
 						<div className="flex h-64 flex-col items-center justify-center text-[#f2f4f3]">
@@ -307,10 +308,64 @@ export function FieldDetail(props: FieldProps) {
 						</>
 					)}
 				</Card>
-				<div className="flex h-screen w-[400px] flex-col items-center justify-center space-y-5">
+				<div className="flex h-screen max-h-fit w-[400px] flex-col items-center justify-center space-y-5">
 					<MyCarousel imgSrc={imgSrc} />
-
 					<MySheet name={name} description={description} price={price} onSave={onSave} />
+				</div>
+			</div>
+			<div className="mt-10 flex w-full flex-col items-center justify-center space-y-10 bg-[#f2f4f3]">
+				<hr className="w-4/5 border border-[#d9dbda]" />
+				<div className="mb-10 flex w-4/5 items-center justify-center bg-[#f2f4f3]">
+					<WeekCalendar
+						reservations={[
+							{
+								date_time: "2025-06-13T10:00:00Z",
+								slotDuration: 90,
+								event_name: "Fútbol - Equipo A vs Equipo B",
+								team_members: ["Carlos Rodríguez", "María González", "Juan Pérez", "Ana López"],
+								payment_status: "confirmed",
+								sport: "Fútbol",
+							},
+							{
+								date_time: "2025-06-13T14:30:00Z",
+								slotDuration: 60,
+								event_name: "Entrenamiento Personal",
+								team_members: ["Pedro Martínez"],
+								payment_status: "pending",
+								sport: "Fitness",
+							},
+							{
+								date_time: "2025-06-14T09:00:00Z",
+								slotDuration: 120,
+								event_name: "Torneo de Tenis",
+								team_members: ["Laura Silva", "Roberto Chen", "Sofia Morales", "Diego Vargas"],
+								payment_status: "confirmed",
+								sport: "Tenis",
+							},
+							{
+								date_time: "2025-06-15T16:00:00Z",
+								slotDuration: 75,
+								event_name: "Clase de Yoga",
+								team_members: ["Carmen Ruiz", "Elena Torres", "Patricia Vega"],
+								payment_status: "pending",
+								sport: "Yoga",
+							},
+							{
+								date_time: "2025-06-17T11:00:00Z",
+								slotDuration: 90,
+								event_name: "Partido de Básquet",
+								team_members: [
+									"Miguel Santos",
+									"Andrea Flores",
+									"Luis Herrera",
+									"Valeria Castro",
+									"Fernando Díaz",
+								],
+								payment_status: "confirmed",
+								sport: "Básquetbol",
+							},
+						]}
+					/>
 				</div>
 			</div>
 		</div>
@@ -396,7 +451,7 @@ export function MyCarousel(props: CarouselProps) {
 			<CarouselContent>
 				{imgSrc?.map((img) => (
 					<CarouselItem key={img}>
-						<img src={img} alt="Imagen Cancha" className="h-full w-full" />
+						<img src={img} alt="Imagen Cancha" className="h-full max-h-fit w-full" />
 					</CarouselItem>
 				))}
 			</CarouselContent>
