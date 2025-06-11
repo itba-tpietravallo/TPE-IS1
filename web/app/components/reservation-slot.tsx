@@ -2,7 +2,7 @@
 import { Clock } from "lucide-react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@lib/autogen/database.types";
-import { getTeamMembers, getUserSessionById } from "@db/queries";
+import { getTeamMembers, getUserSessionById } from "@lib/autogen/queries";
 
 type ReservationSlotProps = {
 	reservation: {
