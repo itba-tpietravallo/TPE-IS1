@@ -24,7 +24,7 @@ import { useLoaderData, useSubmit } from "@remix-run/react";
 import { authenticateUser } from "~/lib/auth.server";
 import { User } from "@supabase/supabase-js";
 import { DollarSign } from "lucide-react";
-import { getAllSports } from "@/lib/autogen/queries";
+import { getAllSports, useInsertField } from "@/lib/autogen/queries";
 import { APIProvider, Map, AdvancedMarker, Pin, InfoWindow } from "@vis.gl/react-google-maps";
 import debounce from "lodash.debounce";
 import { Database } from "@lib/autogen/database.types";
@@ -198,7 +198,7 @@ export function NewField() {
 				uploadedImageUrls.push(downloadURL);
 			}
 
-			const { error: insertError } = await supabase.from("fields").insert({
+			const { error: insertError } = await insertFieldMutation.mutateAsync({
 				owner: user.user.id,
 				name: data.name,
 				street: data.street,
@@ -225,6 +225,7 @@ export function NewField() {
 	};
 
 	const { data: sports } = getAllSports(supabase);
+	const insertFieldMutation = useInsertField(supabase);
 
 	const options = useMemo(
 		() =>

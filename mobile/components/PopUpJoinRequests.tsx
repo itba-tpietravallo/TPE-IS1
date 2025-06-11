@@ -3,7 +3,7 @@ import { View, Text, Button, StyleSheet, Image, TouchableOpacity, Modal, Alert, 
 import { ScreenWidth } from "@rneui/themed/dist/config";
 import { supabase } from "@/lib/supabase";
 import Icon from "react-native-vector-icons/FontAwesome6";
-import { getAllUsers } from "@lib/autogen/queries.ts";
+import { getAllUsers, useUpdateTeam } from "@lib/autogen/queries";
 import { getUserSession } from "@/lib/autogen/queries";
 import { router } from "expo-router";
 
@@ -11,56 +11,66 @@ type PropsPopUpJoinRequests = {
 	onClose: () => void;
 	team_id: string;
 	name: string;
-	players: string[]; 
+	players: string[];
 	playerRequests: string[];
 };
 
 function PopUpJoinRequests(props: PropsPopUpJoinRequests) {
 	const { data: user } = getUserSession(supabase);
 	const usersData = getAllUsers(supabase);
+	const updateTeamMutation = useUpdateTeam(supabase);
 
 	const [players, setPlayers] = useState<string[]>(props.players);
-	const [requests, setRequests] = useState<string[]>(props.playerRequests); 
+	const [requests, setRequests] = useState<string[]>(props.playerRequests);
 
 	const handleAcceptPlayer = async (player: string) => {
-			const updatedMembers = [...(players || []), player];
-	
-			const { data, error } = await supabase
-				.from("teams")
-				.update({ players: updatedMembers })
-				.eq("team_id", props.team_id)
-				.throwOnError();
-	
+		const updatedMembers = [...(players || []), player];
+
+		try {
+			await updateTeamMutation.mutateAsync({
+				team_id: props.team_id,
+				players: updatedMembers,
+			});
+
 			setPlayers(updatedMembers);
-			console.log("accept")
+			console.log("accept");
 
 			handleDeleteRequest(player);
-		};
+		} catch (error) {
+			console.error("Error accepting player:", error);
+			Alert.alert("Error", "No se pudo aceptar al jugador");
+		}
+	};
 
-	
 	const handleDeleteRequest = async (player: string) => {
-			const updatedRequests = requests.filter(member => member !== player);
-	
-			const { data, error } = await supabase
-				.from("teams")
-				.update({ playerRequests: updatedRequests })
-				.eq("team_id", props.team_id)
-				.throwOnError();
-	
+		const updatedRequests = requests.filter((member) => member !== player);
+
+		try {
+			await updateTeamMutation.mutateAsync({
+				team_id: props.team_id,
+				playerRequests: updatedRequests,
+			});
+
 			setRequests(updatedRequests);
-			console.log("deleted")
-			console.log(updatedRequests)
-		};
+			console.log("deleted");
+			console.log(updatedRequests);
+		} catch (error) {
+			console.error("Error updating player requests:", error);
+			Alert.alert("Error", "No se pudo actualizar la solicitud");
+		}
+	};
 
 	return (
 		<View style={styles.modalView}>
-
 			<View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
 				{/* Boton cerrar PopUp */}
-				<TouchableOpacity style={{ padding: 10, alignItems: "flex-start", marginLeft: 10 }} onPress={props.onClose}>
+				<TouchableOpacity
+					style={{ padding: 10, alignItems: "flex-start", marginLeft: 10 }}
+					onPress={props.onClose}
+				>
 					<Icon name="xmark" size={24} color="black" style={{ marginTop: 10 }} />
 				</TouchableOpacity>
-			</View>	
+			</View>
 
 			<View style={styles.mainInfo}>
 				{/* Nombre del equipo */}
@@ -70,7 +80,7 @@ function PopUpJoinRequests(props: PropsPopUpJoinRequests) {
 				</View>
 
 				{/* Miembros del Equipo */}
-				{props.playerRequests?.length != 0 &&
+				{props.playerRequests?.length != 0 && (
 					<ScrollView style={styles.scrollArea}>
 						<View style={{ width: "100%" }}>
 							{props.playerRequests?.map((member) => (
@@ -84,27 +94,33 @@ function PopUpJoinRequests(props: PropsPopUpJoinRequests) {
 											{usersData.data?.find((user) => user.id === member)?.full_name}
 										</Text>
 									</View>
-									<TouchableOpacity style={{ padding: 3, alignItems: "flex-start", marginLeft: 10 }} onPress={()=>handleAcceptPlayer(usersData.data?.find((user) => user.id === member)?.id!)}>
+									<TouchableOpacity
+										style={{ padding: 3, alignItems: "flex-start", marginLeft: 10 }}
+										onPress={() =>
+											handleAcceptPlayer(usersData.data?.find((user) => user.id === member)?.id!)
+										}
+									>
 										<Icon name="check-square" size={24} color="#f18f01" style={{ marginTop: 10 }} />
 									</TouchableOpacity>
-									<TouchableOpacity style={{ padding: 3, alignItems: "flex-start", marginLeft: 10 }} onPress={()=>handleDeleteRequest(usersData.data?.find((user) => user.id === member)?.id!)}>
+									<TouchableOpacity
+										style={{ padding: 3, alignItems: "flex-start", marginLeft: 10 }}
+										onPress={() =>
+											handleDeleteRequest(usersData.data?.find((user) => user.id === member)?.id!)
+										}
+									>
 										<Icon name="square-xmark" size={24} color="black" style={{ marginTop: 10 }} />
 									</TouchableOpacity>
-									
 								</View>
 							))}
 						</View>
 					</ScrollView>
-				}
-				{props.playerRequests?.length == 0 &&
+				)}
+				{props.playerRequests?.length == 0 && (
 					<View style={styles.topInfo}>
-						<Text style={styles.name}>
-							No hay solicitdes para unirse al equipo!
-						</Text>
+						<Text style={styles.name}>No hay solicitdes para unirse al equipo!</Text>
 					</View>
-				}
+				)}
 			</View>
-            
 		</View>
 	);
 }
@@ -225,19 +241,19 @@ const styles = StyleSheet.create({
 		alignItems: "center",
 		backgroundColor: "rgba(0, 0, 0, 0.5)",
 	},
-    button: {
+	button: {
 		flex: 1,
 		padding: 10,
 		borderRadius: 5,
 		alignItems: "center",
 		justifyContent: "center",
 	},
-    acceptButton: {
-        backgroundColor: "#f18f01",
-    },
-    declineButton: {
-        backgroundColor: "black",
-    }
+	acceptButton: {
+		backgroundColor: "#f18f01",
+	},
+	declineButton: {
+		backgroundColor: "black",
+	},
 });
 
 export default PopUpJoinRequests;

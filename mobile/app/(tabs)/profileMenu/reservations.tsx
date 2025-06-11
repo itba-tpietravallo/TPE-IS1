@@ -6,48 +6,39 @@ import { useEffect, useState } from "react";
 import ReservationInfo from "@/components/reservationInfo";
 import Icon from "react-native-vector-icons/FontAwesome6";
 import { router } from "expo-router";
+import { getUserSession, getUserReservations } from "@/lib/autogen/queries";
 
 export default function Index() {
-	const [user, setUser] = useState<Session>();
+	const { data: userData } = getUserSession(supabase);
 	const [reservations, setReservations] = useState<Reservation[]>([]);
 
+	// Get reservations for the current user
+	const { data: userReservations, error: reservationsError } = getUserReservations(supabase, userData?.id!, {
+		enabled: !!userData?.id,
+	});
+
 	useEffect(() => {
-		supabase.auth.getSession().then(({ data: { session } }) => {
-			supabase
-				.from("users")
-				.select("*")
-				.eq("id", session?.user.id)
-				.single()
-				.then(({ data, error }) => {
-					if (error) {
-						console.error("Error fetching user:", error);
-					} else {
-						setUser(data);
-						console.log("id:", data.id);
-						supabase
-							.from("reservations")
-							.select(
-								`*, field: fields (name, street_number, street, neighborhood, city)`, // , location: fields(location)`",
-							)
-							.eq("owner_id", data.id)
-							.order("date_time", { ascending: true })
-							.then(({ data, error }) => {
-								if (error) {
-									console.error("Error fetching reservations:", error);
-								} else {
-									setReservations(data || []);
-								}
-							});
-					}
-				});
-		});
-	}, []);
+		if (userReservations) {
+			setReservations(userReservations as Reservation[]);
+		}
+
+		if (reservationsError) {
+			console.error("Error fetching reservations:", reservationsError);
+		}
+	}, [userReservations, reservationsError]);
 
 	type Reservation = {
 		id: string;
 		field_id: string;
 		date_time: string;
 		owner_id: string;
+		field: {
+			name: string;
+			street_number: string;
+			street: string;
+			neighborhood: string;
+			city: string;
+		};
 	};
 
 	const [isModalVisible, setIsModalVisible] = useState(false);

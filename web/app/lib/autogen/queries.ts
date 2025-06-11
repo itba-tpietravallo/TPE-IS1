@@ -4,11 +4,17 @@
 // This file is automatically copied to /web and /mobile in CI.
 // ===============================================================
 
-import { SupabaseClient } from "@supabase/supabase-js";
+import { SupabaseClient, PostgrestSingleResponse } from "@supabase/supabase-js";
 import type { Database } from "./database.types";
 
-import { useQuery, UseQueryOptions } from "@tanstack/react-query";
-import { useQuery as useQuerySupabase } from "@supabase-cache-helpers/postgrest-react-query";
+import { useQuery, UseQueryOptions, useQueryClient } from "@tanstack/react-query";
+
+import {
+	useQuery as useQuerySupabase,
+	useInsertMutation,
+	useDeleteMutation,
+	useUpdateMutation,
+} from "@supabase-cache-helpers/postgrest-react-query";
 
 export const queries = {
 	getAllFields: (supabase: SupabaseClient<Database>) => supabase.from("fields").select("*"),
@@ -83,6 +89,63 @@ export const queries = {
 			.from("reservations")
 			.select("id, date_time, teams ( name ), bookers_count, fields ( id, price, name ), pending_bookers_ids")
 			.contains("pending_bookers_ids", [userId]),
+
+	getUserReservations: (supabase: SupabaseClient<Database>, userId: string) =>
+		supabase
+			.from("reservations")
+			.select("*, field: fields (name, street_number, street, neighborhood, city)")
+			.eq("owner_id", userId)
+			.order("date_time", { ascending: true }),
+
+	getInscriptionsByTournament: (supabase: SupabaseClient<Database>, tournamentId: string) =>
+		supabase.from("inscriptions").select("*").eq("tournamentId", tournamentId),
+};
+
+export const mutations = {
+	insertField: (supabase: SupabaseClient<Database>) =>
+		useInsertMutation(supabase.from("fields"), ["id"], "*", {
+			onError: (error) => console.error("Error inserting field:", error),
+		}),
+
+	updateField: (supabase: SupabaseClient<Database>) =>
+		useUpdateMutation(supabase.from("fields"), ["id"], "*", {
+			onError: (error) => console.error("Error updating field:", error),
+		}),
+
+	deleteField: (supabase: SupabaseClient<Database>) =>
+		useDeleteMutation(supabase.from("fields"), ["id"], "*", {
+			onError: (error) => console.error("Error deleting field:", error),
+		}),
+
+	insertTournament: (supabase: SupabaseClient<Database>) =>
+		useInsertMutation(supabase.from("tournaments"), ["id"], "*", {
+			onError: (error) => console.error("Error inserting tournament:", error),
+		}),
+
+	updateTournament: (supabase: SupabaseClient<Database>) =>
+		useUpdateMutation(supabase.from("tournaments"), ["id"], "*", {
+			onError: (error) => console.error("Error updating tournament:", error),
+		}),
+
+	deleteTournament: (supabase: SupabaseClient<Database>) =>
+		useDeleteMutation(supabase.from("tournaments"), ["id"], "*", {
+			onError: (error) => console.error("Error deleting tournament:", error),
+		}),
+
+	updateFieldAdmins: (supabase: SupabaseClient<Database>) =>
+		useUpdateMutation(supabase.from("fields"), ["id"], "*", {
+			onError: (error) => console.error("Error updating field admins:", error),
+		}),
+
+	insertReservation: (supabase: SupabaseClient<Database>) =>
+		useInsertMutation(supabase.from("reservations"), ["id"], "*", {
+			onError: (error) => console.error("Error inserting reservation:", error),
+		}),
+
+	updateReservation: (supabase: SupabaseClient<Database>) =>
+		useUpdateMutation(supabase.from("reservations"), ["id"], "*", {
+			onError: (error) => console.error("Error updating reservation:", error),
+		}),
 };
 
 export function getAllFields(supabase: SupabaseClient<Database>, opts: any = undefined) {
@@ -233,4 +296,300 @@ export function getPendingReservationsByUser(
 	opts: any = undefined,
 ) {
 	return useQuerySupabase(queries.getPendingReservationsByUser(supabase, userId), opts);
+}
+
+export function getUserReservations(supabase: SupabaseClient<Database>, userId: string, opts: any = undefined) {
+	return useQuerySupabase(queries.getUserReservations(supabase, userId), {
+		enabled: !!userId,
+		...opts,
+	});
+}
+
+export function getUserEmailById(supabase: SupabaseClient<Database>, id: string) {
+	return useQuerySupabase(supabase.from("users").select("email").eq("id", id).single(), {
+		enabled: !!id,
+	});
+}
+
+export function useUpdateField(supabase: SupabaseClient<Database>) {
+	// Using the built-in useUpdateMutation from supabase-cache-helpers
+	// This will automatically handle cache updates and optimistic updates
+	return useUpdateMutation(
+		supabase.from("fields"),
+		["id"], // Primary key columns
+		"*", // Select all columns for the cache update
+		{
+			// Define any additional options as needed
+			onError: (error) => {
+				console.error("Error updating field:", error);
+			},
+		},
+	);
+}
+
+export function useInsertField(supabase: SupabaseClient<Database>) {
+	// Using the built-in useInsertMutation from supabase-cache-helpers
+	// This will automatically handle cache updates and optimistic updates
+	return useInsertMutation(
+		supabase.from("fields"),
+		["id"], // Primary key columns
+		"*", // Select all columns for the cache update
+		{
+			// Define any additional options as needed
+			onError: (error) => {
+				console.error("Error inserting field:", error);
+			},
+		},
+	);
+}
+
+export function useDeleteField(supabase: SupabaseClient<Database>) {
+	// Using the built-in useDeleteMutation from supabase-cache-helpers
+	// This will automatically handle cache updates and optimistic updates
+	return useDeleteMutation(
+		supabase.from("fields"),
+		["id"], // Primary key columns
+		"*", // Select all columns for the cache update
+		{
+			// Define any additional options as needed
+			onError: (error) => {
+				console.error("Error deleting field:", error);
+			},
+		},
+	);
+}
+
+export function useUpdateFieldAdmins(supabase: SupabaseClient<Database>) {
+	// Using the built-in useUpdateMutation from supabase-cache-helpers
+	// This will handle cache invalidation and optimistic updates automatically
+	const mutation = useUpdateMutation(
+		supabase.from("fields"),
+		["id"], // Primary key columns
+		"*", // Select all columns for the cache update
+		{
+			onError: (error) => {
+				console.error("Error updating field admins:", error);
+			},
+		},
+	);
+
+	// Wrap the mutation to adapt the parameter format
+	return {
+		...mutation,
+		mutateAsync: async ({ fieldId, adminedBy }: { fieldId: string; adminedBy: string[] }) => {
+			return mutation.mutateAsync({
+				id: fieldId,
+				adminedBy,
+			});
+		},
+		mutate: ({ fieldId, adminedBy }: { fieldId: string; adminedBy: string[] }, options?: any) => {
+			return mutation.mutate(
+				{
+					id: fieldId,
+					adminedBy,
+				},
+				options,
+			);
+		},
+	};
+}
+
+export function useInsertTournament(supabase: SupabaseClient<Database>) {
+	// Using the built-in useInsertMutation from supabase-cache-helpers
+	// This will automatically handle cache updates and optimistic updates
+	return useInsertMutation(
+		supabase.from("tournaments"),
+		["id"], // Primary key columns
+		"*", // Select all columns for the cache update
+		{
+			// Define callbacks for specific behaviors
+			onError: (error) => {
+				console.error("Error inserting tournament:", error);
+			},
+			// Handle field-specific cache invalidation
+			onSettled: (data, error, variables) => {
+				// If we have a fieldId in the variables, invalidate field-specific queries
+				if (variables && "fieldId" in variables) {
+					const queryClient = useQueryClient();
+					queryClient.invalidateQueries({
+						queryKey: ["supabase", "from", "tournaments", "eq", "fieldId", variables.fieldId],
+					});
+				}
+			},
+		},
+	);
+}
+
+export function useDeleteTournament(supabase: SupabaseClient<Database>) {
+	// Using the built-in useDeleteMutation from supabase-cache-helpers
+	// This will automatically handle cache updates and optimistic updates
+	const deleteHook = useDeleteMutation(
+		supabase.from("tournaments"),
+		["id"], // Primary key columns
+		"*", // Select all columns for the cache update
+		{
+			onError: (error) => {
+				console.error("Error deleting tournament:", error);
+			},
+			onSettled: () => {
+				// We need to invalidate field-specific queries as well
+				const queryClient = useQueryClient();
+				queryClient.invalidateQueries({
+					queryKey: ["supabase", "from", "tournaments", "eq", "fieldId"],
+				});
+			},
+		},
+	);
+
+	// Return the mutation with the correct interface
+	return deleteHook;
+}
+
+export function useInsertReservation(supabase: SupabaseClient<Database>) {
+	// Using the built-in useInsertMutation from supabase-cache-helpers
+	// This will automatically handle cache updates and optimistic updates
+	return useInsertMutation(
+		supabase.from("reservations"),
+		["id"], // Primary key columns
+		"*", // Select all columns for the cache update
+		{
+			onError: (error) => {
+				console.error("Error inserting reservation:", error);
+			},
+			// Handle field-specific cache invalidation
+			onSettled: (data, error, variables) => {
+				// If we have a field_id in the variables, invalidate field-specific queries
+				if (variables && "field_id" in variables) {
+					const queryClient = useQueryClient();
+					queryClient.invalidateQueries({
+						queryKey: ["supabase", "from", "reservations", "eq", "field_id", variables.field_id],
+					});
+				}
+			},
+		},
+	);
+}
+
+export function useUpdateReservation(supabase: SupabaseClient<Database>) {
+	// Using the built-in useUpdateMutation from supabase-cache-helpers
+	const updateMutation = useUpdateMutation(
+		supabase.from("reservations"),
+		["id"], // Primary key columns
+		"*", // Select all columns for the cache update
+		{
+			onError: (error) => {
+				console.error("Error updating reservation:", error);
+			},
+			// Handle field-specific cache invalidation
+			onSettled: (data, error, variables) => {
+				// Check if field_id is present in the update data
+				if (variables && typeof variables === "object" && "field_id" in variables) {
+					const queryClient = useQueryClient();
+					queryClient.invalidateQueries({
+						queryKey: ["supabase", "from", "reservations", "eq", "field_id", variables.field_id],
+					});
+				}
+			},
+		},
+	);
+
+	// We need a wrapper because the API signature is different
+	// The built-in hook expects a flat object with id, but our API provides { id, data }
+	return {
+		...updateMutation,
+		mutateAsync: async ({
+			id,
+			data,
+		}: {
+			id: string;
+			data: Partial<Database["public"]["Tables"]["reservations"]["Update"]>;
+		}) => {
+			return updateMutation.mutateAsync({
+				id,
+				...data,
+			});
+		},
+		mutate: (
+			{ id, data }: { id: string; data: Partial<Database["public"]["Tables"]["reservations"]["Update"]> },
+			options?: any,
+		) => {
+			return updateMutation.mutate(
+				{
+					id,
+					...data,
+				},
+				options,
+			);
+		},
+	};
+}
+
+export function useUpdateTeam(supabase: SupabaseClient<Database>) {
+	// Using the built-in useUpdateMutation from supabase-cache-helpers
+	return useUpdateMutation(
+		supabase.from("teams"),
+		["team_id"], // Primary key columns
+		"*", // Select all columns for the cache update
+		{
+			onError: (error) => {
+				console.error("Error updating team:", error);
+			},
+		},
+	);
+}
+
+export function useInsertTeam(supabase: SupabaseClient<Database>) {
+	// Using the built-in useInsertMutation from supabase-cache-helpers
+	return useInsertMutation(
+		supabase.from("teams"),
+		["team_id"], // Primary key columns
+		"*", // Select all columns for the cache update
+		{
+			onError: (error) => {
+				console.error("Error inserting team:", error);
+			},
+		},
+	);
+}
+
+export function useDeleteTeam(supabase: SupabaseClient<Database>) {
+	// Using the built-in useDeleteMutation from supabase-cache-helpers
+	return useDeleteMutation(
+		supabase.from("teams"),
+		["team_id"], // Primary key columns
+		"*", // Select all columns for the cache update
+		{
+			onError: (error) => {
+				console.error("Error deleting team:", error);
+			},
+		},
+	);
+}
+
+export function useInsertInscription(supabase: SupabaseClient<Database>) {
+	// Using the built-in useInsertMutation from supabase-cache-helpers
+	return useInsertMutation(
+		supabase.from("inscriptions"),
+		["id"], // Primary key columns
+		"*", // Select all columns for the cache update
+		{
+			onError: (error) => {
+				console.error("Error inserting inscription:", error);
+			},
+		},
+	);
+}
+
+export function useDeleteReservation(supabase: SupabaseClient<Database>) {
+	// Using the built-in useDeleteMutation from supabase-cache-helpers
+	return useDeleteMutation(
+		supabase.from("reservations"),
+		["id"], // Primary key columns
+		"*", // Select all columns for the cache update
+		{
+			onError: (error) => {
+				console.error("Error deleting reservation:", error);
+			},
+		},
+	);
 }

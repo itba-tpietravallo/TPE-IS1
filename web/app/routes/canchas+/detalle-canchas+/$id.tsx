@@ -1,7 +1,7 @@
 import { LoaderFunctionArgs } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 import { createBrowserClient } from "@supabase/ssr";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { FieldDetail } from "./FieldDetail";
 
 import {
@@ -10,6 +10,7 @@ import {
 	getAllTournamentsForFieldById,
 	getAllFields,
 	getAllUsers,
+	useUpdateField,
 } from "@lib/autogen/queries";
 
 export function loader(args: LoaderFunctionArgs) {
@@ -46,21 +47,26 @@ export default function FieldDetailPage() {
 	const [description, setDescription] = useState(field.data?.description);
 	const [price, setPrice] = useState(field.data?.price);
 
+	// Use the mutation hook
+	const updateFieldMutation = useUpdateField(supabase);
+
 	const handleUpdate = async (newName: string, newDesc: string, newPrice: number) => {
 		setName(newName);
 		setDescription(newDesc);
-		const { data, error } = await supabase
-			.from("fields")
-			.update({ name: newName, description: newDesc, price: newPrice })
-			.eq("id", id);
+		setPrice(newPrice);
 
-		if (error) {
-			console.error("Error updating field:", error);
+		// Use the mutation instead of direct Supabase call
+		const result = await updateFieldMutation.mutateAsync({
+			id: id || "",
+			name: newName,
+			description: newDesc,
+			price: newPrice,
+		});
+
+		if (result?.error) {
+			console.error("Error updating field:", result?.error);
 		} else {
-			console.log("Field updated successfully:", data);
-			// hago refresh cuando tengo update the field
-			field.refetch();
-			allFieldsQuery.refetch();
+			console.log("Field updated successfully:", result?.data);
 		}
 	};
 	// sin este useEffect, cuando hago hard refresh pierdo nombre, descripcion, precio

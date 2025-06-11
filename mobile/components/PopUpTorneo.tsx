@@ -6,7 +6,15 @@ import { supabase } from "@lib/supabase";
 import Search from "./Search";
 import { AutocompleteDropdownContextProvider } from "react-native-autocomplete-dropdown";
 import SelectDropdown from "react-native-select-dropdown";
-import { getUserSession, getAllTeams, getTeamById, getUsername, getAllUsers, queries } from "@lib/autogen/queries";
+import {
+	getUserSession,
+	getAllTeams,
+	getTeamById,
+	getUsername,
+	getAllUsers,
+	queries,
+	useInsertInscription,
+} from "@lib/autogen/queries";
 import { User } from "@supabase/supabase-js";
 import { get } from "http";
 import PopUpReserva from "./PopUpReserva";
@@ -54,6 +62,7 @@ function PopUpTorneo({
 	const usersData = getAllUsers(supabase);
 	const { data: user } = getUserSession(supabase);
 	const { data: teams } = getAllTeams(supabase);
+	const insertInscriptionMutation = useInsertInscription(supabase);
 	const myTeams = teams?.filter((team) => team.players.some((member) => member === user?.id));
 
 	const [selectedTeam, setSelectedTeam] = useState<string>("");
@@ -73,17 +82,23 @@ function PopUpTorneo({
 			alert("Por favor, selecciona un equipo");
 			return;
 		}
-		await supabase.from("inscriptions").insert([
-			{
+
+		try {
+			await insertInscriptionMutation.mutateAsync({
 				tournamentId: tournamentId,
 				teamId: selectedTeam,
-			},
-		]);
-		onClose();
+			});
+			console.log("Team successfully registered for tournament");
+			onClose();
+		} catch (error) {
+			console.error("Error registering for tournament:", error);
+			alert("Error al inscribir el equipo al torneo. Por favor, intenta de nuevo.");
+		}
 	};
 
 	const fetchTeam = async () => {
-		const { data: teamData, error } = await supabase.from("teams").select("*").eq("team_id", selectedTeam).single(); // TODO: CAMBIAR por getTeamByID!! -> no sé por que no funciona
+		// Use queries.getTeamById directly since useQuerySupabase is meant for hooks
+		const { data: teamData, error } = await queries.getTeamById(supabase, selectedTeam);
 
 		if (error) {
 			console.error("Error fetching team:", error);

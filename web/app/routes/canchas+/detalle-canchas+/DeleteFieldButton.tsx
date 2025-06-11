@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import type { Database } from "@lib/autogen/database.types";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { UseQueryResult } from "@tanstack/react-query";
+import { useDeleteField } from "@lib/autogen/queries";
 
 export function DeleteFieldButton({
 	supabase,
@@ -24,11 +25,11 @@ export function DeleteFieldButton({
 	fieldId: string;
 	dependantQueries: UseQueryResult[];
 }) {
+	// Use the mutation hook
+	const deleteFieldMutation = useDeleteField(supabase);
+
 	const handleDelete = async () => {
-		await supabase.from("fields").delete().eq("id", fieldId).throwOnError();
-		dependantQueries?.forEach((query) => {
-			query.refetch();
-		});
+		await deleteFieldMutation.mutateAsync({ id: fieldId });
 		window.location.pathname = "/canchas";
 	};
 

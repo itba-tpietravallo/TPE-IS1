@@ -16,7 +16,7 @@ import SelectDropdown from "react-native-select-dropdown";
 
 import { supabase } from "@/lib/supabase";
 import { router } from "expo-router";
-import { getAllSports, getUserSession } from "@lib/autogen/queries";
+import { getAllSports, getUserSession, useInsertTeam } from "@lib/autogen/queries";
 
 export default function PostTeam() {
 	const [teamName, setTeamName] = useState("");
@@ -29,26 +29,31 @@ export default function PostTeam() {
 	const [isPublic, setIsPublic] = useState(true);
 
 	const { data: user } = getUserSession(supabase);
+	const insertTeamMutation = useInsertTeam(supabase);
 
 	const isFormComplete = teamName.trim() !== "" && sport.length != 0;
 
 	const handlePostTeam = async () => {
-		await supabase.from("teams").insert([
-			{
+		try {
+			await insertTeamMutation.mutateAsync({
 				name: teamName,
 				sport: sport,
 				description: description,
 				images: null,
-				//availability: availability, // Disponibilidad ingresada
 				players: [user?.id!], // Cuando crea el equipo automaticamente se une el creador
 				playerRequests: [],
-				admins: [user?.id!], 
+				admins: [user?.id!],
 				isPublic: isPublic,
 				contactPhone: "",
 				contactEmail: "",
-			},
-		]);
-		router.push("/(tabs)/teams");
+			});
+
+			console.log("Team created successfully");
+			router.push("/(tabs)/teams");
+		} catch (error) {
+			console.error("Error creating team:", error);
+			Alert.alert("Error", "No se pudo crear el equipo. Por favor, intenta de nuevo.");
+		}
 	};
 
 	const handleCancel = () => {
@@ -188,11 +193,11 @@ export default function PostTeam() {
 					numberOfLines={4}
 				/>
 
-				{/* Privacidad */}    
+				{/* Privacidad */}
 				<Text style={styles.label}>Privacidad</Text>
 				<SelectDropdown
 					data={["Público", "Privado"]}
-					onSelect={(itemValue) => setIsPublic(itemValue==="Público")}
+					onSelect={(itemValue) => setIsPublic(itemValue === "Público")}
 					dropdownStyle={{ backgroundColor: "white", gap: 5, borderRadius: 8 }}
 					renderButton={(selectedItem, isOpened) => {
 						return (
@@ -215,7 +220,7 @@ export default function PostTeam() {
 							</View>
 						);
 					}}
-				/> 
+				/>
 
 				<Text style={{ color: "#464545" }}>* Indica que el campo es obligatorio.</Text>
 
