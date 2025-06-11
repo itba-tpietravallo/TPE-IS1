@@ -71,7 +71,7 @@ export function FieldDetail(props: FieldProps) {
 	const teamsData = getAllTeams(supabase);
 	const [sheetOpen, setSheetOpen] = useState(false);
 	const user = getUserAuthSession(supabase);
-	const isOwner = !!getIsFieldOwner(supabase, id!, user.data?.user.id!, { enabled: !!user.data?.user.id && !!id })
+	const isOwner = !!getIsFieldOwner(supabase, id!, user.data?.user.id!, { enabled: !!(!!user.data?.user.id && !!id) })
 		?.data?.id;
 
 	return (

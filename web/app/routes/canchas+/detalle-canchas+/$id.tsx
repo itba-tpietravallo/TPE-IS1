@@ -35,7 +35,7 @@ export default function FieldDetailPage() {
 	const supabase = createBrowserClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
 
 	const field = getFieldById(supabase, id!, { enabled: !!id });
-	const reservations = getAllReservationsForFieldById(supabase, id || "", { enabled: !!id && field.data });
+	const reservations = getAllReservationsForFieldById(supabase, id || "", { enabled: !!(!!id && field.data) });
 	const tournaments = getAllTournamentsForFieldById(supabase, id || "", { enabled: !!id });
 	const allFieldsQuery = getAllFields(supabase);
 
