@@ -28,7 +28,7 @@ jobs:
 
             - name: Install dependencies
               if: steps.cache-modules.outputs.cache-hit != 'true'
-              run: npm ci && cd web && npm ci && cd ..
+              run: npm ci && cd web && npm ci && cd .. && cd db && npm ci
               shell: bash
 
             - name: Load web env
