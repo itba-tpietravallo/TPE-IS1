@@ -58,13 +58,15 @@ export default function FieldDetailPage() {
 		// Use the mutation instead of direct Supabase call
 		const result = await updateFieldMutation.mutateAsync({
 			id: id || "",
-			data: { name: newName, description: newDesc, price: newPrice },
+			name: newName,
+			description: newDesc,
+			price: newPrice,
 		});
 
-		if (result.error) {
-			console.error("Error updating field:", result.error);
+		if (result?.error) {
+			console.error("Error updating field:", result?.error);
 		} else {
-			console.log("Field updated successfully:", result.data);
+			console.log("Field updated successfully:", result?.data);
 		}
 	};
 	// sin este useEffect, cuando hago hard refresh pierdo nombre, descripcion, precio

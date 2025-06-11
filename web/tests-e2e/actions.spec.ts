@@ -117,8 +117,13 @@ test.describe("Publishing things", () => {
 	test("Remove tournament", async ({ page }) => {
 		await page.goto(publishedFieldURL!);
 		await page.getByRole("button", { name: "Ver torneos" }).click();
-		await page.getByRole("button", { name: "Borrar" }).click();
-		await page.getByRole("button", { name: "Close" }).click();
+		await page
+			.locator("div")
+			.filter({ hasText: TEST_TOURNAMENT_DETAILS.TOURNAMENT_NAME })
+			.getByRole("img")
+			.first()
+			.click();
+		await page.getByRole("button", { name: "Close" }).click({ force: true });
 	});
 
 	test("Remove field", async ({ page }) => {

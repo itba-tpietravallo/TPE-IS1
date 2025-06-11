@@ -29,7 +29,7 @@ export function DeleteFieldButton({
 	const deleteFieldMutation = useDeleteField(supabase);
 
 	const handleDelete = async () => {
-		await deleteFieldMutation.mutateAsync(fieldId);
+		await deleteFieldMutation.mutateAsync({ id: fieldId });
 		window.location.pathname = "/canchas";
 	};
 

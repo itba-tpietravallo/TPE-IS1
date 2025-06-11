@@ -387,7 +387,7 @@ export function TorneosSheet({ fieldId, tournaments }: TorneosSheetProps) {
 		console.log("Eliminando torneo con ID:", t_id);
 
 		try {
-			await deleteTournamentMutation.mutateAsync(t_id);
+			await deleteTournamentMutation.mutateAsync({ id: t_id });
 			console.log("Torneo eliminado con éxito");
 		} catch (error) {
 			console.error("Error eliminando torneo:", error);
