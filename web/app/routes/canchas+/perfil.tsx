@@ -87,12 +87,12 @@ export default function Index() {
 						</Avatar>
 						<div className="flex-1 text-center md:text-left">
 							<h1 className="text-2xl font-bold">{full_name}</h1>
-							<p className="text-muted-foreground">
+							<div className="text-muted-foreground">
 								<Badge variant="outline" className="mt-1">
 									<CalendarDays className="mr-1 h-3 w-3" />
 									Miembro desde {new Date(user?.created_at).toLocaleDateString()}
 								</Badge>
-							</p>
+							</div>
 						</div>
 					</div>
 				</CardContent>

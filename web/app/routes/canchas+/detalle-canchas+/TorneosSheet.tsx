@@ -11,9 +11,15 @@ import {
 import { Button } from "~/components/ui/button";
 import { useLoaderData, useNavigate } from "@remix-run/react";
 import { createBrowserClient } from "@supabase/ssr";
-import { Trash2 } from "lucide-react";
+import { Trash2, Loader2 } from "lucide-react";
 import { LoaderFunctionArgs } from "@remix-run/node";
-import { getAllTournamentsForFieldById, getFieldById } from "@lib/autogen/queries";
+import {
+	getAllTournamentsForFieldById,
+	getFieldById,
+	useInsertTournament,
+	useDeleteTournament,
+} from "@lib/autogen/queries";
+import { Suspense } from "react";
 import { set, useForm, UseFormReturn } from "react-hook-form";
 import { Label } from "~/components/ui/label";
 import { useState, useMemo, useEffect } from "react";
@@ -119,19 +125,20 @@ export function TournamentForm({ fieldId, onClose = () => {} }: { fieldId: strin
 		[field.data?.sports],
 	);
 
+	// Use the mutation hook
+	const insertTournamentMutation = useInsertTournament(supabase);
+
 	const onSubmit = async (data: any) => {
-		await supabase.from("tournaments").insert([
-			{
-				name: data.name,
-				fieldId: fieldId,
-				sport: selectedSport,
-				startDate: data.startDate,
-				description: data.description,
-				price: data.price,
-				deadline: data.deadline,
-				cantPlayers: data.cantPlayers,
-			},
-		]);
+		await insertTournamentMutation.mutateAsync({
+			name: data.name,
+			fieldId: fieldId,
+			sport: selectedSport,
+			startDate: data.startDate,
+			description: data.description,
+			price: data.price,
+			deadline: data.deadline,
+			cantPlayers: data.cantPlayers,
+		});
 
 		field.refetch();
 
@@ -314,8 +321,11 @@ export function SingleTournamentInfo({ tournament_id }: { tournament_id: string 
 	const teamsData = getAllTeams(supabase);
 
 	useEffect(() => {
+		// Since we don't have a proper typed query for inscriptions yet
+		// We'll keep using the direct query but with a comment for future refactoring
+		// TODO: Replace with a proper typed query like getInscriptionsByTournament when available
 		const fetchInscriptions = async () => {
-			const { data, error } = await supabase.from("inscriptions").select("*").eq("tournamentId", tournament_id); // Reemplaza con el ID del torneo actual
+			const { data, error } = await supabase.from("inscriptions").select("*").eq("tournamentId", tournament_id);
 
 			if (error) {
 				console.error("Error fetching inscriptions:", error);
@@ -370,10 +380,18 @@ export function TorneosSheet({ fieldId, tournaments }: TorneosSheetProps) {
 	const tournamentQuery = getAllTournamentsForFieldById(supabase, fieldId, { enabled: !!fieldId });
 	const [showForm, setShowForm] = useState(false);
 
-	const handleDelete = async (t_id: string) => {
-		const { error } = await supabase.from("tournaments").delete().eq("id", t_id);
+	// Use the mutation hook
+	const deleteTournamentMutation = useDeleteTournament(supabase);
 
-		await Promise.all([field.refetch(), tournamentQuery.refetch()]);
+	const handleDelete = async (t_id: string) => {
+		console.log("Eliminando torneo con ID:", t_id);
+
+		try {
+			await deleteTournamentMutation.mutateAsync(t_id);
+			console.log("Torneo eliminado con éxito");
+		} catch (error) {
+			console.error("Error eliminando torneo:", error);
+		}
 	};
 
 	return (
@@ -393,35 +411,37 @@ export function TorneosSheet({ fieldId, tournaments }: TorneosSheetProps) {
 				<SheetHeader>
 					<SheetTitle className="p-6 font-bold text-[#d97e01]">Torneos de {field.data?.name}</SheetTitle>
 				</SheetHeader>
-				{tournaments.length > 0 ? (
-					<div className="flex flex-col items-center justify-center space-y-5">
-						{tournaments.map((tournament) => (
-							<div key={tournament.id} className="w-full rounded-lg p-4 shadow-md">
-								<div className="flex items-center justify-between">
-									<h2 className="text-lg font-bold">{tournament.name}</h2>
+				<Suspense
+					fallback={
+						<div className="flex h-40 w-full items-center justify-center">
+							<Loader2 className="h-8 w-8 animate-spin text-[#d97e01]" />
+							<p className="ml-2 text-lg">Cargando torneos...</p>
+						</div>
+					}
+				>
+					{tournaments.length > 0 ? (
+						<div className="flex flex-col items-center justify-center space-y-5">
+							{tournaments.map((tournament) => (
+								<div key={tournament.id} className="w-full rounded-lg p-4 shadow-md">
 									<div className="flex items-center justify-between">
 										<h2 className="text-lg font-bold">{tournament.name}</h2>
-										<Button
-											variant="destructive"
-											className="ml-4 bg-red-600 text-white hover:bg-red-700"
+										<Trash2
+											className="h-5 w-5 cursor-pointer text-gray-500 hover:text-red-600"
 											onClick={() => handleDelete(tournament.id)}
-										>
-											<Trash2 className="mr-2 h-4 w-4" />
-											Borrar
-										</Button>
+										/>
 									</div>
+									<p>Fecha de inicio: {new Date(tournament.startDate).toLocaleDateString()}</p>
+									<p className="pt-3 text-sm text-gray-600">Inscriptos:</p>
+									<SingleTournamentInfo tournament_id={tournament.id} />
 								</div>
-								<p>Fecha de inicio: {new Date(tournament.startDate).toLocaleDateString()}</p>
-								<p className="pt-3 text-sm text-gray-600">Inscriptos:</p>
-								<SingleTournamentInfo tournament_id={tournament.id} />
-							</div>
-						))}
-					</div>
-				) : (
-					<div className="flex flex-col items-center justify-center space-y-12">
-						<p className="text-lg font-bold">No hay torneos disponibles</p>
-					</div>
-				)}
+							))}
+						</div>
+					) : (
+						<div className="flex flex-col items-center justify-center space-y-12">
+							<p className="text-lg font-bold">No hay torneos disponibles</p>
+						</div>
+					)}
+				</Suspense>
 				<div className="p-4">
 					<Button
 						variant="outline"

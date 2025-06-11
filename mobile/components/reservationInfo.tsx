@@ -12,17 +12,20 @@ import { useEffect, useRef, useState } from "react";
 import { Alert, Text, View, TouchableOpacity, Image } from "react-native";
 import { Button } from "@rneui/themed";
 import { supabase } from "@/lib/supabase";
+import { useDeleteReservation } from "@/lib/autogen/queries";
 
 function ReservationInfo({ onClose, field_name, date, time, location, id }: infoProps) {
+	const deleteReservation = useDeleteReservation(supabase);
+
 	const handleCancelation = async () => {
-		await supabase
-			.from("reservations")
-			.delete()
-			.eq("id", id)
-			.then(() => {
-				Alert.alert("Cancelación exitosa", "Reserva cancelada con éxito");
-				onClose();
-			});
+		try {
+			await deleteReservation.mutateAsync({ id });
+			Alert.alert("Cancelación exitosa", "Reserva cancelada con éxito");
+			onClose();
+		} catch (error) {
+			Alert.alert("Error", "No se pudo cancelar la reserva");
+			console.error(error);
+		}
 	};
 
 	return (
