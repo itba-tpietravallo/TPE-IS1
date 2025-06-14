@@ -1,7 +1,7 @@
 import { ScreenHeight } from "@rneui/themed/dist/config";
 import React, { useState } from "react";
 import PopUpTeam from "./PopUpTeam";
-import { StyleSheet, Text, View, ImageBackground, Image, TouchableOpacity, Modal } from "react-native";
+import { StyleSheet, Text, View, ImageBackground, TouchableOpacity, Modal } from "react-native";
 
 type PropsTeam = {
 	team_id: string;

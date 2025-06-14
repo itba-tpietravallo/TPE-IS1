@@ -79,14 +79,18 @@ function PopUpTeam(props: PropsPopUpTeam) {
 
 	const handleLeaveTeam = async () => {
 		const updatedMembers = props.players?.filter((player) => player !== user?.id);
+		var updatedAdmins = props.admins?.filter((player) => player !== user?.id )
+
+		if(updatedAdmins.length == 0){
+			updatedAdmins = [...updatedAdmins, props.players[0]];
+		}
 
 		const { data, error } = await supabase
 			.from("teams")
-			.update({ players: updatedMembers })
+			.update({ players: updatedMembers, admins: updatedAdmins })
 			.eq("team_id", props.team_id);
 
 		props.setPlayers(updatedMembers);
-		//todo: Si el unico admin abandona se hace admin a otro automaticamente
 	};
 
 	useEffect(() => {
