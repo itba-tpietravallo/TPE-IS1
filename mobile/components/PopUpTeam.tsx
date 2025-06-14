@@ -17,17 +17,17 @@ type PropsPopUpTeam = {
 	sport: string;
 	description: string;
 	players: string[]; 
+	setPlayers: React.Dispatch<React.SetStateAction<string[]>>;
 	playerRequests: string[];
-	public: boolean;
+	setRequests: React.Dispatch<React.SetStateAction<string[]>>;
 	admins: string[];
+	setAdmins: React.Dispatch<React.SetStateAction<string[]>>;
+	public: boolean;
 };
 
 function PopUpTeam(props: PropsPopUpTeam) {
 	const { data: user } = getUserSession(supabase);
 	const usersData = getAllUsers(supabase);
-
-	const [players, setPlayers] = useState<string[]>(props.players);
-	const [requests, setRequests] = useState<string[]>(props.playerRequests);  
 
 	const [isModalVisibleJoinRequests, setIsModalVisibleJoinRequests] = useState(false); //PopUpJoinRequests
 	const [selectedMember, setSelectedMember] = useState<string | null>(null);  
@@ -37,14 +37,14 @@ function PopUpTeam(props: PropsPopUpTeam) {
 	};
 
 	function userAlreadyOnTeam(userId: string) {
-		if (players?.includes(userId)) {
+		if (props.players?.includes(userId)) {
 			return true;
 		}
 		return false;
 	}
 
 	function joinRequested(userId: string) {
-		if (requests?.includes(userId)) {
+		if (props.playerRequests?.includes(userId)) {
 			return true;
 		}
 		return false;
@@ -53,7 +53,7 @@ function PopUpTeam(props: PropsPopUpTeam) {
 	const handleJoinTeam = async () => {
 
 		if(props.public){
-			const updatedMembers = [...(players || []), user?.id!];
+			const updatedMembers = [...(props.players || []), user?.id!];
 
 			const { data, error } = await supabase
 				.from("teams")
@@ -61,10 +61,10 @@ function PopUpTeam(props: PropsPopUpTeam) {
 				.eq("team_id", props.team_id)
 				.throwOnError();
 
-			setPlayers(updatedMembers);
+			props.setPlayers(updatedMembers);
 			console.log("joined public team")
 		}else{
-			const updatedRequests = [...(requests || []), user?.id!];
+			const updatedRequests = [...(props.playerRequests || []), user?.id!];
 
 			const { data, error } = await supabase
 				.from("teams")
@@ -72,26 +72,26 @@ function PopUpTeam(props: PropsPopUpTeam) {
 				.eq("team_id", props.team_id)
 				.throwOnError();
 
-			setRequests(updatedRequests);
+			props.setRequests(updatedRequests);
 			console.log("requested to join private team")
 		}
 	};
 
 	const handleLeaveTeam = async () => {
-		const updatedMembers = players?.filter((player) => player !== user?.id);
+		const updatedMembers = props.players?.filter((player) => player !== user?.id);
 
 		const { data, error } = await supabase
 			.from("teams")
 			.update({ players: updatedMembers })
 			.eq("team_id", props.team_id);
 
-		setPlayers(updatedMembers);
+		props.setPlayers(updatedMembers);
 		//todo: Si el unico admin abandona se hace admin a otro automaticamente
 	};
 
 	useEffect(() => {
 		const deleteTeamIfEmpty = async () => {
-			if (players.length === 0) {
+			if (props.players.length === 0) {
 				const { error } = await supabase.from("teams").delete().eq("team_id", props.team_id);
 
 				if (error) {
@@ -104,7 +104,7 @@ function PopUpTeam(props: PropsPopUpTeam) {
 		};
 
 		deleteTeamIfEmpty();
-	}, [players]);
+	}, [props.players]);
 
 	return (
 		<View style={styles.modalView}>
@@ -135,8 +135,10 @@ function PopUpTeam(props: PropsPopUpTeam) {
 							onClose={handleCloseModalJoinRequest}
 							team_id={props.team_id}
 							name={props.name}
-							players={players}
-							playerRequests={requests}
+							players={props.players}
+							setPlayers={props.setPlayers}
+							playerRequests={props.playerRequests}
+							setRequests={props.setRequests}
 						/>
 					</View>
 				</Modal>
@@ -153,7 +155,7 @@ function PopUpTeam(props: PropsPopUpTeam) {
 				{/* Miembros del Equipo */}
 				<ScrollView style={styles.scrollArea}>
 					<View style={{ width: "100%" }}>
-						{players?.map((member) => (
+						{props.players?.map((member) => (
 							<View key={member} style={styles.row}>
 								<View style={{ height: 60, width: 15 }}></View>
 								
@@ -196,8 +198,10 @@ function PopUpTeam(props: PropsPopUpTeam) {
 										full_name={memberData.full_name}
 										username={memberData.username!}
 										avatar={memberData.avatar_url!}
+										players={props.players}
+										setPlayers={props.setPlayers}
 										admins={props.admins}
-										players={players}
+										setAdmins={props.setAdmins}
 										team_id={props.team_id}
 										/>
 									) : null;

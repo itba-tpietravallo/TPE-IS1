@@ -12,8 +12,10 @@ type PropsPopUpTeamMemberInfo = {
 	full_name: string;
 	username: string;
     avatar: string;
-	admins: string[];
 	players: string[];
+	setPlayers: React.Dispatch<React.SetStateAction<string[]>>;
+	admins: string[];
+	setAdmins: React.Dispatch<React.SetStateAction<string[]>>;
 	team_id: string;
 };
 
@@ -21,11 +23,8 @@ function PopUpTeamMemberInfo(props: PropsPopUpTeamMemberInfo) {
 
 	const { data: user } = getUserSession(supabase);
 
-	const [players, setPlayers] = useState<string[]>(props.players);
-	const [admins, setAdmins] = useState<string[]>(props.admins); 
-
 	const handleDeletePlayer = async (player: string) => {
-		const updatedPlayers = players.filter(member => member !== player);
+		const updatedPlayers = props.players.filter(member => member !== player);
 
 		const { data, error } = await supabase
 			.from("teams")
@@ -33,14 +32,14 @@ function PopUpTeamMemberInfo(props: PropsPopUpTeamMemberInfo) {
 			.eq("team_id", props.team_id)
 			.throwOnError();
 		
-			setPlayers(updatedPlayers);
+			props.setPlayers(updatedPlayers);
 			props.onClose();
 			console.log("deleted");
 	};
 
 	const handleManageAdmin = async (player: string) => {
 		if(!userIsAdmin(player)){
-			const updatedAdmins = [...(admins || []), player];
+			const updatedAdmins = [...(props.admins || []), player];
 
 			const { data, error } = await supabase
 				.from("teams")
@@ -48,10 +47,10 @@ function PopUpTeamMemberInfo(props: PropsPopUpTeamMemberInfo) {
 				.eq("team_id", props.team_id)
 				.throwOnError();
 			
-				setAdmins(updatedAdmins);
+				props.setAdmins(updatedAdmins);
 				console.log("new admin")
 		}else{
-			const updatedAdmins = admins.filter(admin => admin !== player);
+			const updatedAdmins = props.admins.filter(admin => admin !== player);
 
 			const { data, error } = await supabase
 				.from("teams")
@@ -59,13 +58,13 @@ function PopUpTeamMemberInfo(props: PropsPopUpTeamMemberInfo) {
 				.eq("team_id", props.team_id)
 				.throwOnError();
 			
-				setAdmins(updatedAdmins);
+				props.setAdmins(updatedAdmins);
 				console.log("dismiss as admin")
 		}
 	};
 
 	function userIsAdmin(userId: string) {
-		if (admins?.includes(userId)) {
+		if (props.admins?.includes(userId)) {
 			return true;
 		}
 		return false;

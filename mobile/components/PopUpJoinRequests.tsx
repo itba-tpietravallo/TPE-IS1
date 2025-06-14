@@ -10,17 +10,16 @@ type PropsPopUpJoinRequests = {
 	team_id: string;
 	name: string;
 	players: string[]; 
+	setPlayers: React.Dispatch<React.SetStateAction<string[]>>;
 	playerRequests: string[];
+	setRequests: React.Dispatch<React.SetStateAction<string[]>>;
 };
 
 function PopUpJoinRequests(props: PropsPopUpJoinRequests) {
 	const usersData = getAllUsers(supabase);
 
-	const [players, setPlayers] = useState<string[]>(props.players);
-	const [requests, setRequests] = useState<string[]>(props.playerRequests); 
-
 	const handleAcceptPlayer = async (player: string) => {
-			const updatedMembers = [...(players || []), player];
+			const updatedMembers = [...(props.players || []), player];
 	
 			const { data, error } = await supabase
 				.from("teams")
@@ -28,7 +27,7 @@ function PopUpJoinRequests(props: PropsPopUpJoinRequests) {
 				.eq("team_id", props.team_id)
 				.throwOnError();
 	
-			setPlayers(updatedMembers);
+			props.setPlayers(updatedMembers);
 			console.log("accept")
 
 			handleDeleteRequest(player);
@@ -36,7 +35,7 @@ function PopUpJoinRequests(props: PropsPopUpJoinRequests) {
 
 	
 	const handleDeleteRequest = async (player: string) => {
-			const updatedRequests = requests.filter(member => member !== player);
+			const updatedRequests = props.playerRequests.filter(member => member !== player);
 	
 			const { data, error } = await supabase
 				.from("teams")
@@ -44,7 +43,7 @@ function PopUpJoinRequests(props: PropsPopUpJoinRequests) {
 				.eq("team_id", props.team_id)
 				.throwOnError();
 	
-			setRequests(updatedRequests);
+			props.setRequests(updatedRequests);
 			console.log("deleted")
 		};
 
@@ -66,7 +65,7 @@ function PopUpJoinRequests(props: PropsPopUpJoinRequests) {
 				</View>
 
 				{/* Solicitudes de Union al Equipo */}
-				{requests?.length != 0 &&
+				{props.playerRequests?.length != 0 &&
 					<ScrollView style={styles.scrollArea}>
 						<View style={{ width: "100%" }}>
 							{props.playerRequests?.map((member) => (
@@ -91,7 +90,7 @@ function PopUpJoinRequests(props: PropsPopUpJoinRequests) {
 						</View>
 					</ScrollView>
 				}
-				{requests?.length == 0 &&
+				{props.playerRequests?.length == 0 &&
 					<View style={styles.topInfo}>
 						<Text style={styles.name}>
 							No hay solicitdes para unirse al equipo!

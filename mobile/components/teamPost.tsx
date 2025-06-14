@@ -21,6 +21,10 @@ function TeamPost(props: PropsTeam) {
 		setIsModalVisible(false);
 	};
 
+	const [players, setPlayers] = useState<string[]>(props.players);
+	const [requests, setRequests] = useState<string[]>(props.playerRequests); 
+	const [admins, setAdmins] = useState<string[]>(props.admins); 
+
 	return (
 		<View style={{ flex: 1 }}>
 			<TouchableOpacity onPress={() => setIsModalVisible(true)}>
@@ -47,10 +51,13 @@ function TeamPost(props: PropsTeam) {
 						name={props.name}
 						sport={props.sport}
 						description={props.description}
-						players={props.players}
-						playerRequests={props.playerRequests}   
+						players={players}
+						setPlayers={setPlayers}
+						playerRequests={requests}   
+						setRequests={setRequests}
+						admins={admins}
+						setAdmins={setAdmins}
 						public={props.isPublic}   
-						admins={props.admins}
 					/>
 				</View>
 			</Modal>
