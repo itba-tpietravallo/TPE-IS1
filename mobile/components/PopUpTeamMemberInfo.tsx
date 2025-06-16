@@ -132,6 +132,7 @@ const styles = StyleSheet.create({
 		fontWeight: "bold",
 		justifyContent: "center",
 		color: "#f18f01",
+		marginBottom: 10
 	},
 	modalView: {
 		backgroundColor: "white",
@@ -148,7 +149,6 @@ const styles = StyleSheet.create({
 		flexDirection: "column",
 		justifyContent: "space-between",
 		alignItems: "center",
-		gap: 15,
 	},
 	avatar: {
 		width: 100, 
