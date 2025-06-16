@@ -97,6 +97,11 @@ function PopUpTeamMemberInfo(props: PropsPopUpTeamMemberInfo) {
 					<Text style={styles.name}>{props.full_name}</Text>
 					{props.username && <Text style={{ fontSize: 16, color: "gray", marginBottom: 10 }}>{props.username}</Text>} 
 				</View>
+
+				{userIsAdmin(props.id) && 
+				<View style={styles.topInfo}>
+					<Text style={{ fontSize: 16, color: "gray"}}>Admin</Text>
+				</View>}
 			</View>
 
 			{(userIsAdmin(user?.id!)) && 
