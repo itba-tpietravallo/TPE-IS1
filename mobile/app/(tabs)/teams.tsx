@@ -6,13 +6,6 @@ import { router } from "expo-router";
 import { supabase } from "@/lib/supabase";
 import { getAllTeams, getAllSports } from "@/lib/autogen/queries";
 
-export type Player = {
-	id: string;
-	name: string;
-	number: number;
-	photo: string;
-};
-
 function TeamsFeed() {
 	const { data: teams } = getAllTeams(supabase);
 	const { data: sports } = getAllSports(supabase);
