@@ -12,7 +12,7 @@ function uuidv4() {
 }
 
 export const action = async ({ request }: ActionFunctionArgs) => {
-	let { fileName } = (await request.json()) || ({ fileName: "" } as { fileName: string });
+	let { fileName, fileType } = (await request.json()) || ({ fileName: "" } as { fileName: string });
 
 	const bucketUrl = __GET_PUBLIC_ENV().IMAGE_BUCKET_URLS.find((url) => url.includes("google"));
 	const bucket = String(`${bucketUrl}`).replaceAll("https://storage.googleapis.com/", "");
@@ -25,7 +25,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 		version: "v4",
 		action: "write",
 		expires: Date.now() + 15 * 60 * 1000, // 15 minutes
-		contentType: "application/octet-stream",
+		contentType: fileType || "application/octet-stream",
 	} as const;
 
 	const credentials = atob(process.env.GCP_PRODUCTION_API_KEY || "{}");

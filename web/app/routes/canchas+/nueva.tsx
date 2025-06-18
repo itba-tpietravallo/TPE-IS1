@@ -182,13 +182,14 @@ export function NewField() {
 					(
 						await fetch(new URL("/api/v1/storage/upload", __GET_PUBLIC_ENV.URL_ORIGIN).toString(), {
 							method: "POST",
-							body: JSON.stringify({ fileName: file.name }),
+							body: JSON.stringify({ fileName: file.name, type: "application/octet-stream" }),
 							headers,
 						})
-					).json();
+						).json();
 
 				headers = new Headers();
-				headers.append("Content-Type", "application/octet-stream");
+				headers.set("Content-Type", "application/octet-stream");
+				
 				await fetch(signedPUTURL, {
 					method: "PUT",
 					headers,
