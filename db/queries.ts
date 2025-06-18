@@ -31,7 +31,7 @@ export const queries = {
 			.select("id")
 			.eq("id", fieldId)
 			.eq("owner", userId as string)
-			.single(),
+			.maybeSingle(),
 
 	getFieldById: (supabase: SupabaseClient<Database>, fieldId: string) =>
 		supabase.from("fields").select("*").eq("id", fieldId).single(),
