@@ -9,6 +9,8 @@ import { fetch } from "expo/fetch";
 import { Image, Text } from "@rneui/themed";
 import { supabase } from "@/lib/supabase";
 import { usePathname } from "expo-router";
+import { IS_DEV_MODE, MODE_BASE_URL } from "@lib/mode";
+import { useInsertReservation } from "@/lib/autogen/queries";
 
 const ButtonStyles = {
 	error: {
@@ -48,38 +50,40 @@ export default function CheckoutButton({
 	const [error, setError] = useState<string | null>(null);
 	const path = usePathname();
 	const singleBooker = [userId];
+	const insertReservation = useInsertReservation(supabase);
 
-	const DEV_MODE = Linking.getLinkingURL()?.includes("exp://");
+	const DEV_MODE = false;
 
 	async function handlePress() {
 		setPending(true);
 
-		const resp = await supabase
-			.from("reservations")
-			.insert({
+		let reservationId: string | undefined;
+
+		try {
+			const resp = await insertReservation.mutateAsync({
 				owner_id: userId,
 				field_id: fieldId,
 				date_time: date_time,
 				bookers_count: 1,
 				pending_bookers_ids: singleBooker,
-			})
-			.select()
-			.single();
+			});
 
-		if (resp.error) {
-			console.error("Error inserting reservation:", resp.error);
-		} else {
 			console.log("reservation inserted");
+			reservationId = resp.id;
+		} catch (err) {
+			console.error("Error inserting reservation:", err);
+			setPending(false);
+			setError("Error al crear la reserva");
+			setStatus("error");
+			return;
 		}
-
-		const reservationId = resp.data?.id;
 
 		await supabase.auth.getSession().then(async (res) => {
 			if (res.error || res.data == null) {
 				throw new Error(res.error?.message || "Authentication error");
 			}
 
-			const url = DEV_MODE ? "https://dev.matchpointapp.com.ar/" : "https://matchpointapp.com.ar/";
+			const url = MODE_BASE_URL;
 
 			console.log(url);
 			await fetch(`${url}api/v1/payments`, {

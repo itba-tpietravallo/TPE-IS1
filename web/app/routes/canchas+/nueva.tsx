@@ -24,7 +24,7 @@ import { useLoaderData, useSubmit } from "@remix-run/react";
 import { authenticateUser } from "~/lib/auth.server";
 import { User } from "@supabase/supabase-js";
 import { DollarSign } from "lucide-react";
-import { getAllSports } from "@/lib/autogen/queries";
+import { getAllSports, useInsertField } from "@/lib/autogen/queries";
 import { APIProvider, Map, AdvancedMarker, Pin, InfoWindow } from "@vis.gl/react-google-maps";
 import debounce from "lodash.debounce";
 import { Database } from "@lib/autogen/database.types";
@@ -78,7 +78,7 @@ export async function loader(args: LoaderFunctionArgs) {
 	return {
 		env,
 		URL_ORIGIN: new URL(args.request.url).origin,
-		GOOGLE_MAPS_API_KEY: process.env.GOOGLE_MAPS_API_KEY,
+		GOOGLE_MAPS_API_KEY: process.env.GOOGLE_MAPS_WEB_API_KEY,
 		__GET_PUBLIC_ENV: __GET_PUBLIC_ENV((process.env.VERCEL_ENV || "development") as "production" | "development"),
 		user,
 		headers: {
@@ -163,6 +163,7 @@ export function NewField() {
 	}, [watchedStreet, watchedStreetNumber, watchedCity, debouncedGeocode]);
 
 	const onSubmit = async (data: FieldFormData) => {
+		console.log("on sub");
 		try {
 			if (!latitude || !longitude) {
 				setGeocodingError(
@@ -182,13 +183,14 @@ export function NewField() {
 					(
 						await fetch(new URL("/api/v1/storage/upload", __GET_PUBLIC_ENV.URL_ORIGIN).toString(), {
 							method: "POST",
-							body: JSON.stringify({ fileName: file.name }),
+							body: JSON.stringify({ fileName: file.name, type: "application/octet-stream" }),
 							headers,
 						})
-					).json();
+						).json();
 
 				headers = new Headers();
-				headers.append("Content-Type", "application/octet-stream");
+				headers.set("Content-Type", "application/octet-stream");
+				
 				await fetch(signedPUTURL, {
 					method: "PUT",
 					headers,
@@ -198,7 +200,7 @@ export function NewField() {
 				uploadedImageUrls.push(downloadURL);
 			}
 
-			const { error: insertError } = await supabase.from("fields").insert({
+			const { error: insertError } = await insertFieldMutation.mutateAsync({
 				owner: user.user.id,
 				name: data.name,
 				street: data.street,
@@ -225,6 +227,7 @@ export function NewField() {
 	};
 
 	const { data: sports } = getAllSports(supabase);
+	const insertFieldMutation = useInsertField(supabase);
 
 	const options = useMemo(
 		() =>

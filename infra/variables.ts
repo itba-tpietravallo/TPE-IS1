@@ -14,7 +14,7 @@ export default {
 		{
 			origins: ["*"],
 			methods: ["*"],
-			maxAgeSeconds: 0,
+			maxAgeSeconds: 3600,
 			responseHeaders: ["*"],
 		},
 	],

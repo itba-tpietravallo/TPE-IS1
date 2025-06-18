@@ -17,6 +17,9 @@ mobile/lib/autogen/*
 /playwright/.cache/
 **/tests-e2e/.auth/*
 
+# vscode
+.vscode/
+
 # Codegeneration
 **/autogen/*
 .vercel

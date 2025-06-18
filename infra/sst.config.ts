@@ -44,12 +44,13 @@ export default $config({
 			targets: ["production", "development", "preview"],
 		});
 
-		new vercel.ProjectEnvironmentVariable("vercel-env-var-google-maps", {
-			projectId: vars.VERCEL_PROJECT_ID,
-			key: "GOOGLE_MAPS_WEB_API_KEY",
-			value: process.env.GOOGLE_MAPS_WEB_API_KEY || "",
-			targets: ["production", "development", "preview"],
-		});
+		if ($app.stage === "production") 
+			new vercel.ProjectEnvironmentVariable("vercel-env-var-google-maps", {
+				projectId: vars.VERCEL_PROJECT_ID,
+				key: "GOOGLE_MAPS_WEB_API_KEY",
+				value: process.env.GOOGLE_MAPS_WEB_API_KEY || "",
+				targets: ["production", "development", "preview"],
+			});
 
 		return {
 			imageBuckets: imageBuckets.map((b) => b.url),
@@ -69,11 +70,22 @@ async function createPublicStorageBuckets(name: string, vars: typeof import("./v
 		softDeletePolicy: {
 			retentionDurationSeconds: 0,
 		},
+		uniformBucketLevelAccess: true,
 	});
 	new gcp.storage.BucketAccessControl("matchpoint-images-access-policy", {
 		bucket: gcpBucket.name,
 		entity: "allUsers",
 		role: "READER",
+	});
+	new gcp.storage.BucketIAMBinding("matchpoint-images-bucket-public-access", {
+		bucket: gcpBucket.name,
+		role: "roles/storage.objectViewer",
+		members: ["allUsers"],
+	});
+	new gcp.storage.BucketIAMBinding("matchpoint-images-bucket-public-access-create", {
+		bucket: gcpBucket.name,
+		role: "roles/storage.objectCreator",
+		members: ["allUsers"],
 	});
 	return [
 		{ bucket: awsBucket, url: awsBucket.domain.apply((d) => `https://${d}/`) },

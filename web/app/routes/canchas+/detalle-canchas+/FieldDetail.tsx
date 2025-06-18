@@ -4,7 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { DollarSign, MapPin, Loader2, Info, OctagonAlert, Check } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "~/components/ui/carousel";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "~/components/ui/sheet";
@@ -12,9 +12,16 @@ import { TorneosSheet } from "./TorneosSheet";
 import { ReservationSheet } from "./ReseravtionSheet";
 import { DeleteFieldButton } from "./DeleteFieldButton";
 import type { UseQueryResult } from "@tanstack/react-query";
-import { getAllTeams, getIsFieldOwner, getUserAuthSession } from "@lib/autogen/queries";
+import {
+	getAllTeams,
+	getIsFieldOwner,
+	getUserAuthSession,
+	useUpdateFieldAdmins,
+	getUserEmailById,
+} from "@lib/autogen/queries";
 import { useQuery, UseQuerySingleReturn } from "@supabase-cache-helpers/postgrest-react-query";
 import { en } from "@supabase/auth-ui-shared";
+import { WeekCalendar } from "@components/calendar";
 
 type CarouselProps = {
 	imgSrc: string[];
@@ -29,7 +36,8 @@ type FieldProps = {
 	location: string;
 	price: number;
 	description: string;
-	reservations: any[];
+	slot_duration: number | undefined;
+	reservations: NonNullable<UseQuerySingleReturn<Database["public"]["Tables"]["reservations"]["Row"]>["data"]>[];
 	tournaments: any[];
 	users: any[];
 	dependantQueries?: UseQueryResult[];
@@ -56,6 +64,7 @@ export function FieldDetail(props: FieldProps) {
 		name,
 		ff,
 		location,
+		slot_duration,
 		price,
 		description,
 		reservations,
@@ -68,20 +77,23 @@ export function FieldDetail(props: FieldProps) {
 	const teamsData = getAllTeams(supabase);
 	const [sheetOpen, setSheetOpen] = useState(false);
 	const user = getUserAuthSession(supabase);
-	const isOwner = !!getIsFieldOwner(supabase, id!, user.data?.user.id!)?.data?.id;
 
-	console.log("FIELD", props.field, props);
+	const isOwner = !!getIsFieldOwner(supabase, id!, user.data?.user.id!, { enabled: !!(!!user.data?.user.id && !!id) })
+		?.data?.id;
+	const updateFieldAdminsMutation = useUpdateFieldAdmins(supabase);
 
 	return (
-		<div className="h-full bg-[#f2f4f3]">
-			<div className="flex h-full flex-row items-center justify-center space-x-12">
+		<div className="mb-10 h-full min-h-fit bg-[#f2f4f3] py-10">
+			<div className="flex h-full max-h-fit flex-row items-center justify-center space-x-12">
 				<Card className="w-full max-w-3xl bg-[#223332] p-10 shadow-lg">
-					{loading ? (
-						<div className="flex h-64 flex-col items-center justify-center text-[#f2f4f3]">
-							<Loader2 className="mr-2 h-10 w-10 animate-spin" />
-							<p className="mt-4 text-xl">Cargando cancha...</p>
-						</div>
-					) : (
+					<Suspense
+						fallback={
+							<div className="flex h-64 flex-col items-center justify-center text-[#f2f4f3]">
+								<Loader2 className="mr-2 h-10 w-10 animate-spin" />
+								<p className="mt-4 text-xl">Cargando cancha...</p>
+							</div>
+						}
+					>
 						<>
 							<CardHeader className="space-y-5">
 								<div className="flex flex-row items-center justify-between">
@@ -114,7 +126,7 @@ export function FieldDetail(props: FieldProps) {
 											{reservations.length > 0 ? (
 												reservations.map((reservation) => {
 													const team = teamsData.data?.find(
-														(team) => team.team_id === reservation.team_id,
+														(team) => team.team_id === reservation?.team_id,
 													);
 
 													return (
@@ -123,23 +135,21 @@ export function FieldDetail(props: FieldProps) {
 															className="grid grid-cols-5 items-center gap-4 rounded-md py-3 text-center text-sm text-white transition hover:bg-[#364845]"
 														>
 															<div>
-																{new Date(reservation.date_time).toLocaleDateString(
-																	"es-ES",
-																	{
+																{new Date(reservation.date_time)
+																	.toLocaleDateString("es-ES", {
 																		year: "numeric",
 																		month: "2-digit",
 																		day: "2-digit",
-																	},
-																)}
+																	})
+																	.replace(/^\b\w/g, (char) => char.toUpperCase())}
 															</div>
 															<div>
-																{new Date(reservation.date_time).toLocaleTimeString(
-																	"es-ES",
-																	{
+																{new Date(reservation.date_time)
+																	.toLocaleTimeString("es-ES", {
 																		hour: "2-digit",
 																		minute: "2-digit",
-																	},
-																)}
+																	})
+																	.replace(/^\b\w/g, (char) => char.toUpperCase())}
 															</div>
 															<div>{team?.name || "Desconocido"}</div>
 															<div className="flex justify-center">
@@ -202,23 +212,16 @@ export function FieldDetail(props: FieldProps) {
 															}
 
 															if (email && ff) {
-																console.log("AAAAA", [
+																const adminedBy = [
 																	...(ff?.data?.adminedBy || []),
 																	u.data.id,
-																]);
-																await supabase
-																	.from("fields")
-																	.update({
-																		adminedBy: [
-																			...(ff?.data?.adminedBy || []),
-																			u.data.id,
-																		],
-																	})
-																	.eq("id", ff?.data?.id!);
-																ff.refetch();
-																props.dependantQueries?.forEach((query) =>
-																	query.refetch(),
-																);
+																];
+
+																await updateFieldAdminsMutation.mutateAsync({
+																	fieldId: ff?.data?.id!,
+																	adminedBy,
+																});
+
 																form.reset();
 															}
 														}}
@@ -249,44 +252,41 @@ export function FieldDetail(props: FieldProps) {
 														</h3>
 														<div className="max-h-[300px] overflow-y-auto rounded-md border p-2">
 															{ff?.data?.adminedBy && ff.data.adminedBy.length > 0 ? (
-																(ff?.data?.adminedBy || []).map((admin, _) => (
-																	<div
-																		key={`k${_}`}
-																		className="flex items-center justify-between py-2"
-																	>
-																		<span className="text-sm">
-																			<UserEmailFromId
-																				supabase={supabase}
-																				id={admin}
-																				key={`ka-${admin}`}
-																			/>
-																		</span>
-																		{admin && ff && (
-																			<Button
-																				size="sm"
-																				variant="destructive"
-																				onClick={async () => {
-																					await supabase
-																						.from("fields")
-																						.update({
-																							adminedBy:
-																								ff?.data?.adminedBy.filter(
-																									(i) => i !== admin,
-																								),
-																						})
-																						.eq("id", ff?.data?.id!);
-																					// window.location.reload();
-																					ff.refetch();
-																					props.dependantQueries?.forEach(
-																						(query) => query.refetch(),
-																					);
-																				}}
-																			>
-																				Eliminar
-																			</Button>
-																		)}
-																	</div>
-																))
+																(ff?.data?.adminedBy || []).map((admin, _) => {
+																	return (
+																		<div
+																			key={`k${_}`}
+																			className="flex items-center justify-between py-2"
+																		>
+																			<span className="text-sm">
+																				<UserEmailFromId
+																					supabase={supabase}
+																					id={admin}
+																				/>
+																			</span>
+																			{admin && ff && (
+																				<Button
+																					size="sm"
+																					variant="destructive"
+																					onClick={async () => {
+																						await updateFieldAdminsMutation.mutateAsync(
+																							{
+																								fieldId: ff?.data?.id!,
+																								adminedBy:
+																									ff?.data?.adminedBy.filter(
+																										(i) =>
+																											i !== admin,
+																									),
+																							},
+																						);
+																					}}
+																				>
+																					Eliminar
+																				</Button>
+																			)}
+																		</div>
+																	);
+																})
 															) : (
 																<p
 																	key="fallback"
@@ -311,12 +311,28 @@ export function FieldDetail(props: FieldProps) {
 								)}
 							</CardContent>
 						</>
-					)}
+					</Suspense>
 				</Card>
-				<div className="flex h-screen w-[400px] flex-col items-center justify-center space-y-5">
+				<div className="flex h-screen max-h-fit w-[400px] flex-col items-center justify-center space-y-5">
 					<MyCarousel imgSrc={imgSrc} />
-
 					<MySheet name={name} description={description} price={price} onSave={onSave} />
+				</div>
+			</div>
+			<div className="mt-10 flex w-full flex-col items-center justify-center space-y-10 bg-[#f2f4f3]">
+				<hr className="w-4/5 border border-[#d9dbda]" />
+				<div className="mb-10 flex w-4/5 items-center justify-center bg-[#f2f4f3]">
+					<WeekCalendar
+						reservations={reservations.map((r) => ({
+							date_time: r.date_time,
+							slot_duration: ff?.data?.slot_duration,
+							event_name: "Reserva",
+							payment_status: r.pending_bookers_ids.length > 0 ? "pending" : "confirmed",
+							sport: undefined,
+							team: r.team_id,
+							owner: r.owner_id,
+						}))}
+						supabase={supabase}
+					/>
 				</div>
 			</div>
 		</div>
@@ -402,7 +418,7 @@ export function MyCarousel(props: CarouselProps) {
 			<CarouselContent>
 				{imgSrc?.map((img) => (
 					<CarouselItem key={img}>
-						<img src={img} alt="Imagen Cancha" className="h-full w-full" />
+						<img src={img} alt="Imagen Cancha" className="h-full max-h-fit w-full" />
 					</CarouselItem>
 				))}
 			</CarouselContent>
