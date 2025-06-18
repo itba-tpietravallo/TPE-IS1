@@ -35,8 +35,8 @@ export default function FieldDetailPage() {
 	const { env, URL_ORIGIN, id } = useLoaderData<typeof loader>();
 	const supabase = createBrowserClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
 
-	const field = getFieldById(supabase, id || "", { enabled: !!id });
-	const reservations = getAllReservationsForFieldById(supabase, id || "", { enabled: !!id });
+	const field = getFieldById(supabase, id!, { enabled: !!id });
+	const reservations = getAllReservationsForFieldById(supabase, id || "", { enabled: !!(!!id && field.data) });
 	const tournaments = getAllTournamentsForFieldById(supabase, id || "", { enabled: !!id });
 	const allFieldsQuery = getAllFields(supabase);
 
@@ -92,7 +92,8 @@ export default function FieldDetailPage() {
 			imgSrc={field.data?.images ?? []}
 			price={field.data?.price || 0}
 			location={`${field.data?.street} ${field.data?.street_number}, ${field.data?.neighborhood}`}
-			reservations={reservations.data || []}
+			reservations={reservations?.data || []}
+			slot_duration={field.data?.slot_duration}
 			tournaments={tournaments.data || []}
 			users={users || []}
 			dependantQueries={[allFieldsQuery, tournaments, reservations]}

@@ -6,7 +6,6 @@ import {
 	__DANGEROUS_createSupabaseServerClient_BYPASS_RLS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED,
 	createSupabaseServerClient,
 } from "~/lib/supabase.server";
-import { reservationsTable, mpPaymentsTable } from "@/../../../db/schema";
 import { PreferenceCreateData } from "mercadopago/dist/clients/preference/create/types";
 import { __GET_PUBLIC_ENV } from "@lib/getenv.server";
 import { Database } from "@lib/autogen/database.types";

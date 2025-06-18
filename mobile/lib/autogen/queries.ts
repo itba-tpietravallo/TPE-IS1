@@ -222,6 +222,13 @@ export function getUserAvatar(supabase: SupabaseClient<Database>, user_name: str
 	return useQuerySupabase(queries.getUserAvatar(supabase, user_name), opts);
 }
 
+export function getUserSession(supabase: SupabaseClient<Database>, userId: string, opts: any = undefined) {
+	return useQuerySupabase(queries.getUserSession(supabase, userId), {
+		enabled: !!userId,
+		...opts,
+	});
+}
+
 export function getUsername(supabase: SupabaseClient<Database>, userId: string, opts: any = undefined) {
 	return useQuery({
 		queryKey: [userId, "username"],
@@ -248,13 +255,11 @@ export function getUsername(supabase: SupabaseClient<Database>, userId: string, 
 	});
 }
 
-export function getUserSession(supabase: SupabaseClient<Database>, opts: any = undefined) {
+export function getUserSessionById(supabase: SupabaseClient<Database>, id: string, opts: any = undefined) {
 	return useQuery({
 		queryKey: ["user_session"],
 		queryFn: async () => {
-			const session = await queries.getUserAuthSession(supabase);
 			// Using getOwnPropertyDescriptor to avoid supabase's getter which logs non-applicable warnings
-			const id = Object.getOwnPropertyDescriptor(session, "user")?.value?.id as string;
 			return (await queries.getUserSession(supabase, id).throwOnError()).data;
 		},
 	});

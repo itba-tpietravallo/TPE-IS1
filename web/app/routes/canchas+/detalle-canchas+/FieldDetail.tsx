@@ -21,6 +21,7 @@ import {
 } from "@lib/autogen/queries";
 import { useQuery, UseQuerySingleReturn } from "@supabase-cache-helpers/postgrest-react-query";
 import { en } from "@supabase/auth-ui-shared";
+import { WeekCalendar } from "@components/calendar";
 
 type CarouselProps = {
 	imgSrc: string[];
@@ -35,7 +36,8 @@ type FieldProps = {
 	location: string;
 	price: number;
 	description: string;
-	reservations: any[];
+	slot_duration: number | undefined;
+	reservations: NonNullable<UseQuerySingleReturn<Database["public"]["Tables"]["reservations"]["Row"]>["data"]>[];
 	tournaments: any[];
 	users: any[];
 	dependantQueries?: UseQueryResult[];
@@ -62,6 +64,7 @@ export function FieldDetail(props: FieldProps) {
 		name,
 		ff,
 		location,
+		slot_duration,
 		price,
 		description,
 		reservations,
@@ -80,8 +83,8 @@ export function FieldDetail(props: FieldProps) {
 	const updateFieldAdminsMutation = useUpdateFieldAdmins(supabase);
 
 	return (
-		<div className="h-full bg-[#f2f4f3]">
-			<div className="flex h-full flex-row items-center justify-center space-x-12">
+		<div className="mb-10 h-full min-h-fit bg-[#f2f4f3] py-10">
+			<div className="flex h-full max-h-fit flex-row items-center justify-center space-x-12">
 				<Card className="w-full max-w-3xl bg-[#223332] p-10 shadow-lg">
 					<Suspense
 						fallback={
@@ -123,7 +126,7 @@ export function FieldDetail(props: FieldProps) {
 											{reservations.length > 0 ? (
 												reservations.map((reservation) => {
 													const team = teamsData.data?.find(
-														(team) => team.team_id === reservation.team_id,
+														(team) => team.team_id === reservation?.team_id,
 													);
 
 													return (
@@ -132,23 +135,21 @@ export function FieldDetail(props: FieldProps) {
 															className="grid grid-cols-5 items-center gap-4 rounded-md py-3 text-center text-sm text-white transition hover:bg-[#364845]"
 														>
 															<div>
-																{new Date(reservation.date_time).toLocaleDateString(
-																	"es-ES",
-																	{
+																{new Date(reservation.date_time)
+																	.toLocaleDateString("es-ES", {
 																		year: "numeric",
 																		month: "2-digit",
 																		day: "2-digit",
-																	},
-																)}
+																	})
+																	.replace(/^\b\w/g, (char) => char.toUpperCase())}
 															</div>
 															<div>
-																{new Date(reservation.date_time).toLocaleTimeString(
-																	"es-ES",
-																	{
+																{new Date(reservation.date_time)
+																	.toLocaleTimeString("es-ES", {
 																		hour: "2-digit",
 																		minute: "2-digit",
-																	},
-																)}
+																	})
+																	.replace(/^\b\w/g, (char) => char.toUpperCase())}
 															</div>
 															<div>{team?.name || "Desconocido"}</div>
 															<div className="flex justify-center">
@@ -312,10 +313,26 @@ export function FieldDetail(props: FieldProps) {
 						</>
 					</Suspense>
 				</Card>
-				<div className="flex h-screen w-[400px] flex-col items-center justify-center space-y-5">
+				<div className="flex h-screen max-h-fit w-[400px] flex-col items-center justify-center space-y-5">
 					<MyCarousel imgSrc={imgSrc} />
-
 					<MySheet name={name} description={description} price={price} onSave={onSave} />
+				</div>
+			</div>
+			<div className="mt-10 flex w-full flex-col items-center justify-center space-y-10 bg-[#f2f4f3]">
+				<hr className="w-4/5 border border-[#d9dbda]" />
+				<div className="mb-10 flex w-4/5 items-center justify-center bg-[#f2f4f3]">
+					<WeekCalendar
+						reservations={reservations.map((r) => ({
+							date_time: r.date_time,
+							slot_duration: ff?.data?.slot_duration,
+							event_name: "Reserva",
+							payment_status: r.pending_bookers_ids.length > 0 ? "pending" : "confirmed",
+							sport: undefined,
+							team: r.team_id,
+							owner: r.owner_id,
+						}))}
+						supabase={supabase}
+					/>
 				</div>
 			</div>
 		</div>
@@ -401,7 +418,7 @@ export function MyCarousel(props: CarouselProps) {
 			<CarouselContent>
 				{imgSrc?.map((img) => (
 					<CarouselItem key={img}>
-						<img src={img} alt="Imagen Cancha" className="h-full w-full" />
+						<img src={img} alt="Imagen Cancha" className="h-full max-h-fit w-full" />
 					</CarouselItem>
 				))}
 			</CarouselContent>
