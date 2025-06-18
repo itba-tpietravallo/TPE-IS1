@@ -4,7 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { DollarSign, MapPin, Loader2, Info, OctagonAlert, Check } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "~/components/ui/carousel";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "~/components/ui/sheet";
@@ -12,7 +12,13 @@ import { TorneosSheet } from "./TorneosSheet";
 import { ReservationSheet } from "./ReseravtionSheet";
 import { DeleteFieldButton } from "./DeleteFieldButton";
 import type { UseQueryResult } from "@tanstack/react-query";
-import { getAllTeams, getIsFieldOwner, getUserAuthSession } from "@lib/autogen/queries";
+import {
+	getAllTeams,
+	getIsFieldOwner,
+	getUserAuthSession,
+	useUpdateFieldAdmins,
+	getUserEmailById,
+} from "@lib/autogen/queries";
 import { useQuery, UseQuerySingleReturn } from "@supabase-cache-helpers/postgrest-react-query";
 import { en } from "@supabase/auth-ui-shared";
 import { WeekCalendar } from "@components/calendar";
@@ -71,19 +77,23 @@ export function FieldDetail(props: FieldProps) {
 	const teamsData = getAllTeams(supabase);
 	const [sheetOpen, setSheetOpen] = useState(false);
 	const user = getUserAuthSession(supabase);
+
 	const isOwner = !!getIsFieldOwner(supabase, id!, user.data?.user.id!, { enabled: !!(!!user.data?.user.id && !!id) })
 		?.data?.id;
+	const updateFieldAdminsMutation = useUpdateFieldAdmins(supabase);
 
 	return (
 		<div className="mb-10 h-full min-h-fit bg-[#f2f4f3] py-10">
 			<div className="flex h-full max-h-fit flex-row items-center justify-center space-x-12">
 				<Card className="w-full max-w-3xl bg-[#223332] p-10 shadow-lg">
-					{loading ? (
-						<div className="flex h-64 flex-col items-center justify-center text-[#f2f4f3]">
-							<Loader2 className="mr-2 h-10 w-10 animate-spin" />
-							<p className="mt-4 text-xl">Cargando cancha...</p>
-						</div>
-					) : (
+					<Suspense
+						fallback={
+							<div className="flex h-64 flex-col items-center justify-center text-[#f2f4f3]">
+								<Loader2 className="mr-2 h-10 w-10 animate-spin" />
+								<p className="mt-4 text-xl">Cargando cancha...</p>
+							</div>
+						}
+					>
 						<>
 							<CardHeader className="space-y-5">
 								<div className="flex flex-row items-center justify-between">
@@ -202,19 +212,16 @@ export function FieldDetail(props: FieldProps) {
 															}
 
 															if (email && ff) {
-																await supabase
-																	.from("fields")
-																	.update({
-																		adminedBy: [
-																			...(ff?.data?.adminedBy || []),
-																			u.data.id,
-																		],
-																	})
-																	.eq("id", ff?.data?.id!);
-																ff.refetch();
-																props.dependantQueries?.forEach((query) =>
-																	query.refetch(),
-																);
+																const adminedBy = [
+																	...(ff?.data?.adminedBy || []),
+																	u.data.id,
+																];
+
+																await updateFieldAdminsMutation.mutateAsync({
+																	fieldId: ff?.data?.id!,
+																	adminedBy,
+																});
+
 																form.reset();
 															}
 														}}
@@ -245,44 +252,41 @@ export function FieldDetail(props: FieldProps) {
 														</h3>
 														<div className="max-h-[300px] overflow-y-auto rounded-md border p-2">
 															{ff?.data?.adminedBy && ff.data.adminedBy.length > 0 ? (
-																(ff?.data?.adminedBy || []).map((admin, _) => (
-																	<div
-																		key={`k${_}`}
-																		className="flex items-center justify-between py-2"
-																	>
-																		<span className="text-sm">
-																			<UserEmailFromId
-																				supabase={supabase}
-																				id={admin}
-																				key={`ka-${admin}`}
-																			/>
-																		</span>
-																		{admin && ff && (
-																			<Button
-																				size="sm"
-																				variant="destructive"
-																				onClick={async () => {
-																					await supabase
-																						.from("fields")
-																						.update({
-																							adminedBy:
-																								ff?.data?.adminedBy.filter(
-																									(i) => i !== admin,
-																								),
-																						})
-																						.eq("id", ff?.data?.id!);
-																					// window.location.reload();
-																					ff.refetch();
-																					props.dependantQueries?.forEach(
-																						(query) => query.refetch(),
-																					);
-																				}}
-																			>
-																				Eliminar
-																			</Button>
-																		)}
-																	</div>
-																))
+																(ff?.data?.adminedBy || []).map((admin, _) => {
+																	return (
+																		<div
+																			key={`k${_}`}
+																			className="flex items-center justify-between py-2"
+																		>
+																			<span className="text-sm">
+																				<UserEmailFromId
+																					supabase={supabase}
+																					id={admin}
+																				/>
+																			</span>
+																			{admin && ff && (
+																				<Button
+																					size="sm"
+																					variant="destructive"
+																					onClick={async () => {
+																						await updateFieldAdminsMutation.mutateAsync(
+																							{
+																								fieldId: ff?.data?.id!,
+																								adminedBy:
+																									ff?.data?.adminedBy.filter(
+																										(i) =>
+																											i !== admin,
+																									),
+																							},
+																						);
+																					}}
+																				>
+																					Eliminar
+																				</Button>
+																			)}
+																		</div>
+																	);
+																})
 															) : (
 																<p
 																	key="fallback"
@@ -307,7 +311,7 @@ export function FieldDetail(props: FieldProps) {
 								)}
 							</CardContent>
 						</>
-					)}
+					</Suspense>
 				</Card>
 				<div className="flex h-screen max-h-fit w-[400px] flex-col items-center justify-center space-y-5">
 					<MyCarousel imgSrc={imgSrc} />

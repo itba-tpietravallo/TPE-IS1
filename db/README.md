@@ -167,6 +167,38 @@ Here you can see how two useEffect calls are simplified drastically by abstracti
 + const { data: sports } = useQuery(getAllSports(supabase));
 ```
 
+### Mutations and Optimistic Updates
+
+In addition to queries, the system provides mutations for handling data modifications (insert, update, delete). These abstract away direct Supabase calls and provide several advantages:
+
+```diff
+- const handleCancelation = async () => {
+-   await supabase
+-     .from("reservations")
+-     .delete()
+-     .eq("id", id);
+-   Alert.alert("Cancelación exitosa", "Reserva cancelada con éxito");
+- };
+
++ const deleteReservation = useDeleteReservation(supabase);
++ 
++ const handleCancelation = async () => {
++   try {
++     await deleteReservation.mutateAsync({ id });
++     Alert.alert("Cancelación exitosa", "Reserva cancelada con éxito");
++   } catch (error) {
++     Alert.alert("Error", "No se pudo cancelar la reserva");
++   }
++ };
+```
+
+These mutations provide several benefits, including:
+
+1. **Automatic cache invalidation**: When a mutation succeeds, related queries are automatically invalidated and refetched.
+2. **Optimistic updates**: For a better UX, mutations can immediately update the UI before the server confirms the change.
+
+Optimistic updates are especially useful for operations where instant feedback is important. For instance, when a user accepts a team join request, the UI can immediately show the updated team members list while the actual database operation happens in the background.
+
 ### DTOs
 
 To improve the quality of the code, the [`db/queries.ts`](./db/queries.ts) shall be the only place that contains logic that interacts with the database. This is a cheap/hacky way to abstract the database away from the client layer.

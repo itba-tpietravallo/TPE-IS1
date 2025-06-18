@@ -1,4 +1,4 @@
-import { getTeamMembers } from "@lib/autogen/queries";
+import { getTeamMembers, useInsertReservation } from "@lib/autogen/queries";
 import { supabase } from "@/lib/supabase";
 import { Animated, Easing, TouchableOpacity, View, Text, Modal, Button, Image } from "react-native";
 import { useState, useRef, useEffect } from "react";
@@ -57,6 +57,7 @@ export default function PreReserveButton({
 	const [confirmationVisible, showConfirmationModal] = useState(false);
 	const confirmationResolveRef = useRef<(confirmed: boolean) => void>();
 	const { data: teamMembersIds } = getTeamMembers(supabase, teamId!, { enabled: !!teamId });
+	const insertReservationMutation = useInsertReservation(supabase);
 
 	const spinValue = useRef(new Animated.Value(0)).current;
 
@@ -101,25 +102,25 @@ export default function PreReserveButton({
 				return;
 			}
 
-			console.log("About to insert ", fieldId);
+			console.log("About to insert reservation for field:", fieldId);
 
-			const resp = await supabase.from("reservations").insert({
-				field_id: fieldId,
-				date_time: date_time,
-				owner_id: userId,
-				team_id: teamId,
-				bookers_count: teamMembersIds.players.length,
-				pending_bookers_ids: teamMembersIds.players,
-			});
+			try {
+				await insertReservationMutation.mutateAsync({
+					field_id: fieldId,
+					date_time: date_time,
+					owner_id: userId,
+					team_id: teamId,
+					bookers_count: teamMembersIds.players.length,
+					pending_bookers_ids: teamMembersIds.players,
+				});
 
-			if (resp.error) {
-				console.error("Error inserting reservation:", resp.error);
-				setPending(false);
-				setIsSuccess(false);
-			} else {
-				console.log("reservation inserted");
+				console.log("Reservation inserted successfully");
 				setPending(false);
 				setIsSuccess(true);
+			} catch (error) {
+				console.error("Error inserting reservation:", error);
+				setPending(false);
+				setIsSuccess(false);
 			}
 		} else {
 			setPending(false);
