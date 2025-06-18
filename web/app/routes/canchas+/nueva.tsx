@@ -163,6 +163,7 @@ export function NewField() {
 	}, [watchedStreet, watchedStreetNumber, watchedCity, debouncedGeocode]);
 
 	const onSubmit = async (data: FieldFormData) => {
+		console.log("on sub");
 		try {
 			if (!latitude || !longitude) {
 				setGeocodingError(
@@ -182,13 +183,14 @@ export function NewField() {
 					(
 						await fetch(new URL("/api/v1/storage/upload", __GET_PUBLIC_ENV.URL_ORIGIN).toString(), {
 							method: "POST",
-							body: JSON.stringify({ fileName: file.name }),
+							body: JSON.stringify({ fileName: file.name, type: file.type }),
 							headers,
 						})
-					).json();
+						).json();
 
 				headers = new Headers();
-				headers.append("Content-Type", "application/octet-stream");
+				headers.set("Content-Type", file.type);
+				
 				await fetch(signedPUTURL, {
 					method: "PUT",
 					headers,
