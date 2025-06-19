@@ -49,8 +49,7 @@ export const queries = {
 	getTeamIdByName: (supabase: SupabaseClient<Database>, name: string) =>
 		supabase.from("teams").select("team_id").eq("name", name),
 
-	getAllUsers: (supabase: SupabaseClient<Database>) => supabase.from("users").select("id, full_name, avatar_url, username"),  
-	//porque no estaba username aca?????
+	getAllUsers: (supabase: SupabaseClient<Database>) => supabase.from("users").select("id, full_name, avatar_url"),
 
 	getUserAvatar: (supabase: SupabaseClient<Database>, user_name: string) =>
 		supabase.from("users").select("avatar_url").eq("full_name", user_name).single(),
@@ -78,6 +77,9 @@ export const queries = {
 
 	getAllTeamsByUser: (supabase: SupabaseClient<Database>, userId: string) =>
 		supabase.from("teams").select("team_id, name").contains("players", [userId]),
+
+	getAllTeamsByAdminUser: (supabase: SupabaseClient<Database>, userId: string) =>
+		supabase.from("teams").select("team_id, name").contains("admins", [userId]),
 
 	getPendingReservationsByUser: (supabase: SupabaseClient<Database>, userId: string) =>
 		supabase
@@ -168,6 +170,7 @@ export function getUsername(supabase: SupabaseClient<Database>, userId: string, 
 			const { data, error } = await queries.getUsername(supabase, userId);
 
 			if (error || !data.username) {
+				console.error("Error fetching username:", error, data);
 				const base_username = data?.full_name?.toLowerCase().split(" ").join("_")! || "user";
 				const similar = await supabase.from("users").select("username").like("username", base_username);
 				const def =
@@ -181,8 +184,6 @@ export function getUsername(supabase: SupabaseClient<Database>, userId: string, 
 
 			return username;
 		},
-		enabled: !!userId,
-		...opts,
 	});
 }
 
@@ -226,6 +227,10 @@ export function getAllTournamentsForFieldById(
 
 export function getAllTeamsByUser(supabase: SupabaseClient<Database>, userId: string, opts: any = undefined) {
 	return useQuerySupabase(queries.getAllTeamsByUser(supabase, userId), opts);
+}
+
+export function getAllTeamsByAdminUser(supabase: SupabaseClient<Database>, userId: string, opts: any = undefined) {
+	return useQuerySupabase(queries.getAllTeamsByAdminUser(supabase, userId), opts);
 }
 
 export function getPendingReservationsByUser(
