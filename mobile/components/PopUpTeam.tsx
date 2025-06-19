@@ -4,7 +4,7 @@ import { ScreenWidth } from "@rneui/themed/dist/config";
 import { supabase } from "@/lib/supabase";
 import Icon from "react-native-vector-icons/FontAwesome6";
 import { getAllUsers } from "@lib/autogen/queries.ts";
-import { getUserSession } from "@/lib/autogen/queries";
+import { getUserSession, getUsername } from "@/lib/autogen/queries";
 import { router } from "expo-router";
 import PopUpJoinRequests from "./PopUpJoinRequests.tsx";
 import { Image } from "@rneui/themed";
@@ -200,7 +200,7 @@ function PopUpTeam(props: PropsPopUpTeam) {
 										onClose={() => setSelectedMember(null)}
 										id={memberData.id}
 										full_name={memberData.full_name}
-										username={memberData.username!}
+										username={JSON.stringify(getUsername(supabase, memberData.id, { enabled: !!user?.id }))} //ok?
 										avatar={memberData.avatar_url!}
 										players={props.players}
 										setPlayers={props.setPlayers}
