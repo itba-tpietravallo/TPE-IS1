@@ -5,9 +5,7 @@ export async function uploadImageToStorage(uri: string, userId: string = "anon")
 	const fileName = uri.split("/").pop() || `image_${Date.now()}.jpg`;
 
 	const BASE_API_URL =
-		process.env.NODE_ENV === "production"
-			? "https://prod.matchpointapp.com.ar"
-			: "https://dev.matchpointapp.com.ar";
+		process.env.NODE_ENV === "production" ? "https://matchpointapp.com.ar" : "https://dev.matchpointapp.com.ar";
 
 	const apiUrl = `${BASE_API_URL}/api/v1/storage/upload`;
 
