@@ -1,28 +1,37 @@
-// uri: string (ruta local de la imagen en el dispositivo)
-// userId: string (opcional, para personalizar el nombre del archivo)
 import * as FileSystem from "expo-file-system";
+import { Buffer } from "buffer";
 
 export async function uploadImageToStorage(uri: string, userId: string = "anon"): Promise<string> {
 	const fileName = uri.split("/").pop() || `image_${Date.now()}.jpg`;
 
-	const apiUrl = "/api/v1/upload";
-	//const apiUrl = process.env.EXPO_PUBLIC_API_URL?.replace(/\/$/, "") + "/api/v1/upload";
-	//const apiUrl = "http://192.168.0.10:8081/api/v1/upload";
+	const BASE_API_URL =
+		process.env.NODE_ENV === "production"
+			? "https://prod.matchpointapp.com.ar"
+			: "https://dev.matchpointapp.com.ar";
+
+	const apiUrl = `${BASE_API_URL}/api/v1/storage/upload`;
+
+	//const apiUrl = "https://dev.matchpointapp.com.ar/api/v1/storage/upload"; //hardcoded
 
 	const res = await fetch(apiUrl, {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
 		body: JSON.stringify({ fileName }),
 	});
-	console.log("Status:", res.status); //debug
-	console.log("Texto:", await res.text());
+	console.log("Status:", res.status);
 
-	if (!res.ok) throw new Error("No se pudo obtener la URL de subida");
+	if (!res.ok) {
+		const errorText = await res.text();
+		console.log("Texto:", errorText);
+		throw new Error("No se pudo obtener la URL de subida");
+	}
 	const { signedPUTURL, downloadURL } = await res.json();
 
 	//lee el archivo como binario
-	const fileData = await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 });
-	const fileBuffer = Uint8Array.from(atob(fileData), (c) => c.charCodeAt(0));
+	const fileData = await FileSystem.readAsStringAsync(uri, {
+		encoding: FileSystem.EncodingType.Base64,
+	});
+	const fileBuffer = Buffer.from(fileData, "base64");
 
 	const uploadRes = await fetch(signedPUTURL, {
 		method: "PUT",
