@@ -1,0 +1,40 @@
+name: Build and Upload Android APK
+
+on:
+  push:
+    branches:
+      - feat-build-apk  
+  pull_request:
+    branches:
+      - dev  
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '14'
+
+      - name: Install dependencies
+        run: |
+          cd mobile
+          npm install
+
+      - name: Build Android APK (Debug)
+        run: |
+          cd mobile
+          chmod +x android/gradlew
+          npx react-native build-android --mode=debug
+          mv android/app/build/outputs/apk/debug/app-debug.apk android/app/build/outputs/apk/debug/matchpointapp.apk
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: matchpointapp-debug
+          path: mobile/android/app/build/outputs/apk/debug/matchpointapp.apk
