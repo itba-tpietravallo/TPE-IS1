@@ -62,7 +62,6 @@ function PopUpTeam(props: PropsPopUpTeam) {
 				});
 
 				setPlayers(updatedMembers);
-				console.log("joined public team");
 			} catch (error) {
 				console.error("Error joining team:", error);
 			}
@@ -76,7 +75,6 @@ function PopUpTeam(props: PropsPopUpTeam) {
 				});
 
 				setRequests(updatedRequests);
-				console.log("requested to join private team");
 			} catch (error) {
 				console.error("Error requesting to join team:", error);
 			}

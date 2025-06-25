@@ -120,10 +120,6 @@ function PopUpTorneo({
 		if (!selectedTeam) return;
 
 		fetchTeam();
-		console.log("Selected team:", team);
-		console.log("contact phone:", contactPhone);
-		console.log("contact email:", contactEmail);
-		console.log("team members:", teamMembers);
 	}, [selectedTeam]);
 
 	const getUserById = async (userId: string) => {

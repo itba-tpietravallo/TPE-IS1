@@ -65,8 +65,6 @@ export default function FieldDetailPage() {
 
 		if (result?.error) {
 			console.error("Error updating field:", result?.error);
-		} else {
-			console.log("Field updated successfully:", result?.data);
 		}
 	};
 	// sin este useEffect, cuando hago hard refresh pierdo nombre, descripcion, precio

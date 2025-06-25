@@ -33,7 +33,6 @@ function PopUpJoinRequests(props: PropsPopUpJoinRequests) {
 			});
 
 			setPlayers(updatedMembers);
-			console.log("accept");
 
 			handleDeleteRequest(player);
 		} catch (error) {
