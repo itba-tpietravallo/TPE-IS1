@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { useEffect, useState } from "react";
 import { Session } from "@supabase/supabase-js";
 
-import { getUserSession } from "@/lib/autogen/queries";
+import { getUserAuthSession, getUserAvatar, getUsername, getUserSession } from "@/lib/autogen/queries";
 
 type User = {
 	id: string;
@@ -14,7 +14,23 @@ type User = {
 };
 
 function TopBar() {
-	const { data: user } = getUserSession(supabase);
+	const { data: session } = getUserAuthSession(supabase);
+	const user = session?.user;
+
+	type UserData = { username?: string; full_name?: string } | null;
+
+	const { data } = getUsername(supabase, user?.id ?? "", {
+		enabled: !!user?.id,
+	}) as { data: UserData };
+
+	const username = data?.username;
+	const full_name = data?.full_name;
+
+	const { data: avatarData } = getUserAvatar(supabase, full_name ?? "", {
+		enabled: !!full_name,
+	});
+
+	const avatarUrl = typeof avatarData === "string" ? avatarData : (avatarData?.avatar_url ?? "undefined_image");
 
 	return (
 		<SafeAreaView style={styles.container}>
@@ -40,7 +56,7 @@ function TopBar() {
 				</View>
 				<TouchableOpacity onPress={() => router.push("/(tabs)/profile")}>
 					{/* @todo undefined_image is a stub that'll hopefully get logged in RN Dev Tools */}
-					<Image style={styles.image} source={{ uri: user?.avatar_url || "undefined_image" }} />
+					<Image style={styles.image} source={{ uri: avatarUrl || "undefined_image" }} />
 				</TouchableOpacity>
 			</View>
 		</SafeAreaView>

@@ -6,7 +6,7 @@ import { supabase } from "@/lib/supabase";
 import CheckoutButton from "./CheckoutButton";
 import PreReserveButton from "./PreReserveButton";
 
-import { getAllReservationTimeSlots, getUserSession, getAllTeamsByUser, getUsername } from "@/lib/autogen/queries";
+import { getAllReservationTimeSlots, getAllTeamsByUser, getUsername, getUserAuthSession } from "@/lib/autogen/queries";
 import Selector from "./Selector";
 
 export type Renter = {
@@ -27,7 +27,8 @@ interface PopUpReservaProps {
 }
 
 function PopUpReserva({ onClose, name, fieldId, sport, location, images, description, price }: PopUpReservaProps) {
-	const { data: user } = getUserSession(supabase);
+	const { data: session } = getUserAuthSession(supabase);
+	const user = session?.user;
 	const [isModalVisible, setIsModalVisible] = useState(false);
 	const [selectedDateTime, setSelectedDateTime] = useState<Date>(new Date());
 	const [unavailable, setUnavailability] = useState<boolean | null>(null);
@@ -46,7 +47,6 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 		...(user?.id && typeof userName.data === "string" ? [{ id: user.id, name: userName.data }] : []),
 		...teams,
 	];
-	console.log(user?.username);
 
 	// const handleDateTimeChange = async (event: any, date?: Date) => {
 	// 	if (event.type === "dismissed" || event.type === "set") {

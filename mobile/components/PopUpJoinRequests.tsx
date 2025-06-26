@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView } from "rea
 import { ScreenWidth } from "@rneui/themed/dist/config";
 import { supabase } from "@/lib/supabase";
 import Icon from "react-native-vector-icons/FontAwesome6";
-import { getAllUsers, useUpdateTeam, getUserSession } from "@lib/autogen/queries";
+import { getAllUsers, useUpdateTeam, getUserAuthSession } from "@lib/autogen/queries";
 
 type PropsPopUpJoinRequests = {
 	onClose: () => void;
@@ -16,6 +16,8 @@ type PropsPopUpJoinRequests = {
 };
 
 function PopUpJoinRequests(props: PropsPopUpJoinRequests) {
+	const { data: session } = getUserAuthSession(supabase);
+	const user = session?.user;
 	const usersData = getAllUsers(supabase);
 	const updateTeamMutation = useUpdateTeam(supabase);
 

@@ -94,6 +94,7 @@ function PopUpTeam(props: PropsPopUpTeam) {
 			await updateTeamMutation.mutateAsync({
 				team_id: props.team_id,
 				players: updatedMembers,
+				admins: updatedAdmins,
 			});
 
 			props.setPlayers(updatedMembers);
