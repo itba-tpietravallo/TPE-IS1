@@ -598,3 +598,20 @@ export function useDeleteReservation(supabase: SupabaseClient<Database>) {
 		},
 	);
 }
+
+export function useInsertReview(supabase: SupabaseClient<Database>) {
+	// Using the built-in useInsertMutation from supabase-cache-helpers
+	// This will automatically handle cache updates and optimistic updates
+	return useInsertMutation(
+		supabase.from("field_reviews"),
+		["id"], // Primary key columns
+		"*", 
+		{
+			onError: (error) => {
+				console.error("Error inserting review:", error);
+			},
+		},
+	);
+}
+
+
