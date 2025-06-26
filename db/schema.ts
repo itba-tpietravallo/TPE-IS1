@@ -316,3 +316,41 @@ export const inscriptionsTable = pgTable(
 		}),
 	],
 ).enableRLS();
+
+
+export const fieldReviewsTable = pgTable(
+  "field_reviews",
+  {
+    id: uuid("id").primaryKey().defaultRandom().notNull(),
+    field_id: uuid("field_id")
+      .notNull()
+      .references(() => fieldsTable.id, { onDelete: "cascade" }),
+    user_id: uuid("user_id")
+      .notNull()
+      .references(() => usersTable.id, { onDelete: "cascade" }),
+    rating: integer("rating")
+      .notNull(),
+  },
+  (table) => [
+	sql`CHECK (rating >= 0 AND rating <= 5)`,
+    pgPolicy("select_authenticated", {
+      for: "select",
+      using: sql`true`,
+      to: "authenticated",
+      as: "permissive",
+    }),
+    pgPolicy("insert_authenticated", {
+      for: "insert",
+      withCheck: sql`true`,
+      to: "authenticated",
+      as: "permissive",
+    }),
+    pgPolicy("update_own_review", {
+      for: "update",
+      using: sql`auth.uid() = user_id`,
+      withCheck: sql`auth.uid() = user_id`,
+      to: "authenticated",
+      as: "permissive",
+    }),
+  ]
+).enableRLS();
