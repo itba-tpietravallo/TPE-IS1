@@ -49,4 +49,3 @@ jobs:
             - uses: stefanzweifel/git-auto-commit-action@v5
               with:
                   commit_message: "bot(db): generate database types"
-                  file_pattern: "**/autogen/*.ts"
