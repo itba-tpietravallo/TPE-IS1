@@ -84,9 +84,6 @@ export const queries = {
 	getAllTeamsByUser: (supabase: SupabaseClient<Database>, userId: string) =>
 		supabase.from("teams").select("team_id, name").contains("players", [userId]),
 
-	getAllTeamsByAdminUser: (supabase: SupabaseClient<Database>, userId: string) =>
-		supabase.from("teams").select("team_id, name").contains("admins", [userId]),
-
 	getPendingReservationsByUser: (supabase: SupabaseClient<Database>, userId: string) =>
 		supabase
 			.from("reservations")
@@ -296,10 +293,6 @@ export function getAllTournamentsForFieldById(
 
 export function getAllTeamsByUser(supabase: SupabaseClient<Database>, userId: string, opts: any = undefined) {
 	return useQuerySupabase(queries.getAllTeamsByUser(supabase, userId), opts);
-}
-
-export function getAllTeamsByAdminUser(supabase: SupabaseClient<Database>, userId: string, opts: any = undefined) {
-	return useQuerySupabase(queries.getAllTeamsByAdminUser(supabase, userId), opts);
 }
 
 export function getPendingReservationsByUser(
