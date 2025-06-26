@@ -118,6 +118,7 @@ const menuItems = [
 	{ label: "Mis equipos", icon: "user-group", action: () => router.push("/(tabs)/profileMenu/teams") },
 	// { label: "Mis torneos", icon: "medal", action: () => router.push("/(tabs)/profileMenu/teams") },
 	{ label: "Pendientes", icon: "spinner", action: () => router.push("/(tabs)/profileMenu/pendings") },
+	{ label: "Chats", icon: "comments", action: () => router.push("/(tabs)/profileMenu/chats") },
 ];
 
 export function ProfileMenuList() {
