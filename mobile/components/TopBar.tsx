@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { useEffect, useState } from "react";
 import { Session } from "@supabase/supabase-js";
 
-import { getUserSession } from "@/lib/autogen/queries";
+import { getUserAuthSession, getUserSession } from "@/lib/autogen/queries";
 
 type User = {
 	id: string;
@@ -14,7 +14,8 @@ type User = {
 };
 
 function TopBar() {
-	const { data: user } = getUserSession(supabase);
+	const { data: session } = getUserAuthSession(supabase);
+	const user = session?.user;
 
 	return (
 		<SafeAreaView style={styles.container}>

@@ -6,7 +6,7 @@ import { Session } from "@supabase/supabase-js";
 import { router } from "expo-router";
 import Icon from "react-native-vector-icons/FontAwesome6";
 
-import { getUserSession } from "@/lib/autogen/queries";
+import { getUserAuthSession, getUserSession, getUsername, getUserAvatar } from "@/lib/autogen/queries";
 
 export default function Index() {
 	const [userId, setUserId] = useState<string | null>(null);
@@ -17,26 +17,28 @@ export default function Index() {
 		});
 	}, []);
 
-	const { data: user } = getUserSession(supabase);
+	const { data: username } = getUsername(supabase, userId ?? "", {
+		enabled: !!userId,
+	});
+
+	const { data: avatarData } = getUserAvatar(supabase, username ?? "", {
+		enabled: !!username,
+	});
+
+	const avatarUrl = typeof avatarData === "string" ? avatarData : (avatarData?.avatar_url ?? "undefined_image");
 
 	return (
 		<View style={buttonStyles.containter}>
 			<View style={{ alignItems: "center", padding: 30 }}>
 				{/* @todo undefined_image is a stub that'll hopefully get logged in RN Dev Tools */}
-				<Image
-					source={{ uri: user?.avatar_url || "undefined_image" }}
-					style={{ width: 100, height: 100 }}
-					borderRadius={100}
-				/>
+				<Image source={{ uri: avatarUrl }} style={{ width: 100, height: 100 }} borderRadius={100} />
 				<Text
 					style={{ fontSize: 25, fontWeight: "bold", paddingTop: 20, textAlign: "center", color: "#223332" }}
-				>
-					{user?.full_name}
-				</Text>
+				></Text>
 				<Text
 					style={{ fontSize: 16, fontWeight: "bold", paddingTop: 20, textAlign: "center", color: "#223332" }}
 				>
-					USUARIO: {user?.username}
+					USUARIO: {String(username)}
 				</Text>
 			</View>
 
