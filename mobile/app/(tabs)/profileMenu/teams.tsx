@@ -6,7 +6,7 @@ import { Session } from "@supabase/supabase-js";
 import { router } from "expo-router";
 import Icon from "react-native-vector-icons/FontAwesome6";
 import PopUpTeam from "@/components/PopUpTeam";
-import { getUserSession, getAllTeams, getTeamMembers, getFieldById } from "@/lib/autogen/queries";
+import { getUserSession, getAllTeams, getTeamMembers, getFieldById, getUserAuthSession } from "@/lib/autogen/queries";
 import { ScreenHeight, ScreenWidth } from "@rneui/themed/dist/config";
 
 type Field = {
@@ -19,7 +19,8 @@ type Field = {
 };
 
 function myTeams() {
-	const { data: user } = getUserSession(supabase);
+	const { data: session } = getUserAuthSession(supabase);
+	const user = session?.user;
 	const { data: teams } = getAllTeams(supabase);
 	const myTeams = teams?.filter((team) => team?.players?.some((member) => member === user?.id));
 	const [selectedTeam, setSelectedTeam] = useState<Field | null>(null);
