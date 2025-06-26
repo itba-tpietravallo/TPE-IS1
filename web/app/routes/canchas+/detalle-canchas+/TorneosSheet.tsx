@@ -384,11 +384,8 @@ export function TorneosSheet({ fieldId, tournaments }: TorneosSheetProps) {
 	const deleteTournamentMutation = useDeleteTournament(supabase);
 
 	const handleDelete = async (t_id: string) => {
-		console.log("Eliminando torneo con ID:", t_id);
-
 		try {
 			await deleteTournamentMutation.mutateAsync({ id: t_id });
-			console.log("Torneo eliminado con éxito");
 		} catch (error) {
 			console.error("Error eliminando torneo:", error);
 		}

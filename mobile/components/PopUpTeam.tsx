@@ -6,7 +6,7 @@ import { Session } from "@supabase/supabase-js";
 import Icon from "react-native-vector-icons/FontAwesome6";
 import { Player } from "../app/(tabs)/teams.tsx";
 import PlayerPreview from "./PlayerPreview.tsx";
-import { getUsername, getAllUsers, useUpdateTeam, useDeleteTeam } from "@lib/autogen/queries.ts";
+import { getUsername, getAllUsers, useUpdateTeam, useDeleteTeam, getUserAuthSession } from "@lib/autogen/queries.ts";
 import { getUserSession } from "@/lib/autogen/queries";
 import { router } from "expo-router";
 import PopUpJoinRequests from "./PopUpJoinRequests.tsx";
@@ -24,7 +24,8 @@ type PropsPopUpTeam = {
 };
 
 function PopUpTeam(props: PropsPopUpTeam) {
-	const { data: user } = getUserSession(supabase);
+	const { data: session } = getUserAuthSession(supabase);
+	const user = session?.user;
 	const usersData = getAllUsers(supabase);
 	const updateTeamMutation = useUpdateTeam(supabase);
 	const deleteTeamMutation = useDeleteTeam(supabase);
@@ -62,7 +63,6 @@ function PopUpTeam(props: PropsPopUpTeam) {
 				});
 
 				setPlayers(updatedMembers);
-				console.log("joined public team");
 			} catch (error) {
 				console.error("Error joining team:", error);
 			}
@@ -76,7 +76,6 @@ function PopUpTeam(props: PropsPopUpTeam) {
 				});
 
 				setRequests(updatedRequests);
-				console.log("requested to join private team");
 			} catch (error) {
 				console.error("Error requesting to join team:", error);
 			}

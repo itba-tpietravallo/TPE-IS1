@@ -3,11 +3,12 @@ import { View, Text, FlatList, StyleSheet, TouchableOpacity } from "react-native
 import Icon from "react-native-vector-icons/FontAwesome6";
 import { router } from "expo-router";
 import { supabase } from "@/lib/supabase";
-import { getUserSession, getPendingReservationsByUser } from "@/lib/autogen/queries";
+import { getUserSession, getPendingReservationsByUser, getUserAuthSession } from "@/lib/autogen/queries";
 import PayPending from "@components/PayPending";
 
 export default function Pendings() {
-	const { data: user } = getUserSession(supabase);
+	const { data: session } = getUserAuthSession(supabase);
+	const user = session?.user;
 	const { data: pendingReservations } = getPendingReservationsByUser(supabase, user?.id!, { enabled: !!user?.id });
 
 	return (

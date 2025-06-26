@@ -14,10 +14,12 @@ import {
 	getAllUsers,
 	queries,
 	useInsertInscription,
+	getUserAuthSession,
 } from "@lib/autogen/queries";
 import { User } from "@supabase/supabase-js";
 import { get } from "http";
 import PopUpReserva from "./PopUpReserva";
+import { getUserSessionById } from "@db/queries";
 
 interface PopUpReservaProps {
 	onClose: () => void;
@@ -60,7 +62,8 @@ function PopUpTorneo({
 }: PopUpReservaProps) {
 	const [isModalVisible, setIsModalVisible] = useState(false);
 	const usersData = getAllUsers(supabase);
-	const { data: user } = getUserSession(supabase);
+	const { data: session } = getUserAuthSession(supabase);
+	const user = session?.user;
 	const { data: teams } = getAllTeams(supabase);
 	const insertInscriptionMutation = useInsertInscription(supabase);
 	const myTeams = teams?.filter((team) => team.players.some((member) => member === user?.id));
@@ -120,10 +123,6 @@ function PopUpTorneo({
 		if (!selectedTeam) return;
 
 		fetchTeam();
-		console.log("Selected team:", team);
-		console.log("contact phone:", contactPhone);
-		console.log("contact email:", contactEmail);
-		console.log("team members:", teamMembers);
 	}, [selectedTeam]);
 
 	const getUserById = async (userId: string) => {

@@ -6,15 +6,16 @@ import { useEffect, useState } from "react";
 import ReservationInfo from "@/components/reservationInfo";
 import Icon from "react-native-vector-icons/FontAwesome6";
 import { router } from "expo-router";
-import { getUserSession, getUserReservations } from "@/lib/autogen/queries";
+import { getUserSession, getUserReservations, getUserAuthSession } from "@/lib/autogen/queries";
 
 export default function Index() {
-	const { data: userData } = getUserSession(supabase);
+	const { data: session } = getUserAuthSession(supabase);
+	const user = session?.user;
 	const [reservations, setReservations] = useState<Reservation[]>([]);
 
 	// Get reservations for the current user
-	const { data: userReservations, error: reservationsError } = getUserReservations(supabase, userData?.id!, {
-		enabled: !!userData?.id,
+	const { data: userReservations, error: reservationsError } = getUserReservations(supabase, user?.id!, {
+		enabled: !!user && !!user.id,
 	});
 
 	useEffect(() => {
