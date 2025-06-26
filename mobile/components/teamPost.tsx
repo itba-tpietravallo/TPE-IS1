@@ -1,8 +1,7 @@
 import { ScreenHeight } from "@rneui/themed/dist/config";
 import React, { useState } from "react";
 import PopUpTeam from "./PopUpTeam";
-import { StyleSheet, Text, View, ImageBackground, Image, TouchableOpacity, Modal } from "react-native";
-import { Player } from "../app/(tabs)/teams.tsx";
+import { StyleSheet, Text, View, ImageBackground, TouchableOpacity, Modal } from "react-native";
 
 type PropsTeam = {
 	team_id: string;
@@ -13,6 +12,7 @@ type PropsTeam = {
 	playerRequests: string[];
 	images: string[];
 	isPublic: boolean;
+	admins: string[];
 };
 
 function TeamPost(props: PropsTeam) {
@@ -21,13 +21,17 @@ function TeamPost(props: PropsTeam) {
 		setIsModalVisible(false);
 	};
 
+	const [players, setPlayers] = useState<string[]>(props.players);
+	const [requests, setRequests] = useState<string[]>(props.playerRequests);
+	const [admins, setAdmins] = useState<string[]>(props.admins);
+
 	return (
 		<View style={{ flex: 1 }}>
 			<TouchableOpacity onPress={() => setIsModalVisible(true)}>
 				<ImageBackground
 					style={styles.container}
 					imageStyle={{ borderRadius: 15, opacity: 0.9 }}
-					source={props.images.length == 0 ? require("@/assets/images/people-logo.jpg") : props.images[0]}   //@TODO: IMAGENES
+					source={props.images.length == 0 ? require("@/assets/images/people-logo.jpg") : props.images[0]} //@TODO: IMAGENES
 				>
 					<View style={styles.topContent}>
 						<Text style={styles.title}>{props.name}</Text>
@@ -47,9 +51,13 @@ function TeamPost(props: PropsTeam) {
 						name={props.name}
 						sport={props.sport}
 						description={props.description}
-						players={props.players}
-						playerRequests={props.playerRequests}   
-						public={props.isPublic}   
+						players={players}
+						setPlayers={setPlayers}
+						playerRequests={requests}
+						setRequests={setRequests}
+						admins={admins}
+						setAdmins={setAdmins}
+						public={props.isPublic}
 					/>
 				</View>
 			</Modal>
@@ -71,18 +79,6 @@ const styles = StyleSheet.create({
 		alignItems: "center",
 		marginTop: 40,
 	},
-	bottomContent: {
-		backgroundColor: "black",
-		borderColor: "#747775",
-		paddingHorizontal: 12,
-		height: 30,
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "center",
-		opacity: 0.6,
-		borderBottomEndRadius: 15,
-		borderBottomStartRadius: 15,
-	},
 	title: {
 		fontSize: 28,
 		fontWeight: "bold",
@@ -99,11 +95,6 @@ const styles = StyleSheet.create({
 		color: "#fff",
 		marginTop: 1,
 		fontWeight: "bold",
-	},
-	icon: {
-		width: 25,
-		height: 25,
-		borderRadius: 25,
 	},
 	centeredView: {
 		flex: 1,
