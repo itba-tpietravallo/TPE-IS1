@@ -120,6 +120,13 @@ function PopUpTeam(props: PropsPopUpTeam) {
 		deleteTeamIfEmpty();
 	}, [props.players]);
 
+	function userIsAdmin(userId: string) {
+		if (props.admins?.includes(userId)) {
+			return true;
+		}
+		return false;
+	}
+
 	return (
 		<View style={styles.modalView}>
 			<View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
@@ -132,7 +139,7 @@ function PopUpTeam(props: PropsPopUpTeam) {
 				</TouchableOpacity>
 
 				{/* Boton join requests (arriba a la derecha) (si es publico no aparece) */}
-				{userAlreadyOnTeam(user?.id!) && !props.public && (
+				{userAlreadyOnTeam(user?.id!) && !props.public && userIsAdmin(user!.id) && (
 					<TouchableOpacity
 						style={{ padding: 10, alignItems: "flex-start" }}
 						onPress={() => {

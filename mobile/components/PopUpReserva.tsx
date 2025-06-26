@@ -6,7 +6,12 @@ import { supabase } from "@/lib/supabase";
 import CheckoutButton from "./CheckoutButton";
 import PreReserveButton from "./PreReserveButton";
 
-import { getAllReservationTimeSlots, getAllTeamsByUser, getUsername, getUserAuthSession } from "@/lib/autogen/queries";
+import {
+	getAllReservationTimeSlots,
+	getAllTeamsByAdminUser,
+	getUsername,
+	getUserAuthSession,
+} from "@/lib/autogen/queries";
 import Selector from "./Selector";
 
 export type Renter = {
@@ -33,7 +38,7 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 	const [selectedDateTime, setSelectedDateTime] = useState<Date>(new Date());
 	const [unavailable, setUnavailability] = useState<boolean | null>(null);
 	const [selectedRenter, setSelectedRenter] = useState<Renter | null>(null);
-	const { data: teamData } = getAllTeamsByUser(supabase, user?.id!, { enabled: !!user?.id });
+	const { data: teamData } = getAllTeamsByAdminUser(supabase, user?.id!, { enabled: !!user?.id });
 	const normalizedTeams = teamData ? teamData.filter((team) => team.team_id && team.name !== null) : [];
 
 	const teams: Renter[] = normalizedTeams.map((team) => ({
