@@ -3,7 +3,7 @@ import { View, Text, Button, StyleSheet, Image, TouchableOpacity, Modal, Alert, 
 import { ScreenWidth } from "@rneui/themed/dist/config";
 import { supabase } from "@/lib/supabase";
 import Icon from "react-native-vector-icons/FontAwesome6";
-import { getAllUsers, useUpdateTeam } from "@lib/autogen/queries";
+import { getAllUsers, getUserAuthSession, useUpdateTeam } from "@lib/autogen/queries";
 import { getUserSession } from "@/lib/autogen/queries";
 import { router } from "expo-router";
 
@@ -16,7 +16,8 @@ type PropsPopUpJoinRequests = {
 };
 
 function PopUpJoinRequests(props: PropsPopUpJoinRequests) {
-	const { data: user } = getUserSession(supabase);
+	const { data: session } = getUserAuthSession(supabase);
+	const user = session?.user;
 	const usersData = getAllUsers(supabase);
 	const updateTeamMutation = useUpdateTeam(supabase);
 

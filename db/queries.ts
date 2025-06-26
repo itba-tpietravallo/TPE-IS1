@@ -369,7 +369,7 @@ export function getUsername(
 				username = data.username;
 			}
 
-			return username;
+			return { username, full_name: data?.full_name };
 		},
 		enabled: !!userId,
 		...opts,
