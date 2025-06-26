@@ -23,9 +23,7 @@ export default function PostTeam() {
 	const [sport, setSport] = useState("");
 	const { data: sports } = getAllSports(supabase);
 	const [description, setDescription] = useState("");
-	const [members, setMembers] = useState<string[]>([]);
-	const [newMember, setNewMember] = useState("");
-	const [availability, setAvailability] = useState(0);
+	//const [availability, setAvailability] = useState(0);
 	const [isPublic, setIsPublic] = useState(true);
 
 	const { data: user } = getUserSession(supabase);
@@ -40,7 +38,7 @@ export default function PostTeam() {
 				sport: sport,
 				description: description,
 				images: null,
-				players: [user?.id!], // Cuando crea el equipo automaticamente se une el creador
+				players: [user?.id!],
 				playerRequests: [],
 				admins: [user?.id!],
 				isPublic: isPublic,
@@ -60,25 +58,9 @@ export default function PostTeam() {
 		setTeamName("");
 		setSport("");
 		setDescription("");
-		setMembers([]);
-		setNewMember("");
-		setAvailability(0);
+		//setAvailability(0);
 		router.push("/(tabs)/teams");
 	};
-
-	// const addMember = () => {
-	// 	if (newMember.trim() === "") {
-	// 		Alert.alert("Error", "Por favor ingresa un nombre válido.");
-	// 		return;
-	// 	}
-	// 	setMembers([...members, newMember]);
-	// 	setNewMember("");
-	// };
-
-	// const removeMember = (index: number): void => {
-	// 	const updatedMembers: string[] = members.filter((_, i: number) => i !== index);
-	// 	setMembers(updatedMembers);
-	// };
 
 	return (
 		<KeyboardAvoidingView style={styles.container} behavior={Platform.OS === "ios" ? "padding" : undefined}>
@@ -131,46 +113,6 @@ export default function PostTeam() {
 					// renderItem={}
 				/>
 
-				{/* Miembros del Equipo */}
-				{/* Habria que cambiar esto para invitar usuarios a unirse en vez de meterlos al equipo */}
-				{/* <Text style={styles.label}>Miembros Iniciales (opcional):</Text>
-				<View style={styles.memberInputContainer}>
-					<TextInput
-						style={[styles.input, styles.memberInput]}
-						placeholder="Nombre del miembro"
-						value={newMember}
-						onChangeText={setNewMember}
-					/>
-					<TouchableOpacity style={styles.addButton} onPress={addMember}>
-						<Text style={styles.addButtonText}>Agregar</Text>
-					</TouchableOpacity>
-				</View> */}
-
-				{/* <View>
-					{members.length > 0 && (
-						<View style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-							{members.map((item, index) => (
-								<View
-									key={`${item} - ${index}`}
-									style={{
-										backgroundColor: "#C7CCCC",
-										flexDirection: "row",
-										justifyContent: "space-between",
-										alignItems: "center",
-										padding: 10,
-										borderRadius: 8,
-									}}
-								>
-									<Text style={styles.memberText}>{item}</Text>
-									<TouchableOpacity onPress={() => removeMember(index)}>
-										<Text style={styles.removeText}>Eliminar</Text>
-									</TouchableOpacity>
-								</View>
-							))}
-						</View>
-					)}
-				</View> */}
-
 				{/* Disponibilidad */}
 				{/* <Text style={[styles.label, styles.spacing]}>¿Cuántas personas estás buscando? (obligatorio)</Text>
 				<TextInput
@@ -196,6 +138,7 @@ export default function PostTeam() {
 				{/* Privacidad */}
 				<Text style={styles.label}>Privacidad</Text>
 				<SelectDropdown
+					defaultValue={true}
 					data={["Público", "Privado"]}
 					onSelect={(itemValue) => setIsPublic(itemValue === "Público")}
 					dropdownStyle={{ backgroundColor: "white", gap: 5, borderRadius: 8 }}
@@ -203,7 +146,7 @@ export default function PostTeam() {
 						return (
 							<View style={styles.dropdownButtonStyle}>
 								<Text style={styles.dropdownButtonTxtStyle}>
-									{selectedItem === true ? "Público" : selectedItem === false ? "Privado" : "Público"}
+									{isPublic == true ? "Público" : "Privado"}
 								</Text>
 							</View>
 						);
@@ -282,43 +225,6 @@ const styles = StyleSheet.create({
 		marginTop: 20,
 		color: "#223332",
 	},
-	picker: {
-		height: 150,
-		width: "100%",
-		color: "#223332",
-	},
-	memberInputContainer: {
-		display: "flex",
-		flexDirection: "row",
-		alignItems: "flex-start",
-		justifyContent: "flex-start",
-	},
-	memberInput: {
-		flex: 1,
-		marginRight: 10,
-		color: "#223332",
-	},
-	memberItem: {
-		flexDirection: "row",
-		justifyContent: "space-between",
-		alignItems: "center",
-		marginBottom: 5,
-	},
-	memberText: {
-		fontSize: 16,
-		color: "#223332",
-	},
-	removeText: {
-		color: "red",
-		fontSize: 14,
-	},
-	memberList: {
-		maxHeight: 100,
-		marginBottom: 15,
-	},
-	spacing: {
-		marginTop: 10,
-	},
 	buttonContainer: {
 		flexDirection: "row",
 		justifyContent: "space-between",
@@ -347,22 +253,6 @@ const styles = StyleSheet.create({
 		fontSize: 16,
 		fontWeight: "bold",
 	},
-	addButton: {
-		backgroundColor: "black",
-		padding: 10,
-		borderRadius: 5,
-		alignItems: "center",
-		justifyContent: "center",
-		// marginTop: 10,
-	},
-	addButtonText: {
-		color: "#fff",
-		fontSize: 16,
-		fontWeight: "bold",
-		margin: 0,
-		padding: 0,
-	},
-	// HOTFIX:
 	dropdownButtonStyle: {
 		width: 200,
 		height: 40,
@@ -389,10 +279,6 @@ const styles = StyleSheet.create({
 	dropdownButtonIconStyle: {
 		fontSize: 28,
 		marginRight: 8,
-	},
-	dropdownMenuStyle: {
-		backgroundColor: "#E9ECEF",
-		borderRadius: 8,
 	},
 	dropdownItemStyle: {
 		width: "100%",
