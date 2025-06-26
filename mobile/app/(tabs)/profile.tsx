@@ -17,12 +17,17 @@ export default function Index() {
 		});
 	}, []);
 
-	const { data: username } = getUsername(supabase, userId ?? "", {
-		enabled: !!userId,
-	});
+	type UserData = { username?: string; full_name?: string } | null;
 
-	const { data: avatarData } = getUserAvatar(supabase, username ?? "", {
-		enabled: !!username,
+	const { data } = getUsername(supabase, userId ?? "", {
+		enabled: !!userId,
+	}) as { data: UserData };
+
+	const username = data?.username;
+	const full_name = data?.full_name;
+
+	const { data: avatarData } = getUserAvatar(supabase, full_name ?? "", {
+		enabled: !!full_name,
 	});
 
 	const avatarUrl = typeof avatarData === "string" ? avatarData : (avatarData?.avatar_url ?? "undefined_image");

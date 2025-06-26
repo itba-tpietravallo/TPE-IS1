@@ -14,7 +14,7 @@ export default function Index() {
 	const [reservations, setReservations] = useState<Reservation[]>([]);
 
 	// Get reservations for the current user
-	const { data: userReservations, error: reservationsError } = getUserReservations(supabase, userData?.id!, {
+	const { data: userReservations, error: reservationsError } = getUserReservations(supabase, user?.id!, {
 		enabled: !!user && !!user.id,
 	});
 
