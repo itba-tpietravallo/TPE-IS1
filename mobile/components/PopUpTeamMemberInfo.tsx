@@ -4,7 +4,7 @@ import { ScreenWidth } from "@rneui/themed/dist/config";
 import Icon from "react-native-vector-icons/FontAwesome6";
 import { Image } from "@rneui/themed";
 import { supabase } from "@lib/supabase";
-import { getUserAuthSession } from "@/lib/autogen/queries";
+import { getUserAuthSession, useUpdateTeam } from "@/lib/autogen/queries";
 
 type PropsPopUpTeamMemberInfo = {
 	onClose: () => void;
@@ -22,19 +22,30 @@ type PropsPopUpTeamMemberInfo = {
 function PopUpTeamMemberInfo(props: PropsPopUpTeamMemberInfo) {
 	const { data: session } = getUserAuthSession(supabase);
 	const user = session?.user;
+	const updateTeamMutation = useUpdateTeam(supabase);
 
 	const handleDeletePlayer = async (player: string) => {
 		const updatedPlayers = props.players.filter((member) => member !== player);
+		var updatedAdmins = props.admins.filter((member) => member !== player);
 
-		const { data, error } = await supabase
-			.from("teams")
-			.update({ players: updatedPlayers })
-			.eq("team_id", props.team_id)
-			.throwOnError();
+		if (updatedAdmins.length == 0) {
+			updatedAdmins = [...updatedAdmins, props.players[0]];
+		}
 
-		props.setPlayers(updatedPlayers);
-		props.onClose();
-		console.log("deleted");
+		try {
+			await updateTeamMutation.mutateAsync({
+				team_id: props.team_id,
+				players: updatedPlayers,
+				admins: updatedAdmins,
+			});
+
+			props.setPlayers(updatedPlayers);
+			props.setAdmins(updatedAdmins);
+			props.onClose();
+			console.log("deleted");
+		} catch (error) {
+			console.error("Error leaving team:", error);
+		}
 	};
 
 	const handleManageAdmin = async (player: string) => {
