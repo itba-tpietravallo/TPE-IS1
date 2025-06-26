@@ -3,8 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Modal, Alert, ScrollView } fr
 import { ScreenWidth } from "@rneui/themed/dist/config";
 import { supabase } from "@/lib/supabase";
 import Icon from "react-native-vector-icons/FontAwesome6";
-import { getAllUsers, useUpdateTeam, useDeleteTeam } from "@lib/autogen/queries.ts";
-import { getUserSession } from "@/lib/autogen/queries";
+import { getAllUsers, useUpdateTeam, useDeleteTeam, getUserAuthSession } from "@lib/autogen/queries.ts";
 import { router } from "expo-router";
 import PopUpJoinRequests from "./PopUpJoinRequests.tsx";
 import { Image } from "@rneui/themed";
@@ -26,7 +25,8 @@ type PropsPopUpTeam = {
 };
 
 function PopUpTeam(props: PropsPopUpTeam) {
-	const { data: user } = getUserSession(supabase); //TODO: FIX
+	const { data: session } = getUserAuthSession(supabase);
+	const user = session?.user;
 	const usersData = getAllUsers(supabase);
 	const updateTeamMutation = useUpdateTeam(supabase);
 	const deleteTeamMutation = useDeleteTeam(supabase);

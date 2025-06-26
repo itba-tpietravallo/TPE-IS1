@@ -4,7 +4,7 @@ import { ScreenWidth } from "@rneui/themed/dist/config";
 import Icon from "react-native-vector-icons/FontAwesome6";
 import { Image } from "@rneui/themed";
 import { supabase } from "@lib/supabase";
-import { getUserSession } from "@/lib/autogen/queries";
+import { getUserAuthSession } from "@/lib/autogen/queries";
 
 type PropsPopUpTeamMemberInfo = {
 	onClose: () => void;
@@ -20,7 +20,8 @@ type PropsPopUpTeamMemberInfo = {
 };
 
 function PopUpTeamMemberInfo(props: PropsPopUpTeamMemberInfo) {
-	const { data: user } = getUserSession(supabase); //todo: fix
+	const { data: session } = getUserAuthSession(supabase);
+	const user = session?.user;
 
 	const handleDeletePlayer = async (player: string) => {
 		const updatedPlayers = props.players.filter((member) => member !== player);
