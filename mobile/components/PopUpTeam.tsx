@@ -150,6 +150,13 @@ function PopUpTeam(props: PropsPopUpTeam) {
 					</TouchableOpacity>
 				)}
 
+				{/* Public team icon */}
+				{props.public && (
+					<View style={{ padding: 10, alignItems: "flex-start" }}>
+						<Icon name="globe" size={24} color="black" style={{ marginTop: 10 }} />
+					</View>
+				)}
+
 				{/* PopUpJoinRequests */}
 				<Modal
 					style={styles.modal}
