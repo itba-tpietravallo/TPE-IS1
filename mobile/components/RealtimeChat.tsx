@@ -14,7 +14,7 @@ import {
 import { ChatMessage, Message } from "./ChatMessage";
 import { useChatScroll } from "../hooks/UseChatScroll";
 import { supabase } from "../lib/supabase";
-import { useChatMessages, useSendChatMessage } from "@/lib/autogen/queries";
+import { useChatMessages, useInsertMessage } from "@/lib/autogen/queries";
 import Icon from "react-native-vector-icons/FontAwesome6";
 import { useRouter } from "expo-router";
 import { Keyboard } from "react-native";
@@ -22,7 +22,7 @@ import { Keyboard } from "react-native";
 export function RealtimeChat({ roomId, roomName, userId }: { roomId: string; roomName: string; userId: string }) {
 	const router = useRouter();
 	const { data: messages, isLoading, error } = useChatMessages(supabase, roomId);
-	const { mutate: sendMessage } = useSendChatMessage();
+	const insertMessageMutation = useInsertMessage(supabase);
 
 	const [newMessage, setNewMessage] = useState("");
 	const flatListRef = useRef<FlatList<Message>>(null);
@@ -47,15 +47,21 @@ export function RealtimeChat({ roomId, roomName, userId }: { roomId: string; roo
 		};
 	}, []);
 
-	const handleSendMessage = () => {
+	const handleSendMessage = async () => {
 		if (newMessage.trim() === "" || !userId || !supabase) return;
 
-		sendMessage({
-			supabase,
-			content: newMessage.trim(),
-			room_id: roomId,
-			user_id: userId,
-		});
+		try {
+			await insertMessageMutation.mutateAsync([
+				{
+					room_id: roomId,
+					user_id: userId,
+					content: newMessage.trim(),
+				},
+			]);
+		} catch (error) {
+			console.error("Error sending message:", error);
+			alert("Error al enviar el mensaje. Por favor, intenta de nuevo.");
+		}
 
 		setNewMessage("");
 
@@ -158,7 +164,7 @@ export function RealtimeChat({ roomId, roomName, userId }: { roomId: string; roo
 						<TextInput
 							value={newMessage}
 							onChangeText={setNewMessage}
-							placeholder="Type a message..."
+							placeholder="Escriba un mensaje..."
 							placeholderTextColor="#999"
 							style={styles.input}
 							onSubmitEditing={handleSendMessage}

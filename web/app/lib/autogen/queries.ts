@@ -843,23 +843,37 @@ export function useChatMessages(
 	});
 }
 
-export function useSendChatMessage() {
-	return useMutation({
-		mutationFn: async ({
-			supabase,
-			content,
-			room_id,
-			user_id,
-		}: {
-			supabase: SupabaseClient<Database>;
-			content: string;
-			room_id: string;
-			user_id: string;
-		}) => {
-			const { error } = await supabase
-				.from("messages")
-				.insert({ content, user_id, room_id });
-			if (error) throw error;
-		},
-	});
+export function useInsertMessage(supabase: SupabaseClient<Database>) {
+	// Using the built-in useInsertMutation from supabase-cache-helpers
+	return useInsertMutation(
+		supabase.from("messages"),
+		["id"],
+		"*",
+		{
+			onError: (error) => {
+				console.error("Error inserting message:", error);
+			},
+		}
+	);
 }
+
+// export function useSendChatMessage() {
+// 	return useMutation({
+// 		mutationFn: async ({
+// 			supabase,
+// 			content,
+// 			room_id,
+// 			user_id,
+// 		}: {
+// 			supabase: SupabaseClient<Database>;
+// 			content: string;
+// 			room_id: string;
+// 			user_id: string;
+// 		}) => {
+// 			const { error } = await supabase
+// 				.from("messages")
+// 				.insert({ content, user_id, room_id });
+// 			if (error) throw error;
+// 		},
+// 	});
+// }
