@@ -163,6 +163,7 @@ export function NewField() {
 	}, [watchedStreet, watchedStreetNumber, watchedCity, debouncedGeocode]);
 
 	const onSubmit = async (data: FieldFormData) => {
+		console.log("on sub");
 		try {
 			if (!latitude || !longitude) {
 				setGeocodingError(
