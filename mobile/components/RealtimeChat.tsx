@@ -17,27 +17,35 @@ import { supabase } from "../lib/supabase";
 import { useChatMessages, useSendChatMessage } from "@/lib/autogen/queries";
 import Icon from "react-native-vector-icons/FontAwesome6";
 import { useRouter } from "expo-router";
+import { Keyboard } from "react-native";
 
 export function RealtimeChat({ roomId, roomName, userId }: { roomId: string; roomName: string; userId: string }) {
 	const router = useRouter();
-	// 1. Fetch messages and listen for real-time updates with a single hook.
 	const { data: messages, isLoading, error } = useChatMessages(supabase, roomId);
-	// 2. Get the mutation function for sending messages
 	const { mutate: sendMessage } = useSendChatMessage();
 
 	const [newMessage, setNewMessage] = useState("");
 	const flatListRef = useRef<FlatList<Message>>(null);
 	const { handleScroll } = useChatScroll(flatListRef, messages);
+	const [listReady, setListReady] = useState(false);
 
 	useEffect(() => {
-		if (messages && messages.length > 0) {
-			// Give the FlatList time to finish rendering
-			setTimeout(() => {
-				flatListRef.current?.scrollToEnd({ animated: false });
-			}, 100);
+		if (messages && messages.length > 0 && listReady) {
+			flatListRef.current?.scrollToEnd({ animated: false });
 		}
-		console.log(roomName);
-	}, [messages]);
+	}, [messages, listReady]);
+
+	useEffect(() => {
+		const keyboardDidShowListener = Keyboard.addListener("keyboardDidShow", () => {
+			setTimeout(() => {
+				flatListRef.current?.scrollToEnd({ animated: true });
+			}, 100);
+		});
+
+		return () => {
+			keyboardDidShowListener.remove();
+		};
+	}, []);
 
 	const handleSendMessage = () => {
 		if (newMessage.trim() === "" || !userId || !supabase) return;
@@ -127,6 +135,7 @@ export function RealtimeChat({ roomId, roomName, userId }: { roomId: string; roo
 
 					<FlatList
 						ref={flatListRef}
+						onLayout={() => setListReady(true)}
 						data={(messages as unknown as Message[]) || []}
 						renderItem={({ item }) => <ChatMessage message={item} currentUserId={userId} />}
 						keyExtractor={(item) => item.id.toString()}
