@@ -49,28 +49,22 @@ function PopUpTeamMemberInfo(props: PropsPopUpTeamMemberInfo) {
 	};
 
 	const handleManageAdmin = async (player: string) => {
+		var updatedAdmins;
 		if (!userIsAdmin(player)) {
-			const updatedAdmins = [...(props.admins || []), player];
-
-			const { data, error } = await supabase
-				.from("teams")
-				.update({ admins: updatedAdmins })
-				.eq("team_id", props.team_id)
-				.throwOnError();
-
-			props.setAdmins(updatedAdmins);
-			console.log("new admin");
+			updatedAdmins = [...(props.admins || []), player];
 		} else {
-			const updatedAdmins = props.admins.filter((admin) => admin !== player);
+			updatedAdmins = props.admins.filter((admin) => admin !== player);
+		}
 
-			const { data, error } = await supabase
-				.from("teams")
-				.update({ admins: updatedAdmins })
-				.eq("team_id", props.team_id)
-				.throwOnError();
+		try {
+			await updateTeamMutation.mutateAsync({
+				team_id: props.team_id,
+				admins: updatedAdmins,
+			});
 
 			props.setAdmins(updatedAdmins);
-			console.log("dismiss as admin");
+		} catch (error) {
+			console.error("Error managing admin:", error);
 		}
 	};
 
