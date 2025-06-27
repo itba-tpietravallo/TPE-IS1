@@ -3,6 +3,42 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 export type Database = {
 	public: {
 		Tables: {
+			field_reviews: {
+				Row: {
+					field_id: string;
+					id: string;
+					rating: number;
+					user_id: string;
+				};
+				Insert: {
+					field_id: string;
+					id?: string;
+					rating: number;
+					user_id: string;
+				};
+				Update: {
+					field_id?: string;
+					id?: string;
+					rating?: number;
+					user_id?: string;
+				};
+				Relationships: [
+					{
+						foreignKeyName: "field_reviews_field_id_fields_id_fk";
+						columns: ["field_id"];
+						isOneToOne: false;
+						referencedRelation: "fields";
+						referencedColumns: ["id"];
+					},
+					{
+						foreignKeyName: "field_reviews_user_id_users_id_fk";
+						columns: ["user_id"];
+						isOneToOne: false;
+						referencedRelation: "users";
+						referencedColumns: ["id"];
+					},
+				];
+			};
 			fields: {
 				Row: {
 					adminedBy: string[];
@@ -100,41 +136,41 @@ export type Database = {
 			};
 			messages: {
 				Row: {
-				  content: string
-				  created_at: string
-				  id: string
-				  room_id: string
-				  user_id: string
-				}
+					content: string;
+					created_at: string;
+					id: string;
+					room_id: string;
+					user_id: string;
+				};
 				Insert: {
-				  content: string
-				  created_at?: string
-				  id?: string
-				  room_id: string
-				  user_id: string
-				}
+					content: string;
+					created_at?: string;
+					id?: string;
+					room_id: string;
+					user_id: string;
+				};
 				Update: {
-				  content?: string
-				  created_at?: string
-				  id?: string
-				  room_id?: string
-				  user_id?: string
-				}
+					content?: string;
+					created_at?: string;
+					id?: string;
+					room_id?: string;
+					user_id?: string;
+				};
 				Relationships: [
-				  {
-					foreignKeyName: "messages_room_id_teams_team_id_fk"
-					columns: ["room_id"]
-					isOneToOne: false
-					referencedRelation: "teams"
-					referencedColumns: ["team_id"]
-				  },
-				  {
-					foreignKeyName: "messages_user_id_users_id_fk"
-					columns: ["user_id"]
-					isOneToOne: false
-					referencedRelation: "users"
-					referencedColumns: ["id"]
-				  },
+					{
+						foreignKeyName: "messages_room_id_teams_team_id_fk";
+						columns: ["room_id"];
+						isOneToOne: false;
+						referencedRelation: "teams";
+						referencedColumns: ["team_id"];
+					},
+					{
+						foreignKeyName: "messages_user_id_users_id_fk";
+						columns: ["user_id"];
+						isOneToOne: false;
+						referencedRelation: "users";
+						referencedColumns: ["id"];
+					},
 				];
 			};
 			mp_oauth_authorization: {
