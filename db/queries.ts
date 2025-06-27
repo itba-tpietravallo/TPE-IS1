@@ -83,7 +83,7 @@ export const queries = {
 		supabase.from("tournaments").select("*").eq("fieldId", fieldId),
 
 	getAllTeamsByUser: (supabase: SupabaseClient<Database>, userId: string) =>
-		supabase.from("teams").select("team_id, name").contains("players", [userId]),
+		supabase.from("teams").select("team_id, name, images").contains("players", [userId]),
 
 	getPendingReservationsByUser: (supabase: SupabaseClient<Database>, userId: string) =>
 		supabase
