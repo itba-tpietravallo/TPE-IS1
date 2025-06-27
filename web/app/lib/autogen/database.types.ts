@@ -9,6 +9,42 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      field_reviews: {
+        Row: {
+          field_id: string
+          id: string
+          rating: number
+          user_id: string
+        }
+        Insert: {
+          field_id: string
+          id?: string
+          rating: number
+          user_id: string
+        }
+        Update: {
+          field_id?: string
+          id?: string
+          rating?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "field_reviews_field_id_fields_id_fk"
+            columns: ["field_id"]
+            isOneToOne: false
+            referencedRelation: "fields"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "field_reviews_user_id_users_id_fk"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fields: {
         Row: {
           adminedBy: string[]
