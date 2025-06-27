@@ -38,12 +38,9 @@ export default function Index() {
 				{/* @todo undefined_image is a stub that'll hopefully get logged in RN Dev Tools */}
 				<Image source={{ uri: avatarUrl }} style={{ width: 100, height: 100 }} borderRadius={100} />
 				<Text
-					style={{ fontSize: 25, fontWeight: "bold", paddingTop: 20, textAlign: "center", color: "#223332" }}
-				></Text>
-				<Text
 					style={{ fontSize: 16, fontWeight: "bold", paddingTop: 20, textAlign: "center", color: "#223332" }}
 				>
-					USUARIO: {String(username)}
+					{String(username)}
 				</Text>
 			</View>
 
@@ -113,9 +110,9 @@ const itemStyles = StyleSheet.create({
 });
 
 const menuItems = [
-	{ label: "Mi actividad", icon: "money-check", action: () => router.push("/(tabs)/profileMenu/paymentActivity") },
-	{ label: "Mis reservas", icon: "calendar-check", action: () => router.push("/(tabs)/profileMenu/reservations") },
-	{ label: "Mis equipos", icon: "user-group", action: () => router.push("/(tabs)/profileMenu/teams") },
+	{ label: "Actividad", icon: "money-check", action: () => router.push("/(tabs)/profileMenu/paymentActivity") },
+	{ label: "Reservas", icon: "calendar-check", action: () => router.push("/(tabs)/profileMenu/reservations") },
+	{ label: "Equipos", icon: "user-group", action: () => router.push("/(tabs)/profileMenu/teams") },
 	// { label: "Mis torneos", icon: "medal", action: () => router.push("/(tabs)/profileMenu/teams") },
 	{ label: "Pendientes", icon: "spinner", action: () => router.push("/(tabs)/profileMenu/pendings") },
 	{ label: "Chats", icon: "comments", action: () => router.push("/(tabs)/profileMenu/chats") },
@@ -131,8 +128,10 @@ export function ProfileMenuList() {
 				renderItem={({ item }) => (
 					<TouchableOpacity style={itemStyles.item} onPress={item.action}>
 						<View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
-							<Icon name={item.icon} size={24} color="#f18f01" style={itemStyles.icon} />
-							<Text style={itemStyles.label}>{item.label}</Text>
+							<View style={{ width: 30, alignItems: "center" }}>
+								<Icon name={item.icon} size={24} color="#f18f01" />
+							</View>
+							<Text style={{ fontSize: 16, color: "#223332", marginLeft: 12 }}>{item.label}</Text>
 						</View>
 						<Icon name="angle-right" size={24} color="#f18f01" />
 					</TouchableOpacity>
