@@ -105,14 +105,14 @@ export default function PreReserveButton({
 			console.log("About to insert reservation for field:", fieldId);
 
 			try {
-				await insertReservationMutation.mutateAsync({
+				await insertReservationMutation.mutateAsync([{
 					field_id: fieldId,
 					date_time: date_time,
 					owner_id: userId,
 					team_id: teamId,
 					bookers_count: teamMembersIds.players.length,
 					pending_bookers_ids: teamMembersIds.players,
-				});
+				}]);
 
 				console.log("Reservation inserted successfully");
 				setPending(false);
