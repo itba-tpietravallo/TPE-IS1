@@ -251,7 +251,7 @@ export function getUsername(supabase: SupabaseClient<Database>, userId: string, 
 				username = data.username;
 			}
 
-			return username;
+			return { username, full_name: data?.full_name };
 		},
 		enabled: !!userId,
 		...opts,
