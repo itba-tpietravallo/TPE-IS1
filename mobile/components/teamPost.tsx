@@ -21,10 +21,6 @@ function TeamPost(props: PropsTeam) {
 		setIsModalVisible(false);
 	};
 
-	const [players, setPlayers] = useState<string[]>(props.players);
-	const [requests, setRequests] = useState<string[]>(props.playerRequests);
-	const [admins, setAdmins] = useState<string[]>(props.admins);
-
 	return (
 		<View style={{ flex: 1 }}>
 			<TouchableOpacity onPress={() => setIsModalVisible(true)}>
