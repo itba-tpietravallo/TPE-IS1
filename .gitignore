@@ -26,3 +26,6 @@ mobile/lib/autogen/*
 
 # Infrastructure - sst
 **/.sst
+
+# Swap files
+*.swp

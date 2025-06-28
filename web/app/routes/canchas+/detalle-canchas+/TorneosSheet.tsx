@@ -128,17 +128,20 @@ export function TournamentForm({ fieldId, onClose = () => {} }: { fieldId: strin
 	// Use the mutation hook
 	const insertTournamentMutation = useInsertTournament(supabase);
 
+	
 	const onSubmit = async (data: any) => {
-		await insertTournamentMutation.mutateAsync({
+		if (!selectedSport) throw new Error("Debe seleccionar un deporte");
+		
+		await insertTournamentMutation.mutateAsync([{
 			name: data.name,
 			fieldId: fieldId,
-			sport: selectedSport,
+			sport: selectedSport!,
 			startDate: data.startDate,
 			description: data.description,
 			price: data.price,
 			deadline: data.deadline,
 			cantPlayers: data.cantPlayers,
-		});
+		}]);
 
 		field.refetch();
 

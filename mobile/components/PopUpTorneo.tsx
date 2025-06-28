@@ -87,10 +87,10 @@ function PopUpTorneo({
 		}
 
 		try {
-			await insertInscriptionMutation.mutateAsync({
+			await insertInscriptionMutation.mutateAsync([{
 				tournamentId: tournamentId,
 				teamId: selectedTeam,
-			});
+			}]);
 			console.log("Team successfully registered for tournament");
 			onClose();
 		} catch (error) {
