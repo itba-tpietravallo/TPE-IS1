@@ -10,12 +10,12 @@ import { getUserSession, getUserReservations, getUserAuthSession } from "@/lib/a
 
 export default function Index() {
 	const { data: session } = getUserAuthSession(supabase);
-	const userData = session?.user;
+	const user = session?.user;
 	const [reservations, setReservations] = useState<Reservation[]>([]);
 
 	// Get reservations for the current user
-	const { data: userReservations, error: reservationsError } = getUserReservations(supabase, userData?.id!, {
-		enabled: !!userData?.id,
+	const { data: userReservations, error: reservationsError } = getUserReservations(supabase, user?.id!, {
+		enabled: !!user && !!user.id,
 	});
 
 	useEffect(() => {
