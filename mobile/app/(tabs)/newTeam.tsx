@@ -33,7 +33,7 @@ export default function PostTeam() {
 
 	const handlePostTeam = async () => {
 		try {
-			await insertTeamMutation.mutateAsync({
+			await insertTeamMutation.mutateAsync([{
 				name: teamName,
 				sport: sport,
 				description: description,
@@ -44,7 +44,7 @@ export default function PostTeam() {
 				isPublic: isPublic,
 				contactPhone: "",
 				contactEmail: "",
-			});
+			}]);
 
 			console.log("Team created successfully");
 			router.push("/(tabs)/teams");
