@@ -45,20 +45,7 @@ function TeamPost(props: PropsTeam) {
 				onRequestClose={() => setIsModalVisible(false)}
 			>
 				<View style={styles.centeredView}>
-					<PopUpTeam
-						onClose={handleCloseModal}
-						team_id={props.team_id}
-						name={props.name}
-						sport={props.sport}
-						description={props.description}
-						players={players}
-						setPlayers={setPlayers}
-						playerRequests={requests}
-						setRequests={setRequests}
-						admins={admins}
-						setAdmins={setAdmins}
-						public={props.isPublic}
-					/>
+					<PopUpTeam onClose={handleCloseModal} team_id={props.team_id} />
 				</View>
 			</Modal>
 		</View>

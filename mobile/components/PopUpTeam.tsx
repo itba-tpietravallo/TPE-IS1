@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Modal, Alert, ScrollView } fr
 import { ScreenWidth } from "@rneui/themed/dist/config";
 import { supabase } from "@/lib/supabase";
 import Icon from "react-native-vector-icons/FontAwesome6";
-import { getAllUsers, useUpdateTeam, useDeleteTeam, getUserAuthSession, getUsername } from "@lib/autogen/queries.ts";
+import { getAllUsers, useUpdateTeam, useDeleteTeam, getUserAuthSession, getTeamById } from "@lib/autogen/queries.ts";
 import { router } from "expo-router";
 import PopUpJoinRequests from "./PopUpJoinRequests.tsx";
 import { Image } from "@rneui/themed";
@@ -12,16 +12,6 @@ import PopUpTeamMemberInfo from "./PopUpTeamMemberInfo.tsx";
 type PropsPopUpTeam = {
 	onClose: () => void;
 	team_id: string;
-	name: string;
-	sport: string;
-	description: string;
-	players: string[];
-	setPlayers: React.Dispatch<React.SetStateAction<string[]>>;
-	playerRequests: string[];
-	setRequests: React.Dispatch<React.SetStateAction<string[]>>;
-	admins: string[];
-	setAdmins: React.Dispatch<React.SetStateAction<string[]>>;
-	public: boolean;
 };
 
 function PopUpTeam(props: PropsPopUpTeam) {
@@ -31,6 +21,8 @@ function PopUpTeam(props: PropsPopUpTeam) {
 	const updateTeamMutation = useUpdateTeam(supabase);
 	const deleteTeamMutation = useDeleteTeam(supabase);
 
+	const { data: team } = getTeamById(supabase, props.team_id);
+
 	const [isModalVisibleJoinRequests, setIsModalVisibleJoinRequests] = useState(false); //PopUpJoinRequests
 	const [selectedMember, setSelectedMember] = useState<string | null>(null);
 
@@ -39,43 +31,39 @@ function PopUpTeam(props: PropsPopUpTeam) {
 	};
 
 	function userAlreadyOnTeam(userId: string) {
-		if (props.players?.includes(userId)) {
+		if (team?.players?.includes(userId)) {
 			return true;
 		}
 		return false;
 	}
 
 	function joinRequested(userId: string) {
-		if (props.playerRequests?.includes(userId)) {
+		if (team?.playerRequests?.includes(userId)) {
 			return true;
 		}
 		return false;
 	}
 
 	const handleJoinTeam = async () => {
-		if (props.public) {
-			const updatedMembers = [...(props.players || []), user?.id!];
+		if (team?.isPublic) {
+			const updatedMembers = [...(team?.players || []), user?.id!];
 
 			try {
 				await updateTeamMutation.mutateAsync({
 					team_id: props.team_id,
 					players: updatedMembers,
 				});
-
-				props.setPlayers(updatedMembers);
 			} catch (error) {
 				console.error("Error joining team:", error);
 			}
 		} else {
-			const updatedRequests = [...(props.playerRequests || []), user?.id!];
+			const updatedRequests = [...(team?.playerRequests || []), user?.id!];
 
 			try {
 				await updateTeamMutation.mutateAsync({
 					team_id: props.team_id,
 					playerRequests: updatedRequests,
 				});
-
-				props.setRequests(updatedRequests);
 			} catch (error) {
 				console.error("Error requesting to join team:", error);
 			}
@@ -83,11 +71,11 @@ function PopUpTeam(props: PropsPopUpTeam) {
 	};
 
 	const handleLeaveTeam = async () => {
-		const updatedMembers = props.players?.filter((player) => player !== user?.id);
-		var updatedAdmins = props.admins?.filter((player) => player !== user?.id);
+		const updatedMembers = team!.players?.filter((player) => player !== user?.id);
+		var updatedAdmins = team!.admins?.filter((player) => player !== user?.id);
 
 		if (updatedAdmins.length == 0) {
-			updatedAdmins = [...updatedAdmins, props.players[0]];
+			updatedAdmins = [...updatedAdmins, team!.players[0]];
 		}
 
 		try {
@@ -96,9 +84,6 @@ function PopUpTeam(props: PropsPopUpTeam) {
 				players: updatedMembers,
 				admins: updatedAdmins,
 			});
-
-			props.setPlayers(updatedMembers);
-			props.setAdmins(updatedAdmins); //checkear
 		} catch (error) {
 			console.error("Error leaving team:", error);
 		}
@@ -106,7 +91,7 @@ function PopUpTeam(props: PropsPopUpTeam) {
 
 	useEffect(() => {
 		const deleteTeamIfEmpty = async () => {
-			if (props.players.length === 0) {
+			if (team?.players.length === 0) {
 				try {
 					await deleteTeamMutation.mutateAsync({ team_id: props.team_id });
 					router.push("/(tabs)/teams");
@@ -118,10 +103,10 @@ function PopUpTeam(props: PropsPopUpTeam) {
 		};
 
 		deleteTeamIfEmpty();
-	}, [props.players]);
+	}, [team?.players]);
 
 	function userIsAdmin(userId: string) {
-		if (props.admins?.includes(userId)) {
+		if (team?.admins?.includes(userId)) {
 			return true;
 		}
 		return false;
@@ -139,7 +124,7 @@ function PopUpTeam(props: PropsPopUpTeam) {
 				</TouchableOpacity>
 
 				{/* Boton join requests (arriba a la derecha) (si es publico no aparece) */}
-				{userAlreadyOnTeam(user?.id!) && !props.public && userIsAdmin(user!.id) && (
+				{userAlreadyOnTeam(user?.id!) && !team?.isPublic && userIsAdmin(user!.id) && (
 					<TouchableOpacity
 						style={{ padding: 10, alignItems: "flex-start" }}
 						onPress={() => {
@@ -151,7 +136,7 @@ function PopUpTeam(props: PropsPopUpTeam) {
 				)}
 
 				{/* Public team icon */}
-				{props.public && (
+				{team?.isPublic && (
 					<View style={{ padding: 10, alignItems: "flex-start" }}>
 						<Icon name="globe" size={24} color="black" style={{ marginTop: 10 }} />
 					</View>
@@ -173,14 +158,14 @@ function PopUpTeam(props: PropsPopUpTeam) {
 			<View style={styles.mainInfo}>
 				{/* Nombre del equipo y deporte */}
 				<View style={styles.topInfo}>
-					<Text style={styles.teamName}>{props.name}</Text>
-					<Text style={{ fontSize: 16, color: "gray", marginBottom: 10 }}>{props.sport}</Text>
+					<Text style={styles.teamName}>{team?.name}</Text>
+					<Text style={{ fontSize: 16, color: "gray", marginBottom: 10 }}>{team?.sport}</Text>
 				</View>
 
 				{/* Miembros del Equipo */}
 				<ScrollView style={styles.scrollArea}>
 					<View style={{ width: "100%" }}>
-						{props.players?.map((member) => (
+						{team?.players?.map((member) => (
 							<View key={member} style={styles.row}>
 								<View style={{ height: 60, width: 15 }}></View>
 
@@ -243,7 +228,7 @@ function PopUpTeam(props: PropsPopUpTeam) {
 				</ScrollView>
 
 				{/* Descripcion del equipo */}
-				{props.description && <Text style={styles.description}>{props.description}</Text>}
+				{team?.description && <Text style={styles.description}>{team?.description}</Text>}
 			</View>
 
 			{/* Boton Join team - request to join team */}
@@ -256,7 +241,7 @@ function PopUpTeam(props: PropsPopUpTeam) {
 							.catch((e) => console.log("Error joining team", e))
 					}
 				>
-					<Text style={styles.buttonText}>{props.public ? "Join Team" : "Request to Join Team"}</Text>
+					<Text style={styles.buttonText}>{team?.isPublic ? "Join Team" : "Request to Join Team"}</Text>
 				</TouchableOpacity>
 			)}
 
