@@ -3,16 +3,11 @@ import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView } from "rea
 import { ScreenWidth } from "@rneui/themed/dist/config";
 import { supabase } from "@/lib/supabase";
 import Icon from "react-native-vector-icons/FontAwesome6";
-import { getAllUsers, useUpdateTeam, getUserAuthSession } from "@lib/autogen/queries";
+import { getAllUsers, useUpdateTeam, getUserAuthSession, getTeamById } from "@lib/autogen/queries";
 
 type PropsPopUpJoinRequests = {
 	onClose: () => void;
 	team_id: string;
-	name: string;
-	players: string[];
-	setPlayers: React.Dispatch<React.SetStateAction<string[]>>;
-	playerRequests: string[];
-	setRequests: React.Dispatch<React.SetStateAction<string[]>>;
 };
 
 function PopUpJoinRequests(props: PropsPopUpJoinRequests) {
@@ -21,16 +16,16 @@ function PopUpJoinRequests(props: PropsPopUpJoinRequests) {
 	const usersData = getAllUsers(supabase);
 	const updateTeamMutation = useUpdateTeam(supabase);
 
+	const { data: team } = getTeamById(supabase, props.team_id);
+
 	const handleAcceptPlayer = async (player: string) => {
-		const updatedMembers = [...(props.players || []), player];
+		const updatedMembers = [...(team!.players || []), player];
 
 		try {
 			await updateTeamMutation.mutateAsync({
 				team_id: props.team_id,
 				players: updatedMembers,
 			});
-
-			props.setPlayers(updatedMembers);
 
 			handleDeleteRequest(player);
 		} catch (error) {
@@ -40,7 +35,7 @@ function PopUpJoinRequests(props: PropsPopUpJoinRequests) {
 	};
 
 	const handleDeleteRequest = async (player: string) => {
-		const updatedRequests = props.playerRequests.filter((member) => member !== player);
+		const updatedRequests = team!.playerRequests.filter((member) => member !== player);
 
 		try {
 			await updateTeamMutation.mutateAsync({
@@ -48,7 +43,6 @@ function PopUpJoinRequests(props: PropsPopUpJoinRequests) {
 				playerRequests: updatedRequests,
 			});
 
-			props.setRequests(updatedRequests);
 			console.log("deleted");
 			console.log(updatedRequests);
 		} catch (error) {
@@ -77,10 +71,10 @@ function PopUpJoinRequests(props: PropsPopUpJoinRequests) {
 				</View>
 
 				{/* Solicitudes de Union al Equipo */}
-				{props.playerRequests?.length != 0 && (
+				{team?.playerRequests?.length != 0 && (
 					<ScrollView style={styles.scrollArea}>
 						<View style={{ width: "100%" }}>
-							{props.playerRequests?.map((member) => (
+							{team?.playerRequests?.map((member) => (
 								<View key={member} style={styles.row}>
 									<View style={{ height: 60, width: 30 }}></View>
 									<Icon name="user" size={24} color="black">
@@ -108,7 +102,7 @@ function PopUpJoinRequests(props: PropsPopUpJoinRequests) {
 						</View>
 					</ScrollView>
 				)}
-				{props.playerRequests?.length == 0 && (
+				{team?.playerRequests?.length == 0 && (
 					<View style={styles.topInfo}>
 						<Text style={styles.name}>No hay solicitdes para unirse al equipo!</Text>
 						<Text />

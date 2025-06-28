@@ -1,10 +1,9 @@
-import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { ScreenWidth } from "@rneui/themed/dist/config";
 import Icon from "react-native-vector-icons/FontAwesome6";
 import { Image } from "@rneui/themed";
 import { supabase } from "@lib/supabase";
-import { getUserAuthSession, useUpdateTeam } from "@/lib/autogen/queries";
+import { getUserAuthSession, useUpdateTeam, getTeamById } from "@/lib/autogen/queries";
 
 type PropsPopUpTeamMemberInfo = {
 	onClose: () => void;
@@ -12,10 +11,6 @@ type PropsPopUpTeamMemberInfo = {
 	full_name: string;
 	username: string;
 	avatar: string;
-	players: string[];
-	setPlayers: React.Dispatch<React.SetStateAction<string[]>>;
-	admins: string[];
-	setAdmins: React.Dispatch<React.SetStateAction<string[]>>;
 	team_id: string;
 };
 
@@ -24,12 +19,14 @@ function PopUpTeamMemberInfo(props: PropsPopUpTeamMemberInfo) {
 	const user = session?.user;
 	const updateTeamMutation = useUpdateTeam(supabase);
 
+	const { data: team } = getTeamById(supabase, props.team_id);
+
 	const handleDeletePlayer = async (player: string) => {
-		const updatedPlayers = props.players.filter((member) => member !== player);
-		var updatedAdmins = props.admins.filter((member) => member !== player);
+		const updatedPlayers = team!.players.filter((member) => member !== player);
+		var updatedAdmins = team!.admins.filter((member) => member !== player);
 
 		if (updatedAdmins.length == 0) {
-			updatedAdmins = [...updatedAdmins, props.players[0]];
+			updatedAdmins = [...updatedAdmins, team!.players[0]];
 		}
 
 		try {
@@ -39,8 +36,6 @@ function PopUpTeamMemberInfo(props: PropsPopUpTeamMemberInfo) {
 				admins: updatedAdmins,
 			});
 
-			props.setPlayers(updatedPlayers);
-			props.setAdmins(updatedAdmins);
 			props.onClose();
 			console.log("deleted");
 		} catch (error) {
@@ -51,9 +46,9 @@ function PopUpTeamMemberInfo(props: PropsPopUpTeamMemberInfo) {
 	const handleManageAdmin = async (player: string) => {
 		var updatedAdmins;
 		if (!userIsAdmin(player)) {
-			updatedAdmins = [...(props.admins || []), player];
+			updatedAdmins = [...(team!.admins || []), player];
 		} else {
-			updatedAdmins = props.admins.filter((admin) => admin !== player);
+			updatedAdmins = team!.admins.filter((admin) => admin !== player);
 		}
 
 		try {
@@ -61,15 +56,13 @@ function PopUpTeamMemberInfo(props: PropsPopUpTeamMemberInfo) {
 				team_id: props.team_id,
 				admins: updatedAdmins,
 			});
-
-			props.setAdmins(updatedAdmins);
 		} catch (error) {
 			console.error("Error managing admin:", error);
 		}
 	};
 
 	function userIsAdmin(userId: string) {
-		if (props.admins?.includes(userId)) {
+		if (team?.admins?.includes(userId)) {
 			return true;
 		}
 		return false;

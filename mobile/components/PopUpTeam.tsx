@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Modal, Alert, ScrollView } fr
 import { ScreenWidth } from "@rneui/themed/dist/config";
 import { supabase } from "@/lib/supabase";
 import Icon from "react-native-vector-icons/FontAwesome6";
-import { getAllUsers, useUpdateTeam, useDeleteTeam, getUserAuthSession } from "@lib/autogen/queries.ts";
+import { getAllUsers, useUpdateTeam, useDeleteTeam, getUserAuthSession, getUsername } from "@lib/autogen/queries.ts";
 import { router } from "expo-router";
 import PopUpJoinRequests from "./PopUpJoinRequests.tsx";
 import { Image } from "@rneui/themed";
@@ -165,15 +165,7 @@ function PopUpTeam(props: PropsPopUpTeam) {
 					onRequestClose={() => setIsModalVisibleJoinRequests(false)}
 				>
 					<View style={styles.centeredView}>
-						<PopUpJoinRequests
-							onClose={handleCloseModalJoinRequest}
-							team_id={props.team_id}
-							name={props.name}
-							players={props.players}
-							setPlayers={props.setPlayers}
-							playerRequests={props.playerRequests}
-							setRequests={props.setRequests}
-						/>
+						<PopUpJoinRequests onClose={handleCloseModalJoinRequest} team_id={props.team_id} />
 					</View>
 				</Modal>
 			</View>
@@ -237,10 +229,6 @@ function PopUpTeam(props: PropsPopUpTeam) {
 														full_name={memberData.full_name}
 														username={""} //TODO: FIX
 														avatar={memberData.avatar_url!}
-														players={props.players}
-														setPlayers={props.setPlayers}
-														admins={props.admins}
-														setAdmins={props.setAdmins}
 														team_id={props.team_id}
 													/>
 												) : null;
