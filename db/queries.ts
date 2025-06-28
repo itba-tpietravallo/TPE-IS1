@@ -20,6 +20,7 @@ import {
 	useInsertMutation,
 	useDeleteMutation,
 	useUpdateMutation,
+	useUpsertMutation,
 } from "@supabase-cache-helpers/postgrest-react-query";
 
 export const queries = {
@@ -124,11 +125,18 @@ export const queries = {
 
 	getFieldReviewsAvg: (supabase: SupabaseClient<Database>, fieldId: string) =>
 		supabase
-			.from("field_reviews")
-			.select("avg:stars", { head: false })
-			.eq("field_id", fieldId)
-			.single(),
+				.from("field_reviews")
+				.select("rating")
+				.eq("field_id", fieldId),
 
+	getCurrentUserFieldReview: (supabase: SupabaseClient<Database>, fieldId: string, userId: string) =>
+		supabase
+				.from("field_reviews")
+				.select("rating")
+				.eq("field_id", fieldId)
+				.eq("user_id", userId)
+				.single(),
+	
 	getAllTeamsByUser: (supabase: SupabaseClient<Database>, userId: string) =>
 		supabase
 			.from("teams")
@@ -204,9 +212,9 @@ export const mutations = {
 		}),
 
 	insertFieldReview: (supabase: SupabaseClient<Database>) =>
-		useInsertMutation(supabase.from("field_reviews"), ["id"], "*", {
+		useUpsertMutation(supabase.from("field_reviews"), ["field_id", "user_id"], "*", {
 			onError: (error) => console.error("Error inserting review:", error),
-		}),
+  	}),
 
 	updateReservation: (supabase: SupabaseClient<Database>) =>
 		useUpdateMutation(supabase.from("reservations"), ["id"], "*", {
@@ -452,6 +460,18 @@ export function getFieldReviewsAvg(
 	);
 }
 
+export function getCurrentUserFieldReview(
+	supabase: SupabaseClient<Database>,
+	fieldId: string,
+	userId: string,
+	opts: any = undefined
+) {
+	return useQuerySupabase(
+		queries.getCurrentUserFieldReview(supabase, fieldId, userId),
+		opts
+	);
+}
+
 export function getAllTeamsByUser(
 	supabase: SupabaseClient<Database>,
 	userId: string,
@@ -678,18 +698,17 @@ export function useInsertReservation(supabase: SupabaseClient<Database>) {
 
 
 export function useInsertFieldReview(supabase: SupabaseClient<Database>) {
-	// Using the built-in useInsertMutation from supabase-cache-helpers
-	// This will automatically handle cache updates and optimistic updates
-	return useInsertMutation(
-		supabase.from("field_reviews"),
-		["id"], // Primary key columns
-		"*", 
-		{
-			onError: (error) => {
-				console.error("Error inserting review:", error);
-			},
-		},
-	);
+  return useUpsertMutation(
+    supabase.from("field_reviews"),
+    ["field_id", "user_id"], 
+    "*",                    
+    {
+      onConflict: "field_id,user_id", 
+      onError: (error) => {
+        console.error("Error inserting or updating review:", error);
+      },
+    }
+  );
 }
 
 export function useUpdateReservation(supabase: SupabaseClient<Database>) {
