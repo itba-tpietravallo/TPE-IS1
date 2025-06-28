@@ -20,6 +20,7 @@ import {
 	useInsertMutation,
 	useDeleteMutation,
 	useUpdateMutation,
+	useUpsertMutation,
 } from "@supabase-cache-helpers/postgrest-react-query";
 
 export const queries = {
@@ -122,6 +123,20 @@ export const queries = {
 		fieldId: string
 	) => supabase.from("tournaments").select("*").eq("fieldId", fieldId),
 
+	getFieldReviewsAvg: (supabase: SupabaseClient<Database>, fieldId: string) =>
+		supabase
+				.from("field_reviews")
+				.select("rating")
+				.eq("field_id", fieldId),
+
+	getCurrentUserFieldReview: (supabase: SupabaseClient<Database>, fieldId: string, userId: string) =>
+		supabase
+				.from("field_reviews")
+				.select("rating")
+				.eq("field_id", fieldId)
+				.eq("user_id", userId)
+				.single(),
+	
 	getAllTeamsByUser: (supabase: SupabaseClient<Database>, userId: string) =>
 		supabase
 			.from("teams")
@@ -195,6 +210,11 @@ export const mutations = {
 		useInsertMutation(supabase.from("reservations"), ["id"], "*", {
 			onError: (error) => console.error("Error inserting reservation:", error),
 		}),
+
+	insertFieldReview: (supabase: SupabaseClient<Database>) =>
+		useUpsertMutation(supabase.from("field_reviews"), ["field_id", "user_id"], "*", {
+			onError: (error) => console.error("Error inserting review:", error),
+  	}),
 
 	updateReservation: (supabase: SupabaseClient<Database>) =>
 		useUpdateMutation(supabase.from("reservations"), ["id"], "*", {
@@ -429,6 +449,29 @@ export function getAllTournamentsForFieldById(
 	);
 }
 
+export function getFieldReviewsAvg(
+	supabase: SupabaseClient<Database>,
+	fieldId: string,
+	opts: any = undefined
+) {
+	return useQuerySupabase(
+		queries.getFieldReviewsAvg(supabase, fieldId),
+		opts
+	);
+}
+
+export function getCurrentUserFieldReview(
+	supabase: SupabaseClient<Database>,
+	fieldId: string,
+	userId: string,
+	opts: any = undefined
+) {
+	return useQuerySupabase(
+		queries.getCurrentUserFieldReview(supabase, fieldId, userId),
+		opts
+	);
+}
+
 export function getAllTeamsByUser(
 	supabase: SupabaseClient<Database>,
 	userId: string,
@@ -651,6 +694,21 @@ export function useInsertReservation(supabase: SupabaseClient<Database>) {
 			},
 		}
 	);
+}
+
+
+export function useInsertFieldReview(supabase: SupabaseClient<Database>) {
+  return useUpsertMutation(
+    supabase.from("field_reviews"),
+    ["field_id", "user_id"], 
+    "*",                    
+    {
+      onConflict: "field_id,user_id", 
+      onError: (error) => {
+        console.error("Error inserting or updating review:", error);
+      },
+    }
+  );
 }
 
 export function useUpdateReservation(supabase: SupabaseClient<Database>) {

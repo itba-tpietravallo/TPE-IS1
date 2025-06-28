@@ -1,4 +1,3 @@
-import { useInsertFieldReview } from "@lib/autogen/queries";
 import { Star } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import { TouchableOpacity, Text, View, StyleSheet } from "react-native";
