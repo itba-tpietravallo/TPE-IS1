@@ -110,6 +110,10 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 
 	const insertReviewMutation = useInsertFieldReview(supabase);
 	const handleReview = async () => {
+		if (rating == currentRating) {
+			console.log("No changes in rating, skipping review insertion.");
+			return;
+		}
 		try {
 			await insertReviewMutation.mutateAsync([
 				{
