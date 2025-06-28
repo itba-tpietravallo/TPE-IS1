@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, Image, TouchableOpacity, Modal } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { ScreenWidth } from "@rneui/themed/dist/config";
 import { supabase } from "@/lib/supabase";
 import CheckoutButton from "./CheckoutButton";
+import { Star } from "lucide-react-native";
 import PreReserveButton from "./PreReserveButton";
 
 import {
@@ -12,8 +13,12 @@ import {
 	getAllTeamsByUser,
 	getUsername,
 	getUserAuthSession,
+	getFieldReviewsAvg,
+	useInsertFieldReview,
+	getCurrentUserFieldReview,
 } from "@/lib/autogen/queries";
 import Selector from "./Selector";
+import StarRating from "./StarRating";
 
 export type Renter = {
 	id: string;
@@ -41,6 +46,7 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 	const [selectedRenter, setSelectedRenter] = useState<Renter | null>(null);
 	const { data: teamData } = getAllTeamsByUser(supabase, user?.id!, { enabled: !!user?.id });
 	const normalizedTeams = teamData ? teamData.filter((team) => team.team_id && team.name !== null) : [];
+	const [rating, setRating] = useState(0);
 
 	const teams: Renter[] = normalizedTeams.map((team) => ({
 		id: team.team_id,
@@ -84,6 +90,38 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 		if (!renter) return false;
 		return teams.some((team) => team.id === renter.id);
 	}
+
+	const { data: currentReview } = getCurrentUserFieldReview(supabase, fieldId, user?.id!, { enabled: !!user?.id });
+	const currentRating = currentReview?.rating ?? 0;
+
+	useEffect(() => {
+		if (currentReview) {
+			setRating(currentRating);
+		}
+	}, [currentReview]);
+
+	const { data } = getFieldReviewsAvg(supabase, fieldId);
+	type Review = { rating: number };
+	const average = (
+		Array.isArray(data) && data.length > 0
+			? (data as Review[]).reduce((sum, r) => sum + r.rating, 0) / data.length
+			: 0
+	).toFixed(1);
+
+	const insertReviewMutation = useInsertFieldReview(supabase);
+	const handleReview = async () => {
+		try {
+			await insertReviewMutation.mutateAsync([
+				{
+					field_id: fieldId,
+					user_id: user?.id!,
+					rating: rating,
+				},
+			]);
+		} catch (error) {
+			console.error("Error inserting review", error);
+		}
+	};
 
 	return (
 		<View style={styles.modalView}>
@@ -174,6 +212,10 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 					</TouchableOpacity>
 				</View>
 				<View style={{ flexDirection: "row", alignItems: "center" }}>
+					<Star size={25} />
+					<Text style={{ fontSize: 16, fontStyle: "italic" }}>{average}</Text>
+				</View>
+				<View style={{ flexDirection: "row", alignItems: "center" }}>
 					<Image style={{ width: 25, height: 25 }} source={require("@/assets/images/cancha.png")} />
 					<Text style={{ fontSize: 16, fontStyle: "italic" }}>{location}</Text>
 				</View>
@@ -190,6 +232,14 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 			>
 				{description}
 			</Text>
+
+			<StarRating value={rating} onRate={(r) => setRating(r)} />
+			{rating > 0 && (
+				<TouchableOpacity onPress={handleReview} style={styles.submitButton}>
+					<Text style={styles.submitButtonText}>Calificar</Text>
+				</TouchableOpacity>
+			)}
+
 			<Text style={{ padding: 20, fontSize: 18 }}>Precio: ${price}</Text>
 			{/* ---------------------------------- Funciona en IOS??????? -------------------------------- */}
 			<View style={styles.selection}>
@@ -320,6 +370,17 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 12,
 		height: 20,
 		flexDirection: "row",
+	},
+	submitButton: {
+		borderRadius: 25,
+		alignSelf: "center",
+		shadowColor: "#000",
+		elevation: 5,
+	},
+	submitButtonText: {
+		fontWeight: "bold",
+		fontSize: 18,
+		textAlign: "center",
 	},
 });
 
