@@ -84,20 +84,7 @@ function TeamsFeed() {
 						if (selectedSport === "") return true;
 						return team.sport === selectedSport;
 					})
-					.map((team, i) => (
-						<TeamPost
-							key={team.team_id}
-							team_id={team.team_id}
-							name={team.name}
-							sport={team.sport}
-							players={team.players}
-							playerRequests={team.playerRequests}
-							description={team.description || ""}
-							images={team.images || []}
-							isPublic={team.isPublic}
-							admins={team.admins}
-						/>
-					))}
+					.map((team, i) => <TeamPost key={team.team_id} team_id={team.team_id} />)}
 
 				{/* Boton para agregar un equipo */}
 				<TouchableOpacity onPress={() => handleAddNewTeam()}>

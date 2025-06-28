@@ -2,17 +2,11 @@ import { ScreenHeight } from "@rneui/themed/dist/config";
 import React, { useState } from "react";
 import PopUpTeam from "./PopUpTeam";
 import { StyleSheet, Text, View, ImageBackground, TouchableOpacity, Modal } from "react-native";
+import { supabase } from "@/lib/supabase";
+import { getTeamById } from "@lib/autogen/queries";
 
 type PropsTeam = {
 	team_id: string;
-	name: string;
-	sport: string;
-	description: string;
-	players: string[];
-	playerRequests: string[];
-	images: string[];
-	isPublic: boolean;
-	admins: string[];
 };
 
 function TeamPost(props: PropsTeam) {
@@ -21,16 +15,22 @@ function TeamPost(props: PropsTeam) {
 		setIsModalVisible(false);
 	};
 
+	const { data: team } = getTeamById(supabase, props.team_id);
+
 	return (
 		<View style={{ flex: 1 }}>
 			<TouchableOpacity onPress={() => setIsModalVisible(true)}>
 				<ImageBackground
 					style={styles.container}
 					imageStyle={{ borderRadius: 15, opacity: 0.9 }}
-					source={props.images.length == 0 ? require("@/assets/images/people-logo.jpg") : props.images[0]} //@TODO: IMAGENES
+					source={
+						team?.images
+							? team.images.length != 0 && team?.images[0]
+							: require("@/assets/images/people-logo.jpg")
+					} //@TODO: IMAGENES
 				>
 					<View style={styles.topContent}>
-						<Text style={styles.title}>{props.name}</Text>
+						<Text style={styles.title}>{team?.name}</Text>
 					</View>
 				</ImageBackground>
 			</TouchableOpacity>
