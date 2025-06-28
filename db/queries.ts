@@ -122,6 +122,13 @@ export const queries = {
 		fieldId: string
 	) => supabase.from("tournaments").select("*").eq("fieldId", fieldId),
 
+	getFieldReviewsAvg: (supabase: SupabaseClient<Database>, fieldId: string) =>
+		supabase
+			.from("field_reviews")
+			.select("avg:stars", { head: false })
+			.eq("field_id", fieldId)
+			.single(),
+
 	getAllTeamsByUser: (supabase: SupabaseClient<Database>, userId: string) =>
 		supabase
 			.from("teams")
@@ -194,6 +201,11 @@ export const mutations = {
 	insertReservation: (supabase: SupabaseClient<Database>) =>
 		useInsertMutation(supabase.from("reservations"), ["id"], "*", {
 			onError: (error) => console.error("Error inserting reservation:", error),
+		}),
+
+	insertFieldReview: (supabase: SupabaseClient<Database>) =>
+		useInsertMutation(supabase.from("field_reviews"), ["id"], "*", {
+			onError: (error) => console.error("Error inserting review:", error),
 		}),
 
 	updateReservation: (supabase: SupabaseClient<Database>) =>
@@ -429,6 +441,17 @@ export function getAllTournamentsForFieldById(
 	);
 }
 
+export function getFieldReviewsAvg(
+	supabase: SupabaseClient<Database>,
+	fieldId: string,
+	opts: any = undefined
+) {
+	return useQuerySupabase(
+		queries.getFieldReviewsAvg(supabase, fieldId),
+		opts
+	);
+}
+
 export function getAllTeamsByUser(
 	supabase: SupabaseClient<Database>,
 	userId: string,
@@ -650,6 +673,22 @@ export function useInsertReservation(supabase: SupabaseClient<Database>) {
 				}
 			},
 		}
+	);
+}
+
+
+export function useInsertFieldReview(supabase: SupabaseClient<Database>) {
+	// Using the built-in useInsertMutation from supabase-cache-helpers
+	// This will automatically handle cache updates and optimistic updates
+	return useInsertMutation(
+		supabase.from("field_reviews"),
+		["id"], // Primary key columns
+		"*", 
+		{
+			onError: (error) => {
+				console.error("Error inserting review:", error);
+			},
+		},
 	);
 }
 
