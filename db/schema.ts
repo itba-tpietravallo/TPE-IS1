@@ -14,6 +14,7 @@ import {
 	timestamp,
 	bigint,
 	boolean,
+	unique,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm/sql";
 import { authenticatedRole } from "drizzle-orm/supabase";
@@ -361,6 +362,7 @@ export const fieldReviewsTable = pgTable(
 			.notNull(),
 	},
 	(table) => [
+		unique("unique_user_field").on(table.user_id, table.field_id),
 		sql`CHECK (rating >= 0 AND rating <= 5)`,
 		pgPolicy("select_authenticated", {
 			for: "select",
