@@ -1,45 +1,46 @@
 name: API
 
 on:
-    workflow_dispatch:
-    workflow_call:
+  workflow_dispatch:
+  workflow_call:
 
 jobs:
-    Test:
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout Repository
-              uses: actions/checkout@v4
+  Test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-            - name: Extract branch name
-              shell: bash
-              run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
-              id: extract_branch
+      - name: Extract branch name
+        shell: bash
+        run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+        id: extract_branch
 
-            - name: Cache node modules
-              id: cache-modules
-              uses: actions/cache@v3
-              with:
-                  path: |
-                      **/node_modules
-                      ~/.npm
-                  key: node_modules-${{ runner.os }}-api-${{hashFiles('package-lock.json')}}
-                  restore-keys: node_modules-${{ runner.os }}-api-
+      - name: Cache node modules
+        id: cache-modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            **/node_modules
+            ~/.npm
+          key: node_modules-${{ runner.os }}-api-${{hashFiles('package-lock.json')}}
+          restore-keys: node_modules-${{ runner.os }}-api-
 
-            - name: Install dependencies
-              if: steps.cache-modules.outputs.cache-hit != 'true'
-              run: npm ci && cd web && npm ci && cd .. && cd db && npm ci
-              shell: bash
+      - name: Install dependencies
+        if: steps.cache-modules.outputs.cache-hit != 'true'
+        run: npm ci && cd web && npm ci && cd .. && cd db && npm ci
+        shell: bash
 
-            - name: Load web env
-              run: |
-                  cat ./web/.env | grep '^[^#]' >> "$GITHUB_ENV"
-                  echo "GCP_PRODUCTION_API_KEY=${{ secrets.GCP_PRODUCTION_API_KEY }}" >> "$GITHUB_ENV"
+      - name: Load web env
+        run: |
+          cat ./web/.env | grep '^[^#]' >> "$GITHUB_ENV"
+          echo "GCP_PRODUCTION_API_KEY=${{ secrets.GCP_PRODUCTION_API_KEY }}" >> "$GITHUB_ENV"
+          echo "GOOGLE_MAPS_WEB_API_KEY=${{ secrets.GOOGLE_MAPS_WEB_API_KEY }}" >> "$GITHUB_ENV"
 
-            - name: Run tests
-              if: steps.extract_branch.outputs.branch != 'main'
-              run: |
-                  cd web && :(){ curl --head -X GET --retry 10 --retry-connrefused --retry-delay 3 "http://localhost:5173" && (GCP_PRODUCTION_API_KEY="$GCP_PRODUCTION_API_KEY" GOOGLE_MAPS_WEB_API_KEY="$GOOGLE_MAPS_WEB_API_KEY" npm run test-api || EX=$? && pkill node && exit $EX) }; npm run dev | :;
-              env:
-                  GCP_PRODUCTION_API_KEY: ${{ secrets.GCP_PRODUCTION_API_KEY }}
-                  GOOGLE_MAPS_WEB_API_KEY: ${{ secrets.GOOGLE_MAPS_WEB_API_KEY }}
+      - name: Run tests
+        if: steps.extract_branch.outputs.branch != 'main'
+        run: |
+          cd web && :(){ curl --head -X GET --retry 10 --retry-connrefused --retry-delay 3 "http://localhost:5173" && (GCP_PRODUCTION_API_KEY="$GCP_PRODUCTION_API_KEY" GOOGLE_MAPS_WEB_API_KEY="$GOOGLE_MAPS_WEB_API_KEY" npm run test-api || EX=$? && pkill node && exit $EX) }; npm run dev | :;
+        env:
+          GCP_PRODUCTION_API_KEY: ${{ secrets.GCP_PRODUCTION_API_KEY }}
+          GOOGLE_MAPS_WEB_API_KEY: ${{ secrets.GOOGLE_MAPS_WEB_API_KEY }}
