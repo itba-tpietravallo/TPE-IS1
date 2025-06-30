@@ -102,6 +102,22 @@ function PopUpTeam(props: PropsPopUpTeam) {
 			}
 		};
 
+		const cleanPlayersArray = async () => {
+			const updatedMembers = (team?.players || []).filter((player): player is string => player !== null);
+
+			try {
+				await updateTeamMutation.mutateAsync({
+					team_id: props.team_id,
+					players: updatedMembers,
+				});
+			} catch (error) {
+				console.error("Error cleaning team:", error);
+			}
+		};
+
+		if (team?.players.some((p) => p === null)) {
+			cleanPlayersArray();
+		}
 		deleteTeamIfEmpty();
 	}, [team?.players]);
 
