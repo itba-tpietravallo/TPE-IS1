@@ -163,6 +163,7 @@ export function NewField() {
 	}, [watchedStreet, watchedStreetNumber, watchedCity, debouncedGeocode]);
 
 	const onSubmit = async (data: FieldFormData) => {
+		console.log("on sub");
 		try {
 			if (!latitude || !longitude) {
 				setGeocodingError(
@@ -185,11 +186,11 @@ export function NewField() {
 							body: JSON.stringify({ fileName: file.name, type: "application/octet-stream" }),
 							headers,
 						})
-						).json();
+					).json();
 
 				headers = new Headers();
 				headers.set("Content-Type", "application/octet-stream");
-				
+
 				await fetch(signedPUTURL, {
 					method: "PUT",
 					headers,
@@ -199,22 +200,23 @@ export function NewField() {
 				uploadedImageUrls.push(downloadURL);
 			}
 
-			const { error: insertError } = await insertFieldMutation.mutateAsync({
-				owner: user.user.id,
-				name: data.name,
-				street: data.street,
-				street_number: data.street_number,
-				neighborhood: data.neighbourhood,
-				city: data.city,
-				sports: data.sports.map((s) => s.value),
-				images: uploadedImageUrls,
-				price: Number(data.price),
-				location: `POINT(${latitude || 0} ${longitude || 0})`,
-				description: data.description || "",
-				avatar_url: user.avatar_url,
-			});
+			await insertFieldMutation.mutateAsync([
+				{
+					owner: user.user.id,
+					name: data.name,
+					street: data.street,
+					street_number: data.street_number,
+					neighborhood: data.neighbourhood,
+					city: data.city,
+					sports: data.sports.map((s) => s.value),
+					images: uploadedImageUrls,
+					price: Number(data.price),
+					location: `POINT(${latitude || 0} ${longitude || 0})`,
+					description: data.description || "",
+					avatar_url: user.avatar_url,
+				},
+			]);
 
-			if (insertError) throw new Error(`Insert error: ${insertError.message}`);
 			window.location.href = `${URL_ORIGIN}/canchas`;
 		} catch (err: any) {
 			console.error("Submission failed:", err.message || err);
