@@ -276,7 +276,7 @@ export function FieldDetail(props: FieldProps) {
 																									ff?.data?.adminedBy.filter(
 																										(i) =>
 																											i !== admin,
-																									),
+																									) || [],
 																							},
 																						);
 																					}}

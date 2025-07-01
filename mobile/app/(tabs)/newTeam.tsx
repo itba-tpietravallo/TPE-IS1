@@ -16,7 +16,7 @@ import SelectDropdown from "react-native-select-dropdown";
 
 import { supabase } from "@/lib/supabase";
 import { router } from "expo-router";
-import { getAllSports, getUserSession, useInsertTeam } from "@lib/autogen/queries";
+import { getAllSports, getUserAuthSession, getUserSession, useInsertTeam } from "@lib/autogen/queries";
 
 export default function PostTeam() {
 	const [teamName, setTeamName] = useState("");
@@ -28,14 +28,15 @@ export default function PostTeam() {
 	const [availability, setAvailability] = useState(0);
 	const [isPublic, setIsPublic] = useState(true);
 
-	const { data: user } = getUserSession(supabase);
+	const { data: session } = getUserAuthSession(supabase);
+	const user = session?.user;
 	const insertTeamMutation = useInsertTeam(supabase);
 
 	const isFormComplete = teamName.trim() !== "" && sport.length != 0;
 
 	const handlePostTeam = async () => {
 		try {
-			await insertTeamMutation.mutateAsync({
+			await insertTeamMutation.mutateAsync([{
 				name: teamName,
 				sport: sport,
 				description: description,
@@ -46,7 +47,7 @@ export default function PostTeam() {
 				isPublic: isPublic,
 				contactPhone: "",
 				contactEmail: "",
-			});
+			}]);
 
 			console.log("Team created successfully");
 			router.push("/(tabs)/teams");
