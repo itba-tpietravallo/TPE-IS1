@@ -9,13 +9,19 @@ import {
 	ScrollView,
 	KeyboardAvoidingView,
 	Platform,
+	Image,
+	ActivityIndicator,
 } from "react-native";
+
+import * as ImagePicker from "expo-image-picker";
 
 import SelectDropdown from "react-native-select-dropdown";
 
 import { supabase } from "@/lib/supabase";
 import { router } from "expo-router";
 import { getAllSports, getUserAuthSession, useInsertTeam } from "@lib/autogen/queries";
+
+import { uploadImageToStorage } from "@/lib/uploadImage";
 
 export default function PostTeam() {
 	const [teamName, setTeamName] = useState("");
@@ -24,6 +30,8 @@ export default function PostTeam() {
 	const [description, setDescription] = useState("");
 	//const [availability, setAvailability] = useState(0);
 	const [isPublic, setIsPublic] = useState(true);
+	const [images, setImages] = useState<string[]>([]);
+	const [uploading, setUploading] = useState(false); //para la subida de la imagen
 
 	const { data: session } = getUserAuthSession(supabase);
 	const user = session?.user;
@@ -33,24 +41,54 @@ export default function PostTeam() {
 
 	const handlePostTeam = async () => {
 		try {
-			await insertTeamMutation.mutateAsync([{
-				name: teamName,
-				sport: sport,
-				description: description,
-				images: null,
-				players: [user?.id!],
-				playerRequests: [],
-				admins: [user?.id!],
-				isPublic: isPublic,
-				contactPhone: "",
-				contactEmail: "",
-			}]);
+			await insertTeamMutation.mutateAsync([
+				{
+					name: teamName,
+					sport: sport,
+					description: description,
+					images: images.length > 0 ? images : [""],
+					players: [user?.id!],
+					playerRequests: [],
+					admins: [user?.id!],
+					isPublic: isPublic,
+					contactPhone: "",
+					contactEmail: "",
+				},
+			]);
 
 			console.log("Team created successfully");
 			router.push("/(tabs)/teams");
 		} catch (error) {
 			console.error("Error creating team:", error);
 			Alert.alert("Error", "No se pudo crear el equipo. Por favor, intenta de nuevo.");
+		}
+	};
+
+	const handlePickImage = async () => {
+		const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+		if (status !== "granted") {
+			Alert.alert("Permiso requerido", "Se necesita permiso para acceder a la galería.");
+			return;
+		}
+		let result = await ImagePicker.launchImageLibraryAsync({
+			mediaTypes: "images",
+			quality: 0.7,
+			allowsEditing: true,
+		});
+
+		if (!result.canceled) {
+			setUploading(true);
+			try {
+				const uri = result.assets[0].uri;
+				const publicUrl = await uploadImageToStorage(uri, user?.id || "anon");
+				setImages((prev) => [...prev, publicUrl]);
+			} catch (e) {
+				console.log("Error al subir imagen:", e);
+				Alert.alert("Error", "No se pudo subir la imagen.");
+			}
+			setUploading(false);
+		} else {
+			alert("No selecciona");
 		}
 	};
 
@@ -164,6 +202,22 @@ export default function PostTeam() {
 						);
 					}}
 				/>
+
+				{/* Imagenes */}
+				<Text style={styles.label}>Imágen del equipo</Text>
+				<TouchableOpacity style={styles.button} onPress={handlePickImage}>
+					<Text style={styles.buttonText}>Seleccionar imágen</Text>
+				</TouchableOpacity>
+				{uploading && <ActivityIndicator size="small" color="#f18f01" />}
+				<View style={{ flexDirection: "row", flexWrap: "wrap", marginVertical: 10 }}>
+					{images.map((img, idx) => (
+						<Image
+							key={idx}
+							source={{ uri: img }}
+							style={{ width: 80, height: 80, borderRadius: 8, marginRight: 8, marginBottom: 8 }}
+						/>
+					))}
+				</View>
 
 				<Text style={{ color: "#464545" }}>* Indica que el campo es obligatorio.</Text>
 
