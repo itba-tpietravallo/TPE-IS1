@@ -116,7 +116,7 @@ const menuItems = [
 	{ label: "Mi actividad", icon: "money-check", action: () => router.push("/(tabs)/profileMenu/paymentActivity") },
 	{ label: "Mis reservas", icon: "calendar-check", action: () => router.push("/(tabs)/profileMenu/reservations") },
 	{ label: "Mis equipos", icon: "user-group", action: () => router.push("/(tabs)/profileMenu/teams") },
-	// { label: "Mis torneos", icon: "medal", action: () => router.push("/(tabs)/profileMenu/teams") },
+	{ label: "Mis torneos", icon: "medal", action: () => router.push("/(tabs)/profileMenu/tournaments") },
 	{ label: "Pendientes", icon: "spinner", action: () => router.push("/(tabs)/profileMenu/pendings") },
 ];
 
