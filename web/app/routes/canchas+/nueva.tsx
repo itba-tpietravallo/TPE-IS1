@@ -227,6 +227,25 @@ export function NewField() {
 				},
 			]);
 
+			const { data: insertedFields, error } = await supabase
+				.from("fields")
+				.select("id")
+				.eq("owner", user.user.id)
+				.eq("name", data.name)
+				.order("id", { ascending: false })
+				.limit(1);
+
+			const fieldId = insertedFields?.[0].id;
+
+			await insertAvailabilityMutation.mutateAsync([
+				{
+					field_id: fieldId,
+					start_time: data.availability[0].from,
+					end_time: data.availability[0].to,
+					is_booked: false,
+				},
+			]);
+
 			window.location.href = `${URL_ORIGIN}/canchas`;
 		} catch (err: any) {
 			console.error("Submission failed:", err.message || err);
