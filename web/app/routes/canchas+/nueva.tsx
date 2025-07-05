@@ -51,15 +51,15 @@ const fieldSchema = z.object({
 		.min(1, "El precio es requerido")
 		.refine((val) => !isNaN(Number(val)), "El precio debe ser un número"),
 	description: z.string().optional(),
-	// availability: z
-	// 	.array(
-	// 		z.object({
-	// 			day: z.string(), // ej. "lunes"
-	// 			from: z.string(), // formato "HH:mm"
-	// 			to: z.string(),
-	// 		}),
-	// 	)
-	// 	.min(1, "Debes seleccionar al menos un horario disponible"),
+	availability: z
+		.array(
+			z.object({
+				day: z.string(), // ej. "lunes"
+				from: z.string(), // formato "HH:mm"
+				to: z.string(),
+			}),
+		)
+		.min(1, "Debes seleccionar al menos un horario disponible"),
 });
 
 type FieldFormData = z.infer<typeof fieldSchema>;
@@ -115,7 +115,7 @@ export function NewField() {
 			image: undefined,
 			price: "",
 			description: "",
-			// availability: [],
+			availability: [],
 		},
 	});
 
@@ -210,6 +210,8 @@ export function NewField() {
 				uploadedImageUrls.push(downloadURL);
 			}
 
+			// @todo: es todo muy ineficiente jajaj, CAMBIAR -------------------
+
 			await insertFieldMutation.mutateAsync([
 				{
 					owner: user.user.id,
@@ -227,25 +229,38 @@ export function NewField() {
 				},
 			]);
 
-			// const { data: insertedFields, error } = await supabase
-			// 	.from("fields")
-			// 	.select("id")
-			// 	.eq("owner", user.user.id)
-			// 	.eq("name", data.name)
-			// 	.order("id", { ascending: false })
-			// 	.limit(1);
+			const { data: insertedFields } = await supabase
+				.from("fields")
+				.select("id")
+				.eq("owner", user.user.id)
+				.eq("name", data.name)
+				.order("id", { ascending: false })
+				.limit(1);
 
-			// const fieldId = insertedFields?.[0].id;
+			const fieldId = insertedFields?.[0].id;
 
-			// await insertAvailabilityMutation.mutateAsync([
-			// 	{
-			// 		field_id: fieldId,
-			// 		start_time: data.availability[0].from,
-			// 		end_time: data.availability[0].to,
-			// 		is_booked: false,
-			// 	},
-			// ]);
+			const dayToNumber: Record<string, number> = {
+				Lunes: 0,
+				Martes: 1,
+				Miércoles: 2,
+				Jueves: 3,
+				Viernes: 4,
+				Sábado: 5,
+				Domingo: 0,
+			};
 
+			if (fieldId) {
+				const availabilityPayload = data.availability.map((slot) => ({
+					field_id: fieldId,
+					day_of_week: dayToNumber[slot.day],
+					start_time: slot.from,
+					end_time: slot.to,
+				}));
+
+				await supabase.from("field_availabilities").insert(availabilityPayload);
+			}
+
+			// ---------------------------------------------------------------------------------------------------------
 			window.location.href = `${URL_ORIGIN}/canchas`;
 		} catch (err: any) {
 			console.error("Submission failed:", err.message || err);
@@ -298,8 +313,8 @@ export function NewField() {
 					<hr className="my-4 border-t border-gray-300" />
 					<SelectFormSection form={form} options={options} />
 					<hr className="my-4 border-t border-gray-300" />
-					{/* <ScheduleSection form={form} />
-					<hr className="my-4 border-t border-gray-300" /> */}
+					<ScheduleSection form={form} />
+					<hr className="my-4 border-t border-gray-300" />
 					<ImageSection form={form} />
 					<hr className="my-4 border-t border-gray-300" />
 					<PriceSection form={form} />
@@ -625,77 +640,77 @@ function ImageSection({ form }: { form: ReturnType<typeof useForm<FieldFormData>
 	);
 }
 
-// function ScheduleSection({ form }: { form: ReturnType<typeof useForm<FieldFormData>> }) {
-// 	const daysOfWeek = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
-// 	const availability = form.watch("availability") || [];
+function ScheduleSection({ form }: { form: ReturnType<typeof useForm<FieldFormData>> }) {
+	const daysOfWeek = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+	const availability = form.watch("availability") || [];
 
-// 	const handleAddSlot = () => {
-// 		form.setValue("availability", [...availability, { day: "Lunes", from: "09:00", to: "20:00" }]);
-// 	};
+	const handleAddSlot = () => {
+		form.setValue("availability", [...availability, { day: "Lunes", from: "09:00", to: "20:00" }]);
+	};
 
-// 	const handleRemoveSlot = (index: number) => {
-// 		const newSlots = [...availability];
-// 		newSlots.splice(index, 1);
-// 		form.setValue("availability", newSlots);
-// 	};
+	const handleRemoveSlot = (index: number) => {
+		const newSlots = [...availability];
+		newSlots.splice(index, 1);
+		form.setValue("availability", newSlots);
+	};
 
-// 	const handleChange = (index: number, field: string, value: string) => {
-// 		const newSlots = [...availability];
-// 		newSlots[index] = { ...newSlots[index], [field]: value };
-// 		form.setValue("availability", newSlots);
-// 	};
+	const handleChange = (index: number, field: string, value: string) => {
+		const newSlots = [...availability];
+		newSlots[index] = { ...newSlots[index], [field]: value };
+		form.setValue("availability", newSlots);
+	};
 
-// 	return (
-// 		<div className="flex flex-col space-y-4">
-// 			<FormLabel className="font-sans text-base text-[#223332]">Horarios disponibles</FormLabel>
-// 			<p className="text-sm text-gray-500">Duración de cada reserva: 1 hora</p>
-// 			{availability.map((slot, index) => (
-// 				<div key={index} className="flex items-center gap-4">
-// 					<select
-// 						value={slot.day}
-// 						onChange={(e) => handleChange(index, "day", e.target.value)}
-// 						className="border px-2 py-1"
-// 					>
-// 						{daysOfWeek.map((day) => (
-// 							<option key={day} value={day}>
-// 								{day}
-// 							</option>
-// 						))}
-// 					</select>
-// 					<input
-// 						type="time"
-// 						value={slot.from}
-// 						onChange={(e) => handleChange(index, "from", e.target.value)}
-// 						className="border px-2 py-1"
-// 					/>
-// 					<span>-</span>
-// 					<input
-// 						type="time"
-// 						value={slot.to}
-// 						onChange={(e) => handleChange(index, "to", e.target.value)}
-// 						className="border px-2 py-1"
-// 					/>
-// 					<Button
-// 						type="button"
-// 						variant="ghost"
-// 						className="hover:text-red-500"
-// 						onClick={() => handleRemoveSlot(index)}
-// 					>
-// 						x
-// 					</Button>
-// 				</div>
-// 			))}
-// 			<Button
-// 				type="button"
-// 				className="h-8 w-1/5 bg-[#223332] px-6 py-2 text-sm hover:bg-[#f18f01]/80"
-// 				onClick={handleAddSlot}
-// 			>
-// 				Agregar horario
-// 			</Button>
-// 			<FormMessage />
-// 		</div>
-// 	);
-// }
+	return (
+		<div className="flex flex-col space-y-4">
+			<FormLabel className="font-sans text-base text-[#223332]">Horarios disponibles</FormLabel>
+			<p className="text-sm text-gray-500">Duración de cada reserva: 1 hora</p>
+			{availability.map((slot, index) => (
+				<div key={index} className="flex items-center gap-4">
+					<select
+						value={slot.day}
+						onChange={(e) => handleChange(index, "day", e.target.value)}
+						className="border px-2 py-1"
+					>
+						{daysOfWeek.map((day) => (
+							<option key={day} value={day}>
+								{day}
+							</option>
+						))}
+					</select>
+					<input
+						type="time"
+						value={slot.from}
+						onChange={(e) => handleChange(index, "from", e.target.value)}
+						className="border px-2 py-1"
+					/>
+					<span>-</span>
+					<input
+						type="time"
+						value={slot.to}
+						onChange={(e) => handleChange(index, "to", e.target.value)}
+						className="border px-2 py-1"
+					/>
+					<Button
+						type="button"
+						variant="ghost"
+						className="hover:text-red-500"
+						onClick={() => handleRemoveSlot(index)}
+					>
+						x
+					</Button>
+				</div>
+			))}
+			<Button
+				type="button"
+				className="h-8 w-1/5 bg-[#223332] px-6 py-2 text-sm hover:bg-[#f18f01]/80"
+				onClick={handleAddSlot}
+			>
+				Agregar horario
+			</Button>
+			<FormMessage />
+		</div>
+	);
+}
 
 export default NewField;
 

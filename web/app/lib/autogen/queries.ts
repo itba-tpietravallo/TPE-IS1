@@ -359,7 +359,7 @@ export function useInsertAvailability(supabase: SupabaseClient<Database>) {
 	// Using the built-in useInsertMutation from supabase-cache-helpers
 	// This will automatically handle cache updates and optimistic updates
 	return useInsertMutation(
-		supabase.from("field_availability"),
+		supabase.from("field_availabilities"),
 		["id"], // Primary key columns
 		"*", // Select all columns for the cache update
 		{

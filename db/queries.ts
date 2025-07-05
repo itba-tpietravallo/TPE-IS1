@@ -355,22 +355,6 @@ export function useInsertField(supabase: SupabaseClient<Database>) {
 	);
 }
 
-export function useInsertAvailability(supabase: SupabaseClient<Database>) {
-	// Using the built-in useInsertMutation from supabase-cache-helpers
-	// This will automatically handle cache updates and optimistic updates
-	return useInsertMutation(
-		supabase.from("field_availability"),
-		["id"], // Primary key columns
-		"*", // Select all columns for the cache update
-		{
-			// Define any additional options as needed
-			onError: (error) => {
-				console.error("Error inserting field:", error);
-			},
-		},
-	);
-}
-
 export function useDeleteField(supabase: SupabaseClient<Database>) {
 	// Using the built-in useDeleteMutation from supabase-cache-helpers
 	// This will automatically handle cache updates and optimistic updates
