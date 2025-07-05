@@ -298,8 +298,8 @@ export function NewField() {
 					<hr className="my-4 border-t border-gray-300" />
 					<SelectFormSection form={form} options={options} />
 					<hr className="my-4 border-t border-gray-300" />
-					<ScheduleSection form={form} />
-					<hr className="my-4 border-t border-gray-300" />
+					{/* <ScheduleSection form={form} />
+					<hr className="my-4 border-t border-gray-300" /> */}
 					<ImageSection form={form} />
 					<hr className="my-4 border-t border-gray-300" />
 					<PriceSection form={form} />
