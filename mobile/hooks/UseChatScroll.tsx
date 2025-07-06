@@ -5,16 +5,16 @@ export function useChatScroll(ref: React.RefObject<FlatList<any>>, dep: any) {
 	const [isAtBottom, setIsAtBottom] = useState(true);
 
 	const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-		const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
-		const isScrolledToBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - 20; // 20px buffer
+		const { contentOffset } = event.nativeEvent;
+		const isScrolledToBottom = contentOffset.y <= 20;
 		setIsAtBottom(isScrolledToBottom);
 	};
 
 	useEffect(() => {
-		if (isAtBottom && ref.current) {
-			ref.current.scrollToEnd({ animated: true });
+		if (ref.current) {
+			ref.current.scrollToIndex({ index: 0, animated: true });
 		}
-	}, [dep, isAtBottom, ref]);
+	}, [dep, ref]);
 
 	return { handleScroll };
 }

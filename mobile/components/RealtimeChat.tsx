@@ -16,6 +16,7 @@ import { supabase } from "../lib/supabase";
 import { useChatMessages, useInsertMessage } from "@/lib/autogen/queries";
 import Icon from "react-native-vector-icons/FontAwesome6";
 import { useRouter } from "expo-router";
+import { useChatScroll } from "@/hooks/UseChatScroll";
 
 export function RealtimeChat({ roomId, roomName, userId }: { roomId: string; roomName: string; userId: string }) {
 	const router = useRouter();
@@ -24,16 +25,10 @@ export function RealtimeChat({ roomId, roomName, userId }: { roomId: string; roo
 
 	const [newMessage, setNewMessage] = useState("");
 	const flatListRef = useRef<FlatList<Message>>(null);
-	const [listReady, setListReady] = useState(false);
 	const [localMessages, setLocalMessages] = useState<Message[]>([]);
-	const [shouldScrollToTop, setShouldScrollToTop] = useState(false);
+	const [messageCount, setMessageCount] = useState(0);
 
-	useEffect(() => {
-		if (shouldScrollToTop) {
-			flatListRef.current?.scrollToIndex({ index: 0, animated: true });
-			setShouldScrollToTop(false);
-		}
-	}, [shouldScrollToTop, localMessages]);
+	const { handleScroll } = useChatScroll(flatListRef, messageCount);
 
 	useEffect(() => {
 		if (!messages) return;
@@ -79,7 +74,7 @@ export function RealtimeChat({ roomId, roomName, userId }: { roomId: string; roo
 		};
 
 		setLocalMessages((prev) => [optimisticMessage, ...prev]);
-		setShouldScrollToTop(true);
+		setMessageCount((count) => count + 1);
 
 		setNewMessage("");
 
@@ -167,7 +162,7 @@ export function RealtimeChat({ roomId, roomName, userId }: { roomId: string; roo
 					<FlatList
 						inverted
 						ref={flatListRef}
-						onLayout={() => setListReady(true)}
+						onScroll={handleScroll}
 						data={localMessages}
 						renderItem={({ item }) => <ChatMessage message={item} currentUserId={userId} />}
 						keyExtractor={(item) => item.id.toString()}

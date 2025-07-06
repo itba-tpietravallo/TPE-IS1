@@ -1,6 +1,6 @@
 import { getUserAuthSession } from "@/lib/autogen/queries";
 import { getAllTeamsByUser } from "@/lib/autogen/queries";
-import { supabase } from "@lib/supabase";
+import { supabase } from "@/lib/supabase";
 import { useEffect, useState } from "react";
 import { FlatList, TouchableOpacity, Text, View, Image } from "react-native";
 import { useRouter } from "expo-router";
