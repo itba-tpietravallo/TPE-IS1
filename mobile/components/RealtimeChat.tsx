@@ -12,12 +12,10 @@ import {
 	TouchableOpacity,
 } from "react-native";
 import { ChatMessage, Message } from "./ChatMessage";
-import { useChatScroll } from "../hooks/UseChatScroll";
 import { supabase } from "../lib/supabase";
 import { useChatMessages, useInsertMessage } from "@/lib/autogen/queries";
 import Icon from "react-native-vector-icons/FontAwesome6";
 import { useRouter } from "expo-router";
-import { Keyboard } from "react-native";
 
 export function RealtimeChat({ roomId, roomName, userId }: { roomId: string; roomName: string; userId: string }) {
 	const router = useRouter();
@@ -26,48 +24,78 @@ export function RealtimeChat({ roomId, roomName, userId }: { roomId: string; roo
 
 	const [newMessage, setNewMessage] = useState("");
 	const flatListRef = useRef<FlatList<Message>>(null);
-	const { handleScroll } = useChatScroll(flatListRef, messages);
 	const [listReady, setListReady] = useState(false);
+	const [localMessages, setLocalMessages] = useState<Message[]>([]);
+	const [shouldScrollToTop, setShouldScrollToTop] = useState(false);
 
 	useEffect(() => {
-		if (messages && messages.length > 0 && listReady) {
-			flatListRef.current?.scrollToEnd({ animated: false });
+		if (shouldScrollToTop) {
+			flatListRef.current?.scrollToIndex({ index: 0, animated: true });
+			setShouldScrollToTop(false);
 		}
-	}, [messages, listReady]);
+	}, [shouldScrollToTop, localMessages]);
 
 	useEffect(() => {
-		const keyboardDidShowListener = Keyboard.addListener("keyboardDidShow", () => {
-			setTimeout(() => {
-				flatListRef.current?.scrollToEnd({ animated: true });
-			}, 100);
-		});
+		if (!messages) return;
 
-		return () => {
-			keyboardDidShowListener.remove();
-		};
-	}, []);
+		setLocalMessages((currentLocal) => {
+			const serverMessages = messages || [];
+			const filteredLocal = currentLocal.filter((localMsg) => {
+				const isOptimistic = localMsg.id.toString().includes("-");
+				if (!isOptimistic) {
+					return true;
+				}
+
+				const correspondingServerMessage = serverMessages.find(
+					(serverMsg) =>
+						serverMsg.user_id === localMsg.user_id &&
+						serverMsg.content === localMsg.content &&
+						Math.abs(new Date(serverMsg.created_at).getTime() - new Date(localMsg.created_at).getTime()) <
+							10000,
+				);
+
+				return !correspondingServerMessage;
+			});
+
+			return [...serverMessages, ...filteredLocal].sort(
+				(a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+			);
+		});
+	}, [messages]);
 
 	const handleSendMessage = async () => {
 		if (newMessage.trim() === "" || !userId || !supabase) return;
+
+		const tempId = `${Date.now()}-${Math.floor(Math.random() * 1000000)}`;
+		const optimisticMessage: Message = {
+			id: tempId,
+			user_id: userId,
+			content: newMessage.trim(),
+			created_at: new Date().toISOString(),
+			users: {
+				username: null,
+				avatar_url: null,
+			},
+		};
+
+		setLocalMessages((prev) => [optimisticMessage, ...prev]);
+		setShouldScrollToTop(true);
+
+		setNewMessage("");
 
 		try {
 			await insertMessageMutation.mutateAsync([
 				{
 					room_id: roomId,
 					user_id: userId,
-					content: newMessage.trim(),
+					content: optimisticMessage.content,
 				},
 			]);
 		} catch (error) {
 			console.error("Error sending message:", error);
 			alert("Error al enviar el mensaje. Por favor, intenta de nuevo.");
+			setLocalMessages((prev) => prev.filter((m) => m.id !== tempId));
 		}
-
-		setNewMessage("");
-
-		setTimeout(() => {
-			flatListRef.current?.scrollToEnd({ animated: true });
-		}, 100);
 	};
 
 	if (!userId) {
@@ -140,24 +168,20 @@ export function RealtimeChat({ roomId, roomName, userId }: { roomId: string; roo
 					</View>
 
 					<FlatList
+						inverted
 						ref={flatListRef}
 						onLayout={() => setListReady(true)}
-						data={(messages as unknown as Message[]) || []}
+						data={localMessages}
 						renderItem={({ item }) => <ChatMessage message={item} currentUserId={userId} />}
 						keyExtractor={(item) => item.id.toString()}
 						style={styles.messageList}
-						onScroll={handleScroll}
 						scrollEventThrottle={16}
-						ListEmptyComponent={
-							<View style={styles.centered}>
-								<Text>No hay mensajes aún. ¡Comienza la conversación!</Text>
-							</View>
-						}
-						contentContainerStyle={
-							messages?.length === 0
+						contentContainerStyle={{
+							paddingBottom: 10,
+							...(localMessages.length === 0
 								? { flex: 1, justifyContent: "center", alignItems: "center", padding: 16 }
-								: { paddingBottom: 80 }
-						}
+								: {}),
+						}}
 					/>
 
 					<View style={styles.inputContainer}>

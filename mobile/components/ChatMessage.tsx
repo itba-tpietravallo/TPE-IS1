@@ -10,6 +10,7 @@ export interface Message {
 		username: string | null;
 		avatar_url: string | null;
 	} | null;
+	optimistic?: boolean;
 }
 
 interface ChatMessageProps {
@@ -36,13 +37,17 @@ export function ChatMessage({ message, currentUserId }: ChatMessageProps) {
 	return (
 		<View style={styles.otherMessageContainer}>
 			<Image
-				source={{
-					uri: message.users?.avatar_url || require("@/assets/images/profile.png"),
-				}}
+				source={
+					message.users?.avatar_url
+						? { uri: message.users.avatar_url }
+						: require("@/assets/images/profile.png")
+				}
 				style={styles.avatar}
 			/>
 			<View style={styles.messageContent}>
-				<Text style={styles.username}>{`@${message.users?.username}` || "Anonymous"}</Text>
+				<Text style={styles.username}>
+					{message.users?.username ? `@${message.users.username}` : "Anonymous"}
+				</Text>
 				<View style={[styles.bubble, styles.otherBubble]}>
 					<Text style={styles.otherContent}>{message.content}</Text>
 					<Text style={[styles.time, styles.otherTime]}>
