@@ -137,10 +137,7 @@ export function RealtimeChat({ roomId, roomName, userId }: { roomId: string; roo
 							position: "relative",
 						}}
 					>
-						<TouchableOpacity
-							onPress={() => router.push("/(tabs)/profileMenu/chats")}
-							style={{ zIndex: 2 }}
-						>
+						<TouchableOpacity onPress={() => router.back()} style={{ zIndex: 2 }}>
 							<Icon name="arrow-left" size={18} color="#223332" />
 						</TouchableOpacity>
 
