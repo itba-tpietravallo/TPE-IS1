@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, Image, TouchableOpacity, Modal, ScrollView } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { ScreenWidth } from "@rneui/themed/dist/config";
@@ -68,16 +68,58 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 	// 	}
 	// };
 
+	const [availabilities, setAvailabilities] = useState<any[]>([]);
+
+	// @todo: usar queries!!!!!!!!!!!!!!!
+	useEffect(() => {
+		async function fetchAvailabilities() {
+			const { data, error } = await supabase.from("field_availabilities").select("*").eq("field_id", fieldId);
+			if (error) console.error("Error fetching availabilities", error);
+			else setAvailabilities(data);
+		}
+		fetchAvailabilities();
+	}, [fieldId]);
+
+	const daysOfWeek = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+
+	const availabilityText = availabilities
+		?.sort((a, b) => a.day_of_week - b.day_of_week)
+		.map((a) => `${daysOfWeek[a.day_of_week]}: ${a.start_time} - ${a.end_time}`)
+		.join("\n");
+
+	const [isClosedDay, setIsClosedDay] = useState<boolean>(false);
+
+	const closedDaysText = daysOfWeek
+		.filter((_, index) => !availabilities.some((a) => a.day_of_week === index))
+		.join(", ");
+
 	const handleDateTimeChange = async (event: any, date?: Date) => {
 		if (date) {
 			setSelectedDateTime(date);
+			const dayOfWeek = (date.getDay() + 6) % 7;
 
-			const taken = await isSlotUnavailable(fieldId, date);
-
-			setUnavailability(taken);
-			console.log(new Date().getTime());
+			const availableDays = availabilities.map((a) => a.day_of_week);
+			if (!availableDays.includes(dayOfWeek)) {
+				setIsClosedDay(true);
+				setUnavailability(null);
+			} else {
+				setIsClosedDay(false);
+				const taken = await isSlotUnavailable(fieldId, date);
+				setUnavailability(taken);
+			}
 		}
 	};
+
+	// const handleDateTimeChange = async (event: any, date?: Date) => {
+	// 	if (date) {
+	// 		setSelectedDateTime(date);
+
+	// 		const taken = await isSlotUnavailable(fieldId, date);
+
+	// 		setUnavailability(taken);
+	// 		console.log(new Date().getTime());
+	// 	}
+	// };
 
 	function isTeam(renter: Renter | null): boolean {
 		if (!renter) return false;
@@ -113,7 +155,9 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 									marginRight: 10,
 									borderRadius: 15,
 								}}
-								source={{ uri: images[0] }}
+								source={
+									images && images.length > 0 ? images[0] : require("@/assets/images/no-imagen.jpeg")
+								}
 							/>
 							<Modal
 								style={{
@@ -190,6 +234,8 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 				>
 					{description}
 				</Text>
+				<Text style={{ padding: 20, fontSize: 18 }}>Horarios:</Text>
+				<Text style={{ paddingHorizontal: 20, color: "gray", fontSize: 16 }}>{availabilityText}</Text>
 				<Text style={{ padding: 20, fontSize: 18 }}>Precio: ${price}</Text>
 				{/* ---------------------------------- Funciona en IOS??????? -------------------------------- */}
 				<View style={styles.selection}>
@@ -213,9 +259,9 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 						Fecha y horario no disponibles.
 					</Text>
 				)}
-				{!unavailable && (
-					<Text style={{ marginLeft: 20, marginBottom: 10, marginTop: 8, color: "green" }}>
-						Fecha y horario disponibles.
+				{isClosedDay && (
+					<Text style={{ marginLeft: 20, marginBottom: 10, marginTop: 8, color: "red" }}>
+						Cancha cerrada los {closedDaysText}.
 					</Text>
 				)}
 				<Selector<Renter>
@@ -226,7 +272,7 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 					getLabel={(renter) => renter.name}
 				/>
 			</ScrollView>
-			{!selectedRenter && (
+			{(!selectedRenter || isClosedDay) && (
 				<TouchableOpacity
 					disabled
 					style={{
