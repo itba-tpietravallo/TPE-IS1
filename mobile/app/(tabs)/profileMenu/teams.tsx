@@ -35,31 +35,43 @@ function myTeams() {
 				padding: 6,
 			}}
 		>
-			<TouchableOpacity
-				style={{ flexDirection: "row", alignItems: "flex-start", paddingVertical: 15, paddingHorizontal: 10 }}
-				onPress={() => router.push("/(tabs)/profile")}
-			>
-				<Icon name="arrow-left" size={14} color="#262626" style={{ marginRight: 8 }} />
-				<Text style={{ fontSize: 14, color: "#262626" }}>Atrás</Text>
-			</TouchableOpacity>
-			<Text
+			<View
 				style={{
-					fontSize: 30,
-					fontWeight: "bold",
-					color: "#f18f01",
-					textAlign: "left",
-					padding: 10,
+					flexDirection: "row",
+					alignItems: "center",
+					justifyContent: "center",
+					paddingVertical: 15,
+					paddingHorizontal: 10,
+					position: "relative",
 				}}
 			>
-				Mis equipos
-			</Text>
+				<TouchableOpacity
+					onPress={() => router.push("/(tabs)/profile")}
+					style={{ position: "absolute", left: 10 }}
+				>
+					<Icon name="arrow-left" size={18} color="#262626" />
+				</TouchableOpacity>
+
+				<View style={{ flex: 1, alignItems: "center" }}>
+					<Text
+						style={{
+							fontSize: 30,
+							fontWeight: "bold",
+							color: "#f18f01",
+						}}
+					>
+						Equipos
+					</Text>
+				</View>
+			</View>
 			{/* {myTeams?.map((team, index) => (
 				<Text key={index}>
 					<Text style={{ fontSize: 18, marginLeft: 10 }}>{team.name}</Text>
 				</Text>
 			))} */}
-			<View style={{ padding: 5, borderWidth: 1, borderColor: "#ccc", borderRadius: 5, margin: 10 }}>
-				{myTeams?.length > 0 ? (
+
+			{myTeams?.length > 0 ? (
+				<View style={{ padding: 5, borderWidth: 1, borderColor: "#ccc", borderRadius: 5, margin: 10 }}>
 					<View
 						style={{
 							flexDirection: "row",
@@ -98,10 +110,13 @@ function myTeams() {
 							)}
 						/>
 					</View>
-				) : (
-					<Text style={{ color: "gray", padding: 20 }}>Aún no tienes equipos asignados.</Text>
-				)}
-			</View>
+				</View>
+			) : (
+				<Text style={{ textAlign: "center", marginTop: 40, fontSize: 18, color: "#555" }}>
+					No perteneces a ningún equipo.
+				</Text>
+			)}
+
 			<Modal
 				style={styles.modal}
 				visible={isModalVisible}

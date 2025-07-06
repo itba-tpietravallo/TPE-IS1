@@ -33,18 +33,20 @@ export default function PostTeam() {
 
 	const handlePostTeam = async () => {
 		try {
-			await insertTeamMutation.mutateAsync([{
-				name: teamName,
-				sport: sport,
-				description: description,
-				images: null,
-				players: [user?.id!],
-				playerRequests: [],
-				admins: [user?.id!],
-				isPublic: isPublic,
-				contactPhone: "",
-				contactEmail: "",
-			}]);
+			await insertTeamMutation.mutateAsync([
+				{
+					name: teamName,
+					sport: sport,
+					description: description,
+					images: null,
+					players: [user?.id!],
+					playerRequests: [],
+					admins: [user?.id!],
+					isPublic: isPublic,
+					contactPhone: "",
+					contactEmail: "",
+				},
+			]);
 
 			console.log("Team created successfully");
 			router.push("/(tabs)/teams");
