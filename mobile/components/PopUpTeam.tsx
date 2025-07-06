@@ -1,26 +1,17 @@
-import React, { useState, useEffect, useRef } from "react";
-import { View, Text, Button, StyleSheet, Image, TouchableOpacity, Modal, Alert, ScrollView } from "react-native";
-import { ScreenHeight, ScreenWidth } from "@rneui/themed/dist/config";
+import React, { useState, useEffect } from "react";
+import { View, Text, StyleSheet, TouchableOpacity, Modal, Alert, ScrollView } from "react-native";
+import { ScreenWidth } from "@rneui/themed/dist/config";
 import { supabase } from "@/lib/supabase";
-import { Session } from "@supabase/supabase-js";
 import Icon from "react-native-vector-icons/FontAwesome6";
-import { Player } from "../app/(tabs)/teams.tsx";
-import PlayerPreview from "./PlayerPreview.tsx";
-import { getUsername, getAllUsers, useUpdateTeam, useDeleteTeam, getUserAuthSession } from "@lib/autogen/queries.ts";
-import { getUserSession } from "@/lib/autogen/queries";
+import { getAllUsers, useUpdateTeam, useDeleteTeam, getUserAuthSession, getTeamById } from "@lib/autogen/queries.ts";
 import { router } from "expo-router";
 import PopUpJoinRequests from "./PopUpJoinRequests.tsx";
-import { join } from "path";
+import { Image } from "@rneui/themed";
+import PopUpTeamMemberInfo from "./PopUpTeamMemberInfo.tsx";
 
 type PropsPopUpTeam = {
 	onClose: () => void;
 	team_id: string;
-	name: string;
-	sport: string;
-	description: string;
-	players: string[];
-	playerRequests: string[];
-	public: boolean;
 };
 
 function PopUpTeam(props: PropsPopUpTeam) {
@@ -30,52 +21,49 @@ function PopUpTeam(props: PropsPopUpTeam) {
 	const updateTeamMutation = useUpdateTeam(supabase);
 	const deleteTeamMutation = useDeleteTeam(supabase);
 
-	const [players, setPlayers] = useState<string[]>(props.players);
-	const [requests, setRequests] = useState<string[]>(props.playerRequests);
+	const { data: team } = getTeamById(supabase, props.team_id);
 
-	const [isModalVisible, setIsModalVisible] = useState(false); //PopUpJoinRequests
-	const handleCloseModal = () => {
-		setIsModalVisible(false);
+	const [isModalVisibleJoinRequests, setIsModalVisibleJoinRequests] = useState(false); //PopUpJoinRequests
+	const [selectedMember, setSelectedMember] = useState<string | null>(null);
+
+	const handleCloseModalJoinRequest = () => {
+		setIsModalVisibleJoinRequests(false);
 	};
 
 	function userAlreadyOnTeam(userId: string) {
-		if (players?.includes(userId)) {
+		if (team?.players?.includes(userId)) {
 			return true;
 		}
 		return false;
 	}
 
 	function joinRequested(userId: string) {
-		if (requests?.includes(userId)) {
+		if (team?.playerRequests?.includes(userId)) {
 			return true;
 		}
 		return false;
 	}
 
 	const handleJoinTeam = async () => {
-		if (props.public) {
-			const updatedMembers = [...(players || []), user?.id!];
+		if (team?.isPublic) {
+			const updatedMembers = [...(team?.players || []), user?.id!];
 
 			try {
 				await updateTeamMutation.mutateAsync({
 					team_id: props.team_id,
 					players: updatedMembers,
 				});
-
-				setPlayers(updatedMembers);
 			} catch (error) {
 				console.error("Error joining team:", error);
 			}
 		} else {
-			const updatedRequests = [...(requests || []), user?.id!];
+			const updatedRequests = [...(team?.playerRequests || []), user?.id!];
 
 			try {
 				await updateTeamMutation.mutateAsync({
 					team_id: props.team_id,
 					playerRequests: updatedRequests,
 				});
-
-				setRequests(updatedRequests);
 			} catch (error) {
 				console.error("Error requesting to join team:", error);
 			}
@@ -83,15 +71,19 @@ function PopUpTeam(props: PropsPopUpTeam) {
 	};
 
 	const handleLeaveTeam = async () => {
-		const updatedMembers = players?.filter((player) => player !== user?.id);
+		const updatedMembers = team!.players?.filter((player) => player !== user?.id);
+		var updatedAdmins = team!.admins?.filter((player) => player !== user?.id);
+
+		if (updatedAdmins.length == 0) {
+			updatedAdmins = [...updatedAdmins, team!.players[0]];
+		}
 
 		try {
 			await updateTeamMutation.mutateAsync({
 				team_id: props.team_id,
 				players: updatedMembers,
+				admins: updatedAdmins,
 			});
-
-			setPlayers(updatedMembers);
 		} catch (error) {
 			console.error("Error leaving team:", error);
 		}
@@ -99,7 +91,7 @@ function PopUpTeam(props: PropsPopUpTeam) {
 
 	useEffect(() => {
 		const deleteTeamIfEmpty = async () => {
-			if (players.length === 0) {
+			if (team?.players.length === 0) {
 				try {
 					await deleteTeamMutation.mutateAsync({ team_id: props.team_id });
 					router.push("/(tabs)/teams");
@@ -110,8 +102,31 @@ function PopUpTeam(props: PropsPopUpTeam) {
 			}
 		};
 
+		const cleanPlayersArray = async () => {
+			const updatedMembers = (team?.players || []).filter((player): player is string => player !== null);
+
+			try {
+				await updateTeamMutation.mutateAsync({
+					team_id: props.team_id,
+					players: updatedMembers,
+				});
+			} catch (error) {
+				console.error("Error cleaning team:", error);
+			}
+		};
+
+		if (team?.players.some((p) => p === null)) {
+			cleanPlayersArray();
+		}
 		deleteTeamIfEmpty();
-	}, [players]);
+	}, [team?.players]);
+
+	function userIsAdmin(userId: string) {
+		if (team?.admins?.includes(userId)) {
+			return true;
+		}
+		return false;
+	}
 
 	return (
 		<View style={styles.modalView}>
@@ -125,32 +140,33 @@ function PopUpTeam(props: PropsPopUpTeam) {
 				</TouchableOpacity>
 
 				{/* Boton join requests (arriba a la derecha) (si es publico no aparece) */}
-				{userAlreadyOnTeam(user?.id!) && !props.public && (
+				{userAlreadyOnTeam(user?.id!) && !team?.isPublic && userIsAdmin(user!.id) && (
 					<TouchableOpacity
 						style={{ padding: 10, alignItems: "flex-start" }}
 						onPress={() => {
-							setIsModalVisible(true);
+							setIsModalVisibleJoinRequests(true);
 						}}
 					>
 						<Icon name="users" size={24} color="black" style={{ marginTop: 10 }} />
 					</TouchableOpacity>
 				)}
 
+				{/* Public team icon */}
+				{team?.isPublic && (
+					<View style={{ padding: 10, alignItems: "flex-start" }}>
+						<Icon name="globe" size={24} color="black" style={{ marginTop: 10 }} />
+					</View>
+				)}
+
 				{/* PopUpJoinRequests */}
 				<Modal
 					style={styles.modal}
-					visible={isModalVisible}
+					visible={isModalVisibleJoinRequests}
 					transparent={true}
-					onRequestClose={() => setIsModalVisible(false)}
+					onRequestClose={() => setIsModalVisibleJoinRequests(false)}
 				>
 					<View style={styles.centeredView}>
-						<PopUpJoinRequests
-							onClose={handleCloseModal}
-							team_id={props.team_id}
-							name={props.name}
-							players={props.players}
-							playerRequests={props.playerRequests}
-						/>
+						<PopUpJoinRequests onClose={handleCloseModalJoinRequest} team_id={props.team_id} />
 					</View>
 				</Modal>
 			</View>
@@ -158,37 +174,77 @@ function PopUpTeam(props: PropsPopUpTeam) {
 			<View style={styles.mainInfo}>
 				{/* Nombre del equipo y deporte */}
 				<View style={styles.topInfo}>
-					<Text style={styles.teamName}>{props.name}</Text>
-					<Text style={{ fontSize: 16, color: "gray", marginBottom: 10 }}>{props.sport}</Text>
+					<Text style={styles.teamName}>{team?.name}</Text>
+					<Text style={{ fontSize: 16, color: "gray", marginBottom: 10 }}>{team?.sport}</Text>
 				</View>
 
 				{/* Miembros del Equipo */}
 				<ScrollView style={styles.scrollArea}>
 					<View style={{ width: "100%" }}>
-						{players?.map((member) => (
+						{team?.players?.map((member) => (
 							<View key={member} style={styles.row}>
-								<View style={{ height: 60, width: 30 }}></View>
-								{/* <Image
-									source={{ uri: "https://github.com/tomaspietravallo.png" }}
-									style={styles.avatar}
-								/> */}
-								<Icon name="user" size={24} color="black">
-									{" "}
-								</Icon>
+								<View style={{ height: 60, width: 15 }}></View>
+
+								{usersData.data?.find((user) => user.id === member)?.avatar_url ? (
+									<Image
+										source={{
+											uri:
+												usersData.data?.find((user) => user.id === member)?.avatar_url ||
+												"undefined_image",
+										}}
+										style={{ width: 35, height: 35, borderRadius: 100 }}
+									/>
+								) : (
+									<Icon name="user" size={35} color="black" />
+								)}
+
 								<View style={styles.info}>
 									<Text style={styles.name}>
 										{usersData.data?.find((user) => user.id === member)?.full_name}
 									</Text>
 								</View>
+
+								{/* PopUpTeamMemberInfo */}
+								{user?.id != member && (
+									<TouchableOpacity onPress={() => setSelectedMember(member)}>
+										<Icon name="circle-info" size={24} color="black" />
+									</TouchableOpacity>
+								)}
+
+								<Modal
+									style={styles.modal}
+									visible={selectedMember !== null}
+									transparent={true}
+									onRequestClose={() => setSelectedMember(null)}
+								>
+									<View style={styles.centeredView}>
+										{selectedMember &&
+											(() => {
+												const memberData = usersData.data?.find(
+													(user) => user.id === selectedMember,
+												)!;
+												return user ? (
+													<PopUpTeamMemberInfo
+														onClose={() => setSelectedMember(null)}
+														id={memberData.id}
+														full_name={memberData.full_name}
+														username={""} //TODO: FIX
+														avatar={memberData.avatar_url!}
+														team_id={props.team_id}
+													/>
+												) : null;
+											})()}
+									</View>
+								</Modal>
+
 								{/* <Text style={styles.number}/>FEAT: NUMEROS DE JUGADORES */}
-								{/* <PlayerPreview key={member} player_name={member}></PlayerPreview> */}
 							</View>
 						))}
 					</View>
 				</ScrollView>
 
 				{/* Descripcion del equipo */}
-				<Text style={styles.description}>{props.description}</Text>
+				{team?.description && <Text style={styles.description}>{team?.description}</Text>}
 			</View>
 
 			{/* Boton Join team - request to join team */}
@@ -201,13 +257,13 @@ function PopUpTeam(props: PropsPopUpTeam) {
 							.catch((e) => console.log("Error joining team", e))
 					}
 				>
-					<Text style={styles.buttonText}>{props.public ? "Join Team" : "Request to Join Team"}</Text>
+					<Text style={styles.buttonText}>{team?.isPublic ? "Join Team" : "Request to Join Team"}</Text>
 				</TouchableOpacity>
 			)}
 
 			{/* Boton request to join sent */}
 			{!userAlreadyOnTeam(user?.id!) && joinRequested(user?.id!) && (
-				<View style={[styles.joinTeamButton]}>
+				<View style={[styles.joinRequestSentLabel]}>
 					<Text style={styles.buttonText}>{"Request sent!"}</Text>
 				</View>
 			)}
@@ -248,10 +304,6 @@ const styles = StyleSheet.create({
 		overflow: "hidden",
 		width: ScreenWidth * 0.9,
 	},
-	scrollContainer: {
-		flexGrow: 1,
-		paddingBottom: 20,
-	},
 	scrollArea: {
 		backgroundColor: "#f0f0f0",
 		marginBottom: 10,
@@ -266,27 +318,6 @@ const styles = StyleSheet.create({
 		justifyContent: "space-between",
 		alignItems: "center",
 		gap: 15,
-	},
-	selection: {
-		padding: 20,
-		gap: 30,
-		flexDirection: "row",
-		justifyContent: "space-between",
-		alignItems: "center",
-	},
-	select: {
-		fontWeight: "bold",
-		fontSize: 16,
-		marginBottom: 10,
-	},
-	selected: {
-		backgroundColor: "white",
-		borderWidth: 1,
-		borderColor: "#747775",
-		borderRadius: 20,
-		paddingHorizontal: 12,
-		height: 20,
-		flexDirection: "row",
 	},
 	row: {
 		flexDirection: "row",
@@ -316,6 +347,14 @@ const styles = StyleSheet.create({
 	},
 	joinTeamButton: {
 		backgroundColor: "#f18f04",
+		width: "100%",
+		padding: 17,
+		alignItems: "center",
+		justifyContent: "center",
+		marginTop: 10,
+	},
+	joinRequestSentLabel: {
+		backgroundColor: "#5fd700",
 		width: "100%",
 		padding: 17,
 		alignItems: "center",

@@ -7,7 +7,7 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "./database.types";
 
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, UseQueryOptions } from "@tanstack/react-query";
 import { useEffect } from "react";
 
 import {
@@ -84,6 +84,9 @@ export const queries = {
 
 	getAllTeamsByUser: (supabase: SupabaseClient<Database>, userId: string) =>
 		supabase.from("teams").select("team_id, name, images").contains("players", [userId]),
+
+	getAllTeamsByAdminUser: (supabase: SupabaseClient<Database>, userId: string) =>
+		supabase.from("teams").select("team_id, name").contains("admins", [userId]),
 
 	getPendingReservationsByUser: (supabase: SupabaseClient<Database>, userId: string) =>
 		supabase
@@ -294,6 +297,10 @@ export function getAllTournamentsForFieldById(
 
 export function getAllTeamsByUser(supabase: SupabaseClient<Database>, userId: string, opts: any = undefined) {
 	return useQuerySupabase(queries.getAllTeamsByUser(supabase, userId), opts);
+}
+
+export function getAllTeamsByAdminUser(supabase: SupabaseClient<Database>, userId: string, opts: any = undefined) {
+	return useQuerySupabase(queries.getAllTeamsByAdminUser(supabase, userId), opts);
 }
 
 export function getPendingReservationsByUser(

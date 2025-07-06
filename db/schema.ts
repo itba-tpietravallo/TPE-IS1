@@ -54,7 +54,7 @@ export const usersTable = pgTable(
 			to: authenticatedRole, // only allow authenticated users to select from the table
 			as: "permissive",
 		}),
-	]
+	],
 ).enableRLS();
 
 export const fieldsTable = pgTable(
@@ -93,7 +93,7 @@ export const fieldsTable = pgTable(
 			to: authenticatedRole,
 			as: "permissive",
 		}),
-	]
+	],
 ).enableRLS();
 
 export const sportsTable = pgTable(
@@ -109,7 +109,7 @@ export const sportsTable = pgTable(
 			to: authenticatedRole,
 			as: "permissive",
 		}),
-	]
+	],
 ).enableRLS();
 
 export const reservationsTable = pgTable(
@@ -138,7 +138,7 @@ export const reservationsTable = pgTable(
 			to: authenticatedRole,
 			as: "permissive",
 		}),
-	]
+	],
 ).enableRLS();
 
 export const mpPaymentsTable = pgTable(
@@ -165,7 +165,7 @@ export const mpPaymentsTable = pgTable(
 			to: authenticatedRole,
 			as: "permissive",
 		}),
-	]
+	],
 ).enableRLS();
 
 export const mpOAuthAuthorizationTable = pgTable(
@@ -206,7 +206,7 @@ export const mpOAuthAuthorizationTable = pgTable(
 			as: "permissive",
 		}),
 		// Insert, update are checked by triggers on the table.
-	]
+	],
 ).enableRLS();
 
 export const teamsTable = pgTable(
@@ -234,7 +234,7 @@ export const teamsTable = pgTable(
 			to: authenticatedRole,
 			as: "permissive",
 		}),
-	]
+	],
 ).enableRLS();
 
 export const tournamentsTable = pgTable(
@@ -280,7 +280,7 @@ export const tournamentsTable = pgTable(
 			to: authenticatedRole, // only allow authenticated users to select from the table
 			as: "permissive",
 		}),
-	]
+	],
 ).enableRLS();
 
 export const inscriptionsTable = pgTable(
@@ -314,34 +314,5 @@ export const inscriptionsTable = pgTable(
 			to: authenticatedRole, // only allow authenticated users to select from the table
 			as: "permissive",
 		}),
-	]
-).enableRLS();
-
-export const messagesTable = pgTable(
-	"messages",
-	{
-		id: uuid().primaryKey().defaultRandom().notNull(),
-		user_id: uuid()
-			.notNull()
-			.references(() => usersTable.id, { onDelete: "cascade" }),
-		room_id: uuid()
-			.notNull()
-			.references(() => teamsTable.team_id, { onDelete: "cascade" }),
-		content: text().notNull(),
-		created_at: timestamp({ withTimezone: true }).defaultNow().notNull(),
-	},
-	(table) => [
-		pgPolicy("messages - allow select for authenticated users", {
-			for: "select",
-			using: sql`true`,
-			to: authenticatedRole,
-			as: "permissive",
-		}),
-		pgPolicy("messages - allow insert for owners", {
-			for: "insert",
-			withCheck: sql`(select auth.uid()) = user_id`,
-			to: authenticatedRole,
-			as: "permissive",
-		}),
-	]
+	],
 ).enableRLS();
