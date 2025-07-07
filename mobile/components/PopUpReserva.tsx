@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import { View, Text, StyleSheet, Image, TouchableOpacity, Modal } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { ScreenWidth } from "@rneui/themed/dist/config";
+import { ScreenWidth, ScreenHeight } from "@rneui/themed/dist/config";
 import { supabase } from "@/lib/supabase";
 import CheckoutButton from "./CheckoutButton";
 import PreReserveButton from "./PreReserveButton";
+import Icon from "react-native-vector-icons/FontAwesome6";
 
 import {
 	getAllReservationTimeSlots,
@@ -40,6 +41,8 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 	const [selectedRenter, setSelectedRenter] = useState<Renter | null>(null);
 	const { data: teamData } = getAllTeamsByAdminUser(supabase, user?.id!, { enabled: !!user?.id });
 	const normalizedTeams = teamData ? teamData.filter((team) => team.team_id && team.name !== null) : [];
+
+	const [isFavorite, setIsFavorite] = useState<boolean>(false);
 
 	const teams: Renter[] = normalizedTeams.map((team) => ({
 		id: team.team_id,
@@ -86,9 +89,27 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 
 	return (
 		<View style={styles.modalView}>
-			<TouchableOpacity style={{ padding: 10, alignItems: "flex-end" }} onPress={onClose}>
-				<Image style={{ width: 20, height: 20, marginTop: 10 }} source={require("@/assets/images/close.png")} />
-			</TouchableOpacity>
+			<View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+				{/* Boton cerrar PopUp */}
+				<TouchableOpacity style={{ padding: 10, alignItems: "flex-start", marginLeft: 10 }} onPress={onClose}>
+					<Icon name="xmark" size={24} color="black" style={{ marginTop: 10 }} />
+				</TouchableOpacity>
+
+				{/* Boton agregar a favoritos */}
+				<TouchableOpacity
+					style={{ padding: 10, alignItems: "flex-start", marginLeft: 10 }}
+					onPress={() => {
+						isFavorite ? setIsFavorite(false) : setIsFavorite(true);
+					}}
+				>
+					<Icon
+						name={isFavorite ? "heart-circle-check" : "heart"}
+						size={24}
+						color="black"
+						style={{ marginTop: 10 }}
+					/>
+				</TouchableOpacity>
+			</View>
 			<View style={styles.mainInfo}>
 				<View style={styles.topInfo}>
 					<View style={{ flex: 1, paddingRight: 10, alignItems: "center" }}>
