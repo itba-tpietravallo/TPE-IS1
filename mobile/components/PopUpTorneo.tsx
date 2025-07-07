@@ -20,6 +20,7 @@ import { User } from "@supabase/supabase-js";
 import { get } from "http";
 import PopUpReserva from "./PopUpReserva";
 import { getUserSessionById } from "@db/queries";
+import Icon from "react-native-vector-icons/FontAwesome6";
 
 interface PopUpReservaProps {
 	onClose: () => void;
@@ -134,9 +135,15 @@ function PopUpTorneo({
 	return (
 		<View style={styles.modalContainer}>
 			<View style={styles.modal}>
-				<TouchableOpacity style={styles.closeButton} onPress={() => onClose()}>
-					<Image style={styles.closeIcon} source={require("@/assets/images/close.png")} />
-				</TouchableOpacity>
+				<View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+					{/* Boton cerrar PopUp */}
+					<TouchableOpacity
+						style={{ padding: 10, alignItems: "flex-start", marginLeft: 10 }}
+						onPress={onClose}
+					>
+						<Icon name="xmark" size={24} color="black" style={{ marginTop: 10 }} />
+					</TouchableOpacity>
+				</View>
 				<View style={styles.infoContainer}>
 					<Text style={styles.title}>{name}</Text>
 					<View style={{ flexDirection: "row" }}>
