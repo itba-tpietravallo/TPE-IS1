@@ -508,6 +508,28 @@ export function getUserEmailById(
 	);
 }
 
+export function getFavoriteFields(
+	supabase: SupabaseClient<Database>,
+	userId: string,
+	opts: any = undefined
+) {
+	return useQuerySupabase(
+		queries.getFavoriteFields(supabase, userId),
+		opts
+	);
+}
+
+export function getFavoriteUsers(
+	supabase: SupabaseClient<Database>,
+	userId: string,
+	opts: any = undefined
+) {
+	return useQuerySupabase(
+		queries.getFavoriteUsers(supabase, userId),
+		opts
+	);
+}
+
 export function useUpdateField(supabase: SupabaseClient<Database>) {
 	// Using the built-in useUpdateMutation from supabase-cache-helpers
 	// This will automatically handle cache updates and optimistic updates
