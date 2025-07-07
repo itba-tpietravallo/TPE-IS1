@@ -79,7 +79,16 @@ function TorneosFeed() {
 			>
 				{torneos
 					?.filter((torneo) => {
+						const isActive = torneo.active;
+						const deadlineDate = new Date(torneo.deadline);
+						const now = new Date();
+						const isDeadlineValid = deadlineDate > now;
+
+						return isActive && isDeadlineValid;
+					})
+					.filter((torneo) => {
 						if (selectedSport === "") return true;
+
 						const normalizedSelectedSport = normalizeString(selectedSport);
 						const normalizedTorneoSport = normalizeString(torneo.sport);
 						return normalizedTorneoSport.includes(normalizedSelectedSport);
