@@ -18,6 +18,7 @@ import {
 	getFieldById,
 	useInsertTournament,
 	useDeleteTournament,
+	useUpdateTournament,
 } from "@lib/autogen/queries";
 import { Suspense } from "react";
 import { set, useForm, UseFormReturn } from "react-hook-form";
@@ -141,7 +142,6 @@ export function TournamentForm({ fieldId, onClose = () => {} }: { fieldId: strin
 				price: data.price,
 				deadline: data.deadline,
 				cantPlayers: data.cantPlayers,
-				active: true,
 			},
 		]);
 
@@ -385,6 +385,10 @@ export function TorneosSheet({ fieldId, tournaments }: TorneosSheetProps) {
 	const tournamentQuery = getAllTournamentsForFieldById(supabase, fieldId, { enabled: !!fieldId });
 	const [showForm, setShowForm] = useState(false);
 
+	const [showOldTournaments, setShowOldTournaments] = useState(false);
+	const activeTournaments = tournaments.filter((t) => t.active);
+	const inactiveTournaments = tournaments.filter((t) => !t.active);
+
 	// Use the mutation hook
 	const deleteTournamentMutation = useDeleteTournament(supabase);
 
@@ -393,6 +397,20 @@ export function TorneosSheet({ fieldId, tournaments }: TorneosSheetProps) {
 			await deleteTournamentMutation.mutateAsync({ id: t_id });
 		} catch (error) {
 			console.error("Error eliminando torneo:", error);
+		}
+	};
+
+	const updateTournamentMutation = useUpdateTournament(supabase);
+
+	const setNotActiveTournament = async (tournamentId: string) => {
+		try {
+			await updateTournamentMutation.mutateAsync({
+				id: tournamentId,
+				active: false,
+			});
+			console.log("Torneo finalizado correctamente");
+		} catch (error) {
+			console.error("Error finalizando torneo:", error);
 		}
 	};
 
@@ -421,9 +439,9 @@ export function TorneosSheet({ fieldId, tournaments }: TorneosSheetProps) {
 						</div>
 					}
 				>
-					{tournaments.length > 0 ? (
+					{(showOldTournaments ? inactiveTournaments : activeTournaments).length > 0 ? (
 						<div className="flex flex-col items-center justify-center space-y-5">
-							{tournaments.map((tournament) => (
+							{(showOldTournaments ? inactiveTournaments : activeTournaments).map((tournament) => (
 								<div key={tournament.id} className="w-full rounded-lg p-4 shadow-md">
 									<div className="flex items-center justify-between">
 										<h2 className="text-lg font-bold">{tournament.name}</h2>
@@ -433,12 +451,17 @@ export function TorneosSheet({ fieldId, tournaments }: TorneosSheetProps) {
 										/>
 									</div>
 									<p>Fecha de inicio: {new Date(tournament.startDate).toLocaleDateString()}</p>
-									<Button
-										variant="outline"
-										className="bg-[#d97e01] text-sm font-medium text-white hover:bg-[#223332] hover:text-white"
-									>
-										Finalizar Torneo
-									</Button>
+									{tournament.active ? (
+										<Button
+											variant="outline"
+											className="bg-[#d97e01] text-xs font-medium text-white hover:bg-[#223332] hover:text-white"
+											onClick={() => setNotActiveTournament(tournament.id)}
+										>
+											Finalizar Torneo
+										</Button>
+									) : (
+										<p className="text-xs italic text-gray-500">Torneo finalizado</p>
+									)}
 									<p className="pt-3 text-sm text-gray-600">Inscriptos:</p>
 									<SingleTournamentInfo tournament_id={tournament.id} />
 								</div>
@@ -450,16 +473,28 @@ export function TorneosSheet({ fieldId, tournaments }: TorneosSheetProps) {
 						</div>
 					)}
 				</Suspense>
-				<div className="p-4">
+				{!showOldTournaments && (
+					<div className="p-4">
+						<Button
+							variant="outline"
+							className="bg-[#223332] text-sm font-medium text-white hover:bg-[#d97e01] hover:text-[#223332]"
+							onClick={() => setShowForm(!showForm)}
+						>
+							Agregar Torneo
+						</Button>
+						{showForm && <TournamentForm fieldId={fieldId} onClose={() => setShowForm(false)} />}
+					</div>
+				)}
+
+				{inactiveTournaments.length > 0 && (
 					<Button
-						variant="outline"
-						className="bg-[#223332] text-sm font-medium text-white hover:bg-[#d97e01] hover:text-[#223332]"
-						onClick={() => setShowForm(!showForm)}
+						variant="ghost"
+						className="mt-3 p-0 text-xs font-normal text-[#223332] underline hover:bg-transparent hover:text-[#d97e01]"
+						onClick={() => setShowOldTournaments(!showOldTournaments)}
 					>
-						Agregar Torneo
+						{showOldTournaments ? "Ocultar torneos anteriores" : "Ver torneos anteriores"}
 					</Button>
-					{showForm && <TournamentForm fieldId={fieldId} onClose={() => setShowForm(false)} />}
-				</div>
+				)}
 			</SheetContent>
 		</Sheet>
 	);
