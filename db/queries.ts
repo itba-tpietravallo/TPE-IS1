@@ -911,3 +911,32 @@ export function useInsertMessage(supabase: SupabaseClient<Database>) {
 		},
 	});
 }
+
+export function useInsertUserPreferences(supabase: SupabaseClient<Database>) {
+	// Using the built-in useInsertMutation from supabase-cache-helpers
+	return useInsertMutation(
+		supabase.from("user_preferences"),
+		["user_id"], // Primary key columns
+		"*", // Select all columns for the cache update
+		{
+			onError: (error) => {
+				console.error("Error inserting team:", error);
+			},
+		}
+	);
+}
+
+export function useUpdateUserPreferences(supabase: SupabaseClient<Database>) {
+	// Using the built-in useUpdateMutation from supabase-cache-helpers
+	return useUpdateMutation(
+		supabase.from("user_preferences"),
+		["user_id"], // Primary key columns
+		"*", // Select all columns for the cache update
+		{
+			onError: (error) => {
+				console.error("Error updating team:", error);
+			},
+		}
+	);
+}
+
