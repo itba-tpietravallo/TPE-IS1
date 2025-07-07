@@ -9,38 +9,6 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      field_availabilities: {
-        Row: {
-          day_of_week: number
-          end_time: string
-          field_id: string
-          id: string
-          start_time: string
-        }
-        Insert: {
-          day_of_week: number
-          end_time: string
-          field_id: string
-          id?: string
-          start_time: string
-        }
-        Update: {
-          day_of_week?: number
-          end_time?: string
-          field_id?: string
-          id?: string
-          start_time?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "field_availabilities_field_id_fields_id_fk"
-            columns: ["field_id"]
-            isOneToOne: false
-            referencedRelation: "fields"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       field_reviews: {
         Row: {
           field_id: string
@@ -141,16 +109,22 @@ export type Database = {
       }
       inscriptions: {
         Row: {
+          contactEmai: string
+          contactPhone: number
           id: string
           teamId: string | null
           tournamentId: string
         }
         Insert: {
+          contactEmai: string
+          contactPhone: number
           id?: string
           teamId?: string | null
           tournamentId: string
         }
         Update: {
+          contactEmai?: string
+          contactPhone?: number
           id?: string
           teamId?: string | null
           tournamentId?: string
@@ -376,8 +350,8 @@ export type Database = {
       teams: {
         Row: {
           admins: string[]
-          contactEmail: string
-          contactPhone: string
+          contactEmail: string | null
+          contactPhone: string | null
           description: string | null
           images: string[] | null
           isPublic: boolean
@@ -389,8 +363,8 @@ export type Database = {
         }
         Insert: {
           admins: string[]
-          contactEmail: string
-          contactPhone: string
+          contactEmail?: string | null
+          contactPhone?: string | null
           description?: string | null
           images?: string[] | null
           isPublic: boolean
@@ -402,8 +376,8 @@ export type Database = {
         }
         Update: {
           admins?: string[]
-          contactEmail?: string
-          contactPhone?: string
+          contactEmail?: string | null
+          contactPhone?: string | null
           description?: string | null
           images?: string[] | null
           isPublic?: boolean
