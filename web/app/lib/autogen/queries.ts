@@ -637,7 +637,6 @@ export function useDeleteTournament(supabase: SupabaseClient<Database>) {
   return deleteHook;
 }
 
-// lo copié y pegué del updateTeam
 export function useUpdateTournament(supabase: SupabaseClient<Database>) {
   // Using the built-in useUpdateMutation from supabase-cache-helpers
   return useUpdateMutation(
