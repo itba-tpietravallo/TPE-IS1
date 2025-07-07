@@ -412,5 +412,11 @@ export const usersPreferencesTable = pgTable(
 			to: authenticatedRole, // only allow authenticated users to select from the table
 			as: "permissive",
 		}),
+		pgPolicy("user_preferences - insert authenticated", {
+			for: "insert",
+			withCheck: sql`true`,
+			to: authenticatedRole, // only allow authenticated users to select from the table
+			as: "permissive",
+		}),
 	],
 ).enableRLS();
