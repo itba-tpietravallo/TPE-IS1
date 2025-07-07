@@ -14,6 +14,7 @@ import {
   timestamp,
   bigint,
   boolean,
+  unique,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm/sql";
 import { authenticatedRole } from "drizzle-orm/supabase";
