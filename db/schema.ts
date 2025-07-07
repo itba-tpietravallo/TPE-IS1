@@ -295,7 +295,7 @@ export const inscriptionsTable = pgTable(
       onDelete: "cascade",
     }),
     contactPhone: text().notNull(),
-    contactEmai: text().notNull(),
+    contactEmail: text().notNull(),
   },
   (table) => [
     pgPolicy("inscriptions - select authenticated", {
