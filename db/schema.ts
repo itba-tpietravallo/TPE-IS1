@@ -14,6 +14,7 @@ import {
 	timestamp,
 	bigint,
 	boolean,
+	unique,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm/sql";
 import { authenticatedRole } from "drizzle-orm/supabase";
@@ -54,7 +55,7 @@ export const usersTable = pgTable(
 			to: authenticatedRole, // only allow authenticated users to select from the table
 			as: "permissive",
 		}),
-	],
+	]
 ).enableRLS();
 
 export const fieldsTable = pgTable(
@@ -93,7 +94,7 @@ export const fieldsTable = pgTable(
 			to: authenticatedRole,
 			as: "permissive",
 		}),
-	],
+	]
 ).enableRLS();
 
 export const sportsTable = pgTable(
@@ -109,7 +110,7 @@ export const sportsTable = pgTable(
 			to: authenticatedRole,
 			as: "permissive",
 		}),
-	],
+	]
 ).enableRLS();
 
 export const reservationsTable = pgTable(
@@ -138,7 +139,7 @@ export const reservationsTable = pgTable(
 			to: authenticatedRole,
 			as: "permissive",
 		}),
-	],
+	]
 ).enableRLS();
 
 export const mpPaymentsTable = pgTable(
@@ -165,7 +166,7 @@ export const mpPaymentsTable = pgTable(
 			to: authenticatedRole,
 			as: "permissive",
 		}),
-	],
+	]
 ).enableRLS();
 
 export const mpOAuthAuthorizationTable = pgTable(
@@ -206,7 +207,7 @@ export const mpOAuthAuthorizationTable = pgTable(
 			as: "permissive",
 		}),
 		// Insert, update are checked by triggers on the table.
-	],
+	]
 ).enableRLS();
 
 export const teamsTable = pgTable(
@@ -234,7 +235,7 @@ export const teamsTable = pgTable(
 			to: authenticatedRole,
 			as: "permissive",
 		}),
-	],
+	]
 ).enableRLS();
 
 export const tournamentsTable = pgTable(
@@ -253,6 +254,7 @@ export const tournamentsTable = pgTable(
 		price: integer().notNull(),
 		deadline: timestamp({ withTimezone: true }).notNull(),
 		cantPlayers: integer().notNull(),
+		active: boolean().notNull().default(true),
 	},
 	(table) => [
 		pgPolicy("tournaments - select authenticated", {
@@ -280,7 +282,7 @@ export const tournamentsTable = pgTable(
 			to: authenticatedRole, // only allow authenticated users to select from the table
 			as: "permissive",
 		}),
-	],
+	]
 ).enableRLS();
 
 export const inscriptionsTable = pgTable(
@@ -308,6 +310,102 @@ export const inscriptionsTable = pgTable(
 			as: "permissive",
 		}),
 		pgPolicy("inscriptions - update authenticated", {
+			for: "update",
+			withCheck: sql`true`,
+			using: sql`true`,
+			to: authenticatedRole, // only allow authenticated users to select from the table
+			as: "permissive",
+		}),
+	]
+).enableRLS();
+
+export const messagesTable = pgTable(
+	"messages",
+	{
+		id: uuid().primaryKey().defaultRandom().notNull(),
+		user_id: uuid()
+			.notNull()
+			.references(() => usersTable.id, { onDelete: "cascade" }),
+		room_id: uuid()
+			.notNull()
+			.references(() => teamsTable.team_id, { onDelete: "cascade" }),
+		content: text().notNull(),
+		created_at: timestamp({ withTimezone: true }).defaultNow().notNull(),
+	},
+	(table) => [
+		pgPolicy("messages - allow select for authenticated users", {
+			for: "select",
+			using: sql`true`,
+			to: authenticatedRole,
+			as: "permissive",
+		}),
+		pgPolicy("messages - allow insert for owners", {
+			for: "insert",
+			withCheck: sql`(select auth.uid()) = user_id`,
+			to: authenticatedRole,
+			as: "permissive",
+		}),
+	]
+).enableRLS();
+
+
+export const fieldReviewsTable = pgTable(
+	"field_reviews",
+	{
+		id: uuid("id").primaryKey().defaultRandom().notNull(),
+		field_id: uuid("field_id")
+			.notNull()
+			.references(() => fieldsTable.id, { onDelete: "cascade" }),
+		user_id: uuid("user_id")
+			.notNull()
+			.references(() => usersTable.id, { onDelete: "cascade" }),
+		rating: integer("rating")
+			.notNull(),
+	},
+	(table) => [
+		unique("unique_user_field").on(table.user_id, table.field_id),
+		sql`CHECK (rating >= 0 AND rating <= 5)`,
+		pgPolicy("select_authenticated", {
+			for: "select",
+			using: sql`true`,
+			to: "authenticated",
+			as: "permissive",
+		}),
+		pgPolicy("insert_authenticated", {
+			for: "insert",
+			withCheck: sql`true`,
+			to: "authenticated",
+			as: "permissive",
+		}),
+		pgPolicy("update_own_review", {
+			for: "update",
+			using: sql`auth.uid() = user_id`,
+			withCheck: sql`auth.uid() = user_id`,
+			to: "authenticated",
+			as: "permissive",
+		}),
+	]
+).enableRLS();
+
+export const usersPreferencesTable = pgTable(
+	"user_preferences",
+	{
+		user_id: uuid()
+			.notNull()
+			.references(() => usersTable.id, { onDelete: "cascade" }),
+		fav_users: text().array().notNull(),
+		fav_fields: text().array().notNull(),
+		team_invites: text().array().notNull(),
+	},
+	(table) => [
+		pgPolicy("user_preferences - select authenticated", {
+			for: "select",
+			using: sql`true`,
+			withCheck: sql``,
+			to: authenticatedRole, // only allow authenticated users to select from the table
+			as: "permissive",
+		}),
+		pgPolicy("user_preferences - update authenticated", {
 			for: "update",
 			withCheck: sql`true`,
 			using: sql`true`,
