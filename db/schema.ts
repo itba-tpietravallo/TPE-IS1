@@ -253,6 +253,7 @@ export const tournamentsTable = pgTable(
 		price: integer().notNull(),
 		deadline: timestamp({ withTimezone: true }).notNull(),
 		cantPlayers: integer().notNull(),
+		active: boolean().notNull(),
 	},
 	(table) => [
 		pgPolicy("tournaments - select authenticated", {

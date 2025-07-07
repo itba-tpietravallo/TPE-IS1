@@ -128,20 +128,22 @@ export function TournamentForm({ fieldId, onClose = () => {} }: { fieldId: strin
 	// Use the mutation hook
 	const insertTournamentMutation = useInsertTournament(supabase);
 
-	
 	const onSubmit = async (data: any) => {
 		if (!selectedSport) throw new Error("Debe seleccionar un deporte");
-		
-		await insertTournamentMutation.mutateAsync([{
-			name: data.name,
-			fieldId: fieldId,
-			sport: selectedSport!,
-			startDate: data.startDate,
-			description: data.description,
-			price: data.price,
-			deadline: data.deadline,
-			cantPlayers: data.cantPlayers,
-		}]);
+
+		await insertTournamentMutation.mutateAsync([
+			{
+				name: data.name,
+				fieldId: fieldId,
+				sport: selectedSport!,
+				startDate: data.startDate,
+				description: data.description,
+				price: data.price,
+				deadline: data.deadline,
+				cantPlayers: data.cantPlayers,
+				active: true,
+			},
+		]);
 
 		field.refetch();
 
@@ -431,6 +433,12 @@ export function TorneosSheet({ fieldId, tournaments }: TorneosSheetProps) {
 										/>
 									</div>
 									<p>Fecha de inicio: {new Date(tournament.startDate).toLocaleDateString()}</p>
+									<Button
+										variant="outline"
+										className="bg-[#d97e01] text-sm font-medium text-white hover:bg-[#223332] hover:text-white"
+									>
+										Finalizar Torneo
+									</Button>
 									<p className="pt-3 text-sm text-gray-600">Inscriptos:</p>
 									<SingleTournamentInfo tournament_id={tournament.id} />
 								</div>
