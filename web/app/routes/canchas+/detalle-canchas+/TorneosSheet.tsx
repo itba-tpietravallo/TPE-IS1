@@ -382,7 +382,6 @@ export function TorneosSheet({ fieldId, tournaments }: TorneosSheetProps) {
 	const { env, URL_ORIGIN, id } = useLoaderData<typeof loader>();
 	const supabase = createBrowserClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
 	const field = getFieldById(supabase, fieldId || "");
-	const tournamentQuery = getAllTournamentsForFieldById(supabase, fieldId, { enabled: !!fieldId });
 	const [showForm, setShowForm] = useState(false);
 
 	const [showOldTournaments, setShowOldTournaments] = useState(false);
