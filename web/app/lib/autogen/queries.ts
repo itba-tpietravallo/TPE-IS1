@@ -646,7 +646,7 @@ export function useUpdateTournament(supabase: SupabaseClient<Database>) {
     "*", // Select all columns for the cache update
     {
       onError: (error) => {
-        console.error("Error updating team:", error);
+        console.error("Error updating tournament:", error);
       },
     }
   );
