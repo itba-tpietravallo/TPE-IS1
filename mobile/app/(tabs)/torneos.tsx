@@ -79,19 +79,17 @@ function TorneosFeed() {
 			>
 				{torneos
 					?.filter((torneo) => {
+						// Check if torneo is active and deadline is valid
 						const isActive = torneo.active;
 						const deadlineDate = new Date(torneo.deadline);
 						const now = new Date();
 						const isDeadlineValid = deadlineDate > now;
 
-						return isActive && isDeadlineValid;
-					})
-					.filter((torneo) => {
-						if (selectedSport === "") return true;
-
+						// Check if torneo matches the selected sport
+						if (selectedSport === "") return isActive && isDeadlineValid;
 						const normalizedSelectedSport = normalizeString(selectedSport);
 						const normalizedTorneoSport = normalizeString(torneo.sport);
-						return normalizedTorneoSport.includes(normalizedSelectedSport);
+						return isActive && isDeadlineValid && normalizedTorneoSport.includes(normalizedSelectedSport);
 					})
 					.map((torneo, index) => (
 						<TournamentPost
