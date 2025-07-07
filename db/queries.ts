@@ -158,6 +158,27 @@ export const queries = {
 		tournamentId: string
 	) =>
 		supabase.from("inscriptions").select("*").eq("tournamentId", tournamentId),
+
+	getFavoriteFields: (
+  		supabase: SupabaseClient<Database>,
+  		userId: string
+	) =>
+		supabase
+		.from("user_preferences")
+		.select("fav_fields")
+		.eq("user_id", userId)
+		.single(),
+
+	getFavoriteUsers: (
+  		supabase: SupabaseClient<Database>,
+  		userId: string
+	) =>
+		supabase
+		.from("user_preferences")
+		.select("fav_users")
+		.eq("user_id", userId)
+		.single(),
+
 };
 
 export const mutations = {
