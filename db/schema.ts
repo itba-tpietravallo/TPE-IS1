@@ -294,7 +294,7 @@ export const inscriptionsTable = pgTable(
     teamId: uuid().references(() => teamsTable.team_id, {
       onDelete: "cascade",
     }),
-    contactPhone: integer().notNull(),
+    contactPhone: text().notNull(),
     contactEmai: text().notNull(),
   },
   (table) => [
