@@ -158,6 +158,27 @@ export const queries = {
 		tournamentId: string
 	) =>
 		supabase.from("inscriptions").select("*").eq("tournamentId", tournamentId),
+
+	getFavoriteFields: (
+  		supabase: SupabaseClient<Database>,
+  		userId: string
+	) =>
+		supabase
+		.from("user_preferences")
+		.select("fav_fields")
+		.eq("user_id", userId)
+		.single(),
+
+	getFavoriteUsers: (
+  		supabase: SupabaseClient<Database>,
+  		userId: string
+	) =>
+		supabase
+		.from("user_preferences")
+		.select("fav_users")
+		.eq("user_id", userId)
+		.single(),
+
 };
 
 export const mutations = {
@@ -484,6 +505,28 @@ export function getUserEmailById(
 		{
 			enabled: !!id,
 		}
+	);
+}
+
+export function getFavoriteFields(
+	supabase: SupabaseClient<Database>,
+	userId: string,
+	opts: any = undefined
+) {
+	return useQuerySupabase(
+		queries.getFavoriteFields(supabase, userId),
+		opts
+	);
+}
+
+export function getFavoriteUsers(
+	supabase: SupabaseClient<Database>,
+	userId: string,
+	opts: any = undefined
+) {
+	return useQuerySupabase(
+		queries.getFavoriteUsers(supabase, userId),
+		opts
 	);
 }
 
@@ -868,3 +911,32 @@ export function useInsertMessage(supabase: SupabaseClient<Database>) {
 		},
 	});
 }
+
+export function useInsertUserPreferences(supabase: SupabaseClient<Database>) {
+	// Using the built-in useInsertMutation from supabase-cache-helpers
+	return useInsertMutation(
+		supabase.from("user_preferences"),
+		["user_id"], // Primary key columns
+		"*", // Select all columns for the cache update
+		{
+			onError: (error) => {
+				console.error("Error inserting team:", error);
+			},
+		}
+	);
+}
+
+export function useUpdateUserPreferences(supabase: SupabaseClient<Database>) {
+	// Using the built-in useUpdateMutation from supabase-cache-helpers
+	return useUpdateMutation(
+		supabase.from("user_preferences"),
+		["user_id"], // Primary key columns
+		"*", // Select all columns for the cache update
+		{
+			onError: (error) => {
+				console.error("Error updating team:", error);
+			},
+		}
+	);
+}
+
