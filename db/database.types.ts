@@ -436,6 +436,35 @@ export type Database = {
 					},
 				];
 			};
+			user_preferences: {
+				Row: {
+				fav_fields: string[]
+				fav_users: string[]
+				team_invites: string[]
+				user_id: string
+				}
+				Insert: {
+				fav_fields: string[]
+				fav_users: string[]
+				team_invites: string[]
+				user_id: string
+				}
+				Update: {
+				fav_fields?: string[]
+				fav_users?: string[]
+				team_invites?: string[]
+				user_id?: string
+				}
+				Relationships: [
+				{
+					foreignKeyName: "user_preferences_user_id_users_id_fk"
+					columns: ["user_id"]
+					isOneToOne: true
+					referencedRelation: "users"
+					referencedColumns: ["id"]
+				},
+				]
+			}
 			users: {
 				Row: {
 					avatar_url: string | null;
