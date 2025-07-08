@@ -166,8 +166,7 @@ export const queries = {
 		supabase
 		.from("user_preferences")
 		.select("fav_fields")
-		.eq("user_id", userId)
-		.single(),
+		.eq("user_id", userId),
 
 	getFavoriteUsersByUserId: (
   		supabase: SupabaseClient<Database>,
@@ -176,8 +175,7 @@ export const queries = {
 		supabase
 		.from("user_preferences")
 		.select("fav_users")
-		.eq("user_id", userId)
-		.single(),
+		.eq("user_id", userId),
 
 };
 
