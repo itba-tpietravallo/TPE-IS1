@@ -391,6 +391,7 @@ export const usersPreferencesTable = pgTable(
 	"user_preferences",
 	{
 		user_id: uuid()
+			.primaryKey()
 			.notNull()
 			.references(() => usersTable.id, { onDelete: "cascade" }),
 		fav_users: text().array().notNull(),
