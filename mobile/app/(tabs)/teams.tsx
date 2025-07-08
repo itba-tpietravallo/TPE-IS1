@@ -4,13 +4,18 @@ import TeamPost from "../../components/teamPost";
 import { ScreenHeight } from "@rneui/themed/dist/config";
 import { router } from "expo-router";
 import { supabase } from "@/lib/supabase";
-import { getAllTeams, getAllSports } from "@/lib/autogen/queries";
+import { getAllTeams, getAllSports, getUserAuthSession } from "@/lib/autogen/queries";
 
 function TeamsFeed() {
 	const { data: teams } = getAllTeams(supabase);
 	const { data: sports } = getAllSports(supabase);
 
+	const { data: session } = getUserAuthSession(supabase);
+	const user = session?.user;
+	const myTeams = teams?.filter((team) => team?.players?.some((member) => member === user?.id));
+
 	const [selectedSport, setSelectedSport] = useState<string>("");
+	const [showMyTeams, setShowMyTeams] = useState<boolean>(false);
 
 	const handleSportPress = (sportName: string) => {
 		if (selectedSport === sportName) {
@@ -23,6 +28,20 @@ function TeamsFeed() {
 	const handleAddNewTeam = () => {
 		router.push("/(tabs)/newTeam");
 	};
+
+	const filteredTeams = teams
+		?.filter((team) => {
+			if (showMyTeams && user?.id) {
+				return team?.players?.some((member) => member === user.id);
+			}
+			return true;
+		})
+		.filter((team) => {
+			if (selectedSport !== "") {
+				return team.sport === selectedSport;
+			}
+			return true;
+		});
 
 	return (
 		<View
@@ -64,8 +83,22 @@ function TeamsFeed() {
 									</View>
 								),
 						)}
+					<TouchableOpacity
+						style={[styles.sportButton, showMyTeams ? styles.selectedSportButton : {}]}
+						onPress={() => {
+							setShowMyTeams((prev) => !prev);
+						}}
+					>
+						<Text>Mis equipos</Text>
+					</TouchableOpacity>
 					{(sports || []).length > 0 && (
-						<TouchableOpacity style={{ padding: 10 }} onPress={() => handleSportPress("")}>
+						<TouchableOpacity
+							style={{ padding: 10 }}
+							onPress={() => {
+								handleSportPress("");
+								setShowMyTeams(false);
+							}}
+						>
 							<Text>X</Text>
 						</TouchableOpacity>
 					)}
@@ -79,12 +112,7 @@ function TeamsFeed() {
 				showsHorizontalScrollIndicator={false}
 				showsVerticalScrollIndicator={false}
 			>
-				{teams
-					?.filter((team) => {
-						if (selectedSport === "") return true;
-						return team.sport === selectedSport;
-					})
-					.map((team, i) => <TeamPost key={team.team_id} team_id={team.team_id} />)}
+				{filteredTeams?.map((team) => <TeamPost key={team.team_id} team_id={team.team_id} />)}
 
 				{/* Boton para agregar un equipo */}
 				<TouchableOpacity onPress={() => handleAddNewTeam()}>
