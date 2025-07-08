@@ -159,7 +159,7 @@ export const queries = {
 	) =>
 		supabase.from("inscriptions").select("*").eq("tournamentId", tournamentId),
 
-	getFavoriteFields: (
+	getFavoriteFieldsByUserId: (
   		supabase: SupabaseClient<Database>,
   		userId: string
 	) =>
@@ -169,7 +169,7 @@ export const queries = {
 		.eq("user_id", userId)
 		.single(),
 
-	getFavoriteUsers: (
+	getFavoriteUsersByUserId: (
   		supabase: SupabaseClient<Database>,
   		userId: string
 	) =>
@@ -508,24 +508,24 @@ export function getUserEmailById(
 	);
 }
 
-export function getFavoriteFields(
+export function getFavoriteFieldsByUserId(
 	supabase: SupabaseClient<Database>,
 	userId: string,
 	opts: any = undefined
 ) {
 	return useQuerySupabase(
-		queries.getFavoriteFields(supabase, userId),
+		queries.getFavoriteFieldsByUserId(supabase, userId),
 		opts
 	);
 }
 
-export function getFavoriteUsers(
+export function getFavoriteUsersByUserId(
 	supabase: SupabaseClient<Database>,
 	userId: string,
 	opts: any = undefined
 ) {
 	return useQuerySupabase(
-		queries.getFavoriteUsers(supabase, userId),
+		queries.getFavoriteUsersByUserId(supabase, userId),
 		opts
 	);
 }
