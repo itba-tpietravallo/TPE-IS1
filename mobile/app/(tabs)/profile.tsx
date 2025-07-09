@@ -115,7 +115,7 @@ const menuItems = [
 	{ label: "Equipos", icon: "people-group", action: () => router.push("/(tabs)/profileMenu/teams") },
 	// { label: "Mis torneos", icon: "medal", action: () => router.push("/(tabs)/profileMenu/teams") },
 	{ label: "Pendientes", icon: "spinner", action: () => router.push("/(tabs)/profileMenu/pendings") },
-	{ label: "Favoritos", icon: "user-group", action: () => router.push("/(tabs)/profileMenu/friends") },
+	{ label: "Favoritos", icon: "user-group", action: () => router.push("/(tabs)/profileMenu/favUsers") },
 	{ label: "Chats", icon: "comments", action: () => router.push("/(tabs)/profileMenu/chats") },
 ];
 

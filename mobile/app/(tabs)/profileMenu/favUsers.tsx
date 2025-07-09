@@ -1,61 +1,19 @@
 import { supabase } from "@/lib/supabase";
 import { Image } from "@rneui/themed";
-import {
-	StyleSheet,
-	Text,
-	TouchableOpacity,
-	View,
-	FlatList,
-	Modal,
-	ScrollView,
-	KeyboardAvoidingView,
-	Platform,
-} from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View, FlatList, Modal } from "react-native";
 import { useState } from "react";
 import { router } from "expo-router";
 import Icon from "react-native-vector-icons/FontAwesome6";
 import PopUpFriend from "@/components/PopUpFriend";
-import { getUserAuthSession } from "@/lib/autogen/queries";
-import { ScreenHeight } from "@rneui/themed/dist/config";
+import { getUserAuthSession, getFavoriteUsersByUserId, getAllUsers } from "@/lib/autogen/queries";
 
 function myFriends() {
 	const { data: session } = getUserAuthSession(supabase);
 	const user = session?.user;
+	const usersData = getAllUsers(supabase);
+	const { data: favUsers } = getFavoriteUsersByUserId(supabase, user?.id!);
 
 	const [selectedMember, setSelectedMember] = useState<string | null>(null);
-
-	const myFriends = [
-		{
-			id: "10",
-			full_name: "Lionel Messi",
-			username: "La Pulga",
-			avatar_url: "",
-		},
-		{
-			id: "11",
-			full_name: "Neymar Jr",
-			username: "El principe",
-			avatar_url: "",
-		},
-		{
-			id: "9",
-			full_name: "Luis Suarez",
-			username: "El pistolero",
-			avatar_url: "",
-		},
-		{
-			id: "8",
-			full_name: "Iniesta",
-			username: "Peladoo",
-			avatar_url: "",
-		},
-		{
-			id: "99",
-			full_name: "Ronaldo",
-			username: "El fenomeno",
-			avatar_url: "",
-		},
-	];
 
 	return (
 		<View style={styles.background}>
@@ -65,31 +23,35 @@ function myFriends() {
 				<Text style={{ fontSize: 14, color: "#262626" }}>Atrás</Text>
 			</TouchableOpacity>
 
-			<Text style={styles.title}>Mis Favoritos</Text>
+			<Text style={styles.title}>Usuarios Favoritos</Text>
 
 			{/* Amigos */}
 			<View style={styles.dataContainer}>
-				{myFriends.length > 0 ? (
+				{favUsers?.fav_users.length! > 0 ? (
 					<View style={styles.row}>
 						<FlatList
-							data={myFriends}
-							keyExtractor={(item) => item.id}
+							data={favUsers?.fav_users}
+							keyExtractor={(item) => item}
 							scrollEnabled={true}
-							renderItem={({ item }) => (
-								<View style={styles.row}>
-									<Text style={{ fontWeight: "bold" }}>{item.full_name}</Text>
-									<TouchableOpacity
-										onPress={() => {
-											setSelectedMember(item.id);
-										}}
-									>
-										<Image
-											style={{ width: 20, height: 20 }}
-											source={require("@/assets/images/info.png")}
-										/>
-									</TouchableOpacity>
-								</View>
-							)}
+							renderItem={({ item }) => {
+								const member = usersData.data?.find((user) => user.id === item);
+								if (!member) return null;
+								return (
+									<View style={styles.row}>
+										<Text style={{ fontWeight: "bold" }}>{member.full_name}</Text>
+										<TouchableOpacity
+											onPress={() => {
+												setSelectedMember(member.id);
+											}}
+										>
+											<Image
+												style={{ width: 20, height: 20 }}
+												source={require("@/assets/images/info.png")}
+											/>
+										</TouchableOpacity>
+									</View>
+								);
+							}}
 							ItemSeparatorComponent={() => (
 								<View style={{ height: 1, backgroundColor: "#ccc", marginHorizontal: 10 }} />
 							)}
@@ -104,13 +66,13 @@ function myFriends() {
 							<View style={styles.centeredView}>
 								{selectedMember &&
 									(() => {
-										const memberData = myFriends.find((user) => user.id === selectedMember)!;
+										const memberData = usersData.data?.find((user) => user.id === selectedMember)!;
 										return user ? (
 											<PopUpFriend
 												onClose={() => setSelectedMember(null)}
 												id={memberData.id}
 												full_name={memberData.full_name}
-												username={memberData.username} //TODO: FIX
+												username={""} //TODO: FIX
 												avatar={memberData.avatar_url!}
 											/>
 										) : null;
@@ -119,7 +81,7 @@ function myFriends() {
 						</Modal>
 					</View>
 				) : (
-					<Text style={{ color: "gray", padding: 20 }}>Aún no tienes amigos.</Text>
+					<Text style={{ color: "gray", padding: 20 }}>No tienes usuarios favoritos</Text>
 				)}
 			</View>
 		</View>
