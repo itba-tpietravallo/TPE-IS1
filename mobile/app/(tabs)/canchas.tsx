@@ -2,8 +2,8 @@ import FieldPost from "@components/fieldPost";
 import { ScrollView, Text, View, SafeAreaView, StyleSheet, TouchableOpacity, Button } from "react-native";
 import { supabase } from "@lib/supabase";
 import React, { useEffect, useState } from "react";
-
-import { getAllFields, getAllSports } from "@lib/autogen/queries"; // Database Queries
+import { getAllFields, getAllSports, getFavoriteFieldsByUserId, getUserAuthSession } from "@lib/autogen/queries"; // Database Queries
+import Icon from "react-native-vector-icons/FontAwesome6";
 
 type Field = {
 	// lat: number;
@@ -34,11 +34,17 @@ const normalizeString = (str: string) => {
 		.toLowerCase();
 };
 
+const favFieldsStr = "FavoriteFields";
+
 function CanchasFeed() {
 	const [selectedSport, setSelectedSport] = useState<string>("");
 
+	const { data: session } = getUserAuthSession(supabase);
+	const user = session?.user;
+
 	const { data: fields } = getAllFields(supabase);
 	const { data: sports } = getAllSports(supabase);
+	const { data: favFields } = getFavoriteFieldsByUserId(supabase, user?.id!);
 
 	const handleSportPress = (sportName: string) => {
 		if (selectedSport === sportName) {
@@ -69,6 +75,19 @@ function CanchasFeed() {
 						paddingRight: 10,
 					}}
 				>
+					{(sports || [])?.length > 0 && (
+						<View style={{ padding: 10 }}>
+							<TouchableOpacity
+								style={[
+									styles.sportButton,
+									selectedSport === favFieldsStr ? styles.selectedSportButton : {},
+								]}
+								onPress={() => handleSportPress(favFieldsStr)}
+							>
+								<Icon name={"heart"} color="black" />
+							</TouchableOpacity>
+						</View>
+					)}
 					{sports?.map((sport) => (
 						<View key={sport.name} style={{ padding: 10 }}>
 							<TouchableOpacity
@@ -99,6 +118,9 @@ function CanchasFeed() {
 				{fields
 					?.filter((field) => {
 						if (selectedSport === "") return true;
+						if (selectedSport === favFieldsStr) {
+							return favFields?.fav_fields.includes(field.id);
+						}
 						const normalizedSelectedSport = normalizeString(selectedSport);
 
 						return field.sports.some((fieldSport) => {
