@@ -3,7 +3,13 @@ import { ScreenWidth } from "@rneui/themed/dist/config";
 import Icon from "react-native-vector-icons/FontAwesome6";
 import { Image } from "@rneui/themed";
 import { supabase } from "@lib/supabase";
-import { getUserAuthSession, useUpdateTeam, getTeamById } from "@/lib/autogen/queries";
+import {
+	getUserAuthSession,
+	useUpdateTeam,
+	getTeamById,
+	getFavoriteUsersByUserId,
+	useUpdateUserPreferences,
+} from "@/lib/autogen/queries";
 import { useState } from "react";
 
 type PropsPopUpTeamMemberInfo = {
@@ -21,6 +27,9 @@ function PopUpTeamMemberInfo(props: PropsPopUpTeamMemberInfo) {
 	const updateTeamMutation = useUpdateTeam(supabase);
 
 	const { data: team } = getTeamById(supabase, props.team_id);
+
+	const { data: favUsers } = getFavoriteUsersByUserId(supabase, user?.id!);
+	const updateUserPreferences = useUpdateUserPreferences(supabase);
 	const [isFavorite, setIsFavorite] = useState<boolean>(false);
 
 	const handleDeletePlayer = async (player: string) => {
@@ -70,6 +79,33 @@ function PopUpTeamMemberInfo(props: PropsPopUpTeamMemberInfo) {
 		return false;
 	}
 
+	const handleManageFavorites = async (player: string) => {
+		var updatedFavorites;
+		if (!userIsFavorite(player)) {
+			updatedFavorites = [...(favUsers?.fav_users || []), player];
+		} else {
+			updatedFavorites = favUsers?.fav_users.filter((member) => member !== player);
+		}
+
+		try {
+			await updateUserPreferences.mutateAsync({
+				user_id: user?.id,
+				fav_users: updatedFavorites,
+			});
+
+			console.log("added to favorites");
+		} catch (error) {
+			console.error("Error adding fav user:", error);
+		}
+	};
+
+	function userIsFavorite(userId: string) {
+		if (favUsers?.fav_users.includes(userId)) {
+			return true;
+		}
+		return false;
+	}
+
 	return (
 		<View style={styles.modalView}>
 			<View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
@@ -85,11 +121,11 @@ function PopUpTeamMemberInfo(props: PropsPopUpTeamMemberInfo) {
 				<TouchableOpacity
 					style={{ padding: 10, alignItems: "flex-start", marginLeft: 10 }}
 					onPress={() => {
-						isFavorite ? setIsFavorite(false) : setIsFavorite(true);
+						handleManageFavorites(props.id);
 					}}
 				>
 					<Icon
-						name={isFavorite ? "heart-circle-check" : "heart"}
+						name={userIsFavorite(props.id) ? "heart-circle-check" : "heart"}
 						size={24}
 						color="black"
 						style={{ marginTop: 10 }}
@@ -141,17 +177,6 @@ function PopUpTeamMemberInfo(props: PropsPopUpTeamMemberInfo) {
 					</TouchableOpacity>
 				</View>
 			)}
-
-			{/* Boton Friend Request
-			<View style={styles.buttonsContainer}>
-				<TouchableOpacity
-					style={[styles.button, styles.friendRequestButton]}
-					onPress={() => console.log("todo")}
-				>
-					<Icon name="user-group" size={18} color="white" style={{ marginRight: 10 }} />
-					<Text style={styles.friendsButtonText}>Enviar solicitud de amistad</Text>
-				</TouchableOpacity>
-			</View> */}
 
 			<View style={{ marginBottom: 10 }} />
 		</View>

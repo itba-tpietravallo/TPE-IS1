@@ -3,7 +3,7 @@ import { ScreenWidth } from "@rneui/themed/dist/config";
 import Icon from "react-native-vector-icons/FontAwesome6";
 import { Image } from "@rneui/themed";
 import { supabase } from "@lib/supabase";
-import { getUserAuthSession, getAllTeamsByAdminUser } from "@/lib/autogen/queries";
+import { getUserAuthSession, getFavoriteUsersByUserId, useUpdateUserPreferences } from "@/lib/autogen/queries";
 import { useState } from "react";
 import SelectDropdown from "react-native-select-dropdown";
 
@@ -20,46 +20,28 @@ function PopUpFriend(props: PropsPopUpFriend) {
 	const user = session?.user;
 
 	const [selectedTeam, setSelectedTeam] = useState<string>();
-	const { data: myTeams } = getAllTeamsByAdminUser(supabase, user?.id!);
+	const { data: favUsers } = getFavoriteUsersByUserId(supabase, user?.id!);
 
-	const myFriends = [
-		{
-			id: "10",
-			full_name: "Lionel Messi",
-			username: "La Pulga",
-			avatar_url: "",
-		},
-	];
+	const updateUserPreferences = useUpdateUserPreferences(supabase);
 
-	const handleDeleteFriend = async (player: string) => {
-		// const updatedPlayers = team!.players.filter((member) => member !== player);
-		// var updatedAdmins = team!.admins.filter((member) => member !== player);
+	const handleDeleteFavorite = async (player: string) => {
+		const updatedFavorites = favUsers?.fav_users.filter((member) => member !== player);
 
-		// if (updatedAdmins.length == 0) {
-		// 	updatedAdmins = [...updatedAdmins, team!.players[0]];
-		// }
+		try {
+			await updateUserPreferences.mutateAsync({
+				user_id: user?.id,
+				fav_users: updatedFavorites,
+			});
 
-		// try {
-		// 	await updateTeamMutation.mutateAsync({
-		// 		team_id: props.team_id,
-		// 		players: updatedPlayers,
-		// 		admins: updatedAdmins,
-		// 	});
-
-		// 	props.onClose();
-		// 	console.log("deleted");
-		// } catch (error) {
-		// 	console.error("Error leaving team:", error);
-		// }
-		console.log("todo");
+			props.onClose();
+			console.log("deleted");
+		} catch (error) {
+			console.error("Error deleting fav user:", error);
+		}
 	};
 
-	const handleInviteToTeam = async (friend: string) => {
-		console.log("todo");
-	};
-
-	function userIsFriend(userId: string) {
-		if (myFriends.some((friend) => friend.id === userId)) {
+	function userIsFavorite(userId: string) {
+		if (favUsers?.fav_users.some((user) => user === userId)) {
 			return true;
 		}
 		return false;
@@ -93,7 +75,7 @@ function PopUpFriend(props: PropsPopUpFriend) {
 				</View>
 			</View>
 
-			{userIsFriend(props.id) && (
+			{userIsFavorite(props.id) && (
 				<View>
 					{/* Invitaciones a equipos */}
 					{/* {myTeams?.length! > 0 && (
@@ -141,7 +123,7 @@ function PopUpFriend(props: PropsPopUpFriend) {
 					)} */}
 
 					<View style={styles.buttonsContainer}>
-						<TouchableOpacity style={styles.button} onPress={() => handleDeleteFriend(props.id)}>
+						<TouchableOpacity style={styles.button} onPress={() => handleDeleteFavorite(props.id)}>
 							<Icon name="user-xmark" size={18} color="black" style={{ marginRight: 10 }} />
 							<Text style={styles.buttonText}>Eliminar de favoritos</Text>
 						</TouchableOpacity>
