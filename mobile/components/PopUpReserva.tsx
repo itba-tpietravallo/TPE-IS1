@@ -104,9 +104,9 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 				fav_fields: updatedFavorites,
 			});
 
-			console.log("added to favorites");
+			console.log("managed favorites");
 		} catch (error) {
-			console.error("Error adding fav field:", error);
+			console.error("Error managing fav field:", error);
 		}
 	};
 
