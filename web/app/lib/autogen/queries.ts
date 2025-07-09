@@ -691,7 +691,7 @@ export function useInsertUserPreferences(supabase: SupabaseClient<Database>) {
 		"*", // Select all columns for the cache update
 		{
 			onError: (error) => {
-				console.error("Error inserting team:", error);
+				console.error("Error inserting user preferences:", error);
 			},
 		},
 	);
@@ -705,7 +705,7 @@ export function useUpdateUserPreferences(supabase: SupabaseClient<Database>) {
 		"*", // Select all columns for the cache update
 		{
 			onError: (error) => {
-				console.error("Error updating team:", error);
+				console.error("Error updating user preferences:", error);
 			},
 		},
 	);
