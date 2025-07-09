@@ -30,7 +30,6 @@ function PopUpTeamMemberInfo(props: PropsPopUpTeamMemberInfo) {
 
 	const { data: favUsers } = getFavoriteUsersByUserId(supabase, user?.id!);
 	const updateUserPreferences = useUpdateUserPreferences(supabase);
-	const [isFavorite, setIsFavorite] = useState<boolean>(false);
 
 	const handleDeletePlayer = async (player: string) => {
 		const updatedPlayers = team!.players.filter((member) => member !== player);

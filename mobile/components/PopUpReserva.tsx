@@ -12,6 +12,8 @@ import {
 	getAllTeamsByAdminUser,
 	getUsername,
 	getUserAuthSession,
+	getFavoriteFieldsByUserId,
+	useUpdateUserPreferences,
 } from "@/lib/autogen/queries";
 import Selector from "./Selector";
 
@@ -42,7 +44,8 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 	const { data: teamData } = getAllTeamsByAdminUser(supabase, user?.id!, { enabled: !!user?.id });
 	const normalizedTeams = teamData ? teamData.filter((team) => team.team_id && team.name !== null) : [];
 
-	const [isFavorite, setIsFavorite] = useState<boolean>(false);
+	const { data: favFields } = getFavoriteFieldsByUserId(supabase, user?.id!);
+	const updateUserPreferences = useUpdateUserPreferences(supabase);
 
 	const teams: Renter[] = normalizedTeams.map((team) => ({
 		id: team.team_id,
@@ -87,6 +90,33 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 		return teams.some((team) => team.id === renter.id);
 	}
 
+	const handleManageFavorites = async (field: string) => {
+		var updatedFavorites;
+		if (!fieldIsFavorite(field)) {
+			updatedFavorites = [...(favFields?.fav_fields || []), field];
+		} else {
+			updatedFavorites = favFields?.fav_fields.filter((item) => item !== field);
+		}
+
+		try {
+			await updateUserPreferences.mutateAsync({
+				user_id: user?.id,
+				fav_fields: updatedFavorites,
+			});
+
+			console.log("added to favorites");
+		} catch (error) {
+			console.error("Error adding fav field:", error);
+		}
+	};
+
+	function fieldIsFavorite(fieldId: string) {
+		if (favFields?.fav_fields.includes(fieldId)) {
+			return true;
+		}
+		return false;
+	}
+
 	return (
 		<View style={styles.modalView}>
 			<View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
@@ -99,11 +129,11 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 				<TouchableOpacity
 					style={{ padding: 10, alignItems: "flex-start", marginLeft: 10 }}
 					onPress={() => {
-						isFavorite ? setIsFavorite(false) : setIsFavorite(true);
+						handleManageFavorites(fieldId);
 					}}
 				>
 					<Icon
-						name={isFavorite ? "heart-circle-check" : "heart"}
+						name={fieldIsFavorite(fieldId) ? "heart-circle-check" : "heart"}
 						size={24}
 						color="black"
 						style={{ marginTop: 10 }}
