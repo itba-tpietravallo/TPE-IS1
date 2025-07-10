@@ -232,17 +232,17 @@ export const mutations = {
 
 export function getAllFields(
 
-  supabase: SupabaseClient<Database>,
-  opts: any = undefined
+	supabase: SupabaseClient<Database>,
+	opts: any = undefined
 ) {
-  return useQuerySupabase(queries.getAllFields(supabase), opts);
+	return useQuerySupabase(queries.getAllFields(supabase), opts);
 }
 
 export function getIsFieldOwner(
-  supabase: SupabaseClient<Database>,
-  fieldId: string,
-  userId: string,
-  opts: any = undefined
+	supabase: SupabaseClient<Database>,
+	fieldId: string,
+	userId: string,
+	opts: any = undefined
 
 ) {
   return useQuerySupabase(queries.getIsFieldOwner(supabase, fieldId, userId), {
