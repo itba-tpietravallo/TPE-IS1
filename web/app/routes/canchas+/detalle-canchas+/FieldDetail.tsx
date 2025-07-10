@@ -118,7 +118,7 @@ export function FieldDetail(props: FieldProps) {
 
 	return (
 		<div className="mb-10 h-full min-h-fit bg-[#f2f4f3] py-10">
-			<div className="flex h-full max-h-fit flex-row items-center justify-center space-x-12">
+			<div className="flex flex-row items-center justify-center space-x-12">
 				<Card className="w-full max-w-3xl bg-[#223332] p-10 shadow-lg">
 					<Suspense
 						fallback={
