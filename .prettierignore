@@ -1,0 +1,7 @@
+# Ignore database schema file
+db/schema.ts
+db/drizzle
+db/supabase
+db/supabase-triggers
+**autogen**
+*.types.*
