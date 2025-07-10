@@ -54,7 +54,7 @@ export const usersTable = pgTable(
 			to: authenticatedRole, // only allow authenticated users to select from the table
 			as: "permissive",
 		}),
-	],
+	]
 ).enableRLS();
 
 export const fieldsTable = pgTable(
@@ -93,7 +93,7 @@ export const fieldsTable = pgTable(
 			to: authenticatedRole,
 			as: "permissive",
 		}),
-	],
+	]
 ).enableRLS();
 
 export const sportsTable = pgTable(
@@ -109,7 +109,7 @@ export const sportsTable = pgTable(
 			to: authenticatedRole,
 			as: "permissive",
 		}),
-	],
+	]
 ).enableRLS();
 
 export const reservationsTable = pgTable(
@@ -138,8 +138,17 @@ export const reservationsTable = pgTable(
 			to: authenticatedRole,
 			as: "permissive",
 		}),
-	],
+	]
 ).enableRLS();
+
+export const reservationCronJobsTable = pgTable("reservation_cron_jobs", {
+	reservation_id: uuid()
+		.primaryKey()
+		.notNull()
+		.references(() => reservationsTable.id, { onDelete: "cascade" }),
+	warning_job_id: bigint({ mode: "number" }).notNull(),
+	cancellation_job_id: bigint({ mode: "number" }).notNull(),
+}).enableRLS();
 
 export const mpPaymentsTable = pgTable(
 	"mp_payments",
@@ -165,7 +174,7 @@ export const mpPaymentsTable = pgTable(
 			to: authenticatedRole,
 			as: "permissive",
 		}),
-	],
+	]
 ).enableRLS();
 
 export const mpOAuthAuthorizationTable = pgTable(
@@ -206,7 +215,7 @@ export const mpOAuthAuthorizationTable = pgTable(
 			as: "permissive",
 		}),
 		// Insert, update are checked by triggers on the table.
-	],
+	]
 ).enableRLS();
 
 export const teamsTable = pgTable(
@@ -234,7 +243,7 @@ export const teamsTable = pgTable(
 			to: authenticatedRole,
 			as: "permissive",
 		}),
-	],
+	]
 ).enableRLS();
 
 export const tournamentsTable = pgTable(
@@ -280,7 +289,7 @@ export const tournamentsTable = pgTable(
 			to: authenticatedRole, // only allow authenticated users to select from the table
 			as: "permissive",
 		}),
-	],
+	]
 ).enableRLS();
 
 export const inscriptionsTable = pgTable(
@@ -314,5 +323,5 @@ export const inscriptionsTable = pgTable(
 			to: authenticatedRole, // only allow authenticated users to select from the table
 			as: "permissive",
 		}),
-	],
+	]
 ).enableRLS();
