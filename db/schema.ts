@@ -146,8 +146,8 @@ export const reservationCronJobsTable = pgTable("reservation_cron_jobs", {
 		.primaryKey()
 		.notNull()
 		.references(() => reservationsTable.id, { onDelete: "cascade" }),
-	warning_job_id: bigint({ mode: "number" }).notNull(),
-	cancellation_job_id: bigint({ mode: "number" }).notNull(),
+	warning_job_id: bigint({ mode: "number" }),
+	cancellation_job_id: bigint({ mode: "number" }),
 }).enableRLS();
 
 export const mpPaymentsTable = pgTable(
