@@ -1,146 +1,176 @@
-import { supabase } from "@/lib/supabase";
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, Image, Modal } from "react-native";
 import Icon from "react-native-vector-icons/FontAwesome6";
 import { router } from "expo-router";
 import { useState } from "react";
+import { supabase } from "@/lib/supabase";
+import { ScreenHeight, ScreenWidth } from "@rneui/themed/dist/config";
+
 import { getUserAuthSession, getUserTournaments, getFieldById } from "@/lib/autogen/queries";
 import PopUpTorneo from "@/components/PopUpTorneo";
 
 export default function MyTournaments() {
 	const { data: session } = getUserAuthSession(supabase);
 	const user = session?.user;
+
 	const { data: userTournaments } = getUserTournaments(supabase, user?.id!, {
 		enabled: !!user?.id,
 	});
 
 	const [selectedTournament, setSelectedTournament] = useState<any>(null);
 	const [isModalVisible, setIsModalVisible] = useState(false);
-	const [fieldLocation, setFieldLocation] = useState<string>("");
 
-	const handleOpenModal = async (item: any) => {
+	const openModal = (item: any) => {
 		setSelectedTournament(item);
 		setIsModalVisible(true);
+	};
 
-		// Obtener la cancha (field) del torneo
-		const { data: field, error } = await getFieldById(supabase, item.tournament.field_id); //tournament no tiene el field id, es undefined x ahora xq la query no lo devuelve. TODO: editar getUserTournaments para que devuelva tmbn el field id
-		if (field && !error) {
-			setFieldLocation(typeof field.location === "string" ? field.location : "Ubicación desconocida");
-		} else {
-			setFieldLocation("Ubicación desconocida");
-		}
+	const closeModal = () => {
+		setIsModalVisible(false);
+	};
+
+	const TournamentModal = ({ tournament }: { tournament: any }) => {
+		const { data: fieldData } = getFieldById(supabase, tournament.tournament.fieldId);
+
+		const location = fieldData
+			? `${fieldData?.street} ${fieldData?.street_number}, ${fieldData?.neighborhood}`
+			: "Ubicación desconocida";
+
+		return (
+			<Modal style={styles.modal} visible={isModalVisible} transparent={true} onRequestClose={closeModal}>
+				<View style={styles.centeredView}>
+					<PopUpTorneo
+						onClose={closeModal}
+						tournamentId={tournament.tournament.id}
+						name={tournament.tournament.name}
+						sport={tournament.tournament.sport}
+						location={location}
+						date={new Date(tournament.tournament.startDate)}
+						description={tournament.tournament.description}
+						price={tournament.tournament.price}
+						deadline={new Date(tournament.tournament.deadline)}
+						cantPlayers={tournament.tournament.players_required}
+						alreadyJoined={true}
+					/>
+				</View>
+			</Modal>
+		);
 	};
 
 	return (
-		<View style={styles.screen}>
-			<TouchableOpacity style={styles.backButton} onPress={() => router.push("/(tabs)/profile")}>
+		<View
+			style={{
+				flex: 1,
+				alignItems: "stretch",
+				backgroundColor: "#f2f4f3",
+				padding: 6,
+			}}
+		>
+			<TouchableOpacity
+				style={{ flexDirection: "row", alignItems: "flex-start", paddingVertical: 15, paddingHorizontal: 10 }}
+				onPress={() => router.push("/(tabs)/profile")}
+			>
 				<Icon name="arrow-left" size={14} color="#262626" style={{ marginRight: 8 }} />
-				<Text style={styles.backText}>Atrás</Text>
+				<Text style={{ fontSize: 14, color: "#262626" }}>Atrás</Text>
 			</TouchableOpacity>
 
-			<Text style={styles.title}>Mis torneos</Text>
+			<Text
+				style={{
+					//todos los estilos estan copiados de teams.tsx para que el dislpay quede igual en todos los items del menu
+
+					fontSize: 30,
+					fontWeight: "bold",
+					color: "#f18f01",
+					textAlign: "left",
+					padding: 10,
+				}}
+			>
+				Mis torneos
+			</Text>
 
 			<View style={{ padding: 5, borderWidth: 1, borderColor: "#ccc", borderRadius: 5, margin: 10 }}>
 				{!userTournaments || userTournaments.length === 0 ? (
-					<Text style={styles.emptyText}>No estás participando en ningún torneo.</Text>
+					<Text style={{ color: "gray", padding: 20 }}>No estás participando en ningún torneo.</Text>
 				) : (
 					<FlatList
 						data={userTournaments}
 						keyExtractor={(item, index) => `${item.tournament?.id ?? "null"}-${index}`}
 						scrollEnabled={true}
 						renderItem={({ item }) => (
-							<View style={styles.row}>
-								<Text style={styles.tournamentName}>{item.tournament.name}</Text>
-								<TouchableOpacity
-									onPress={() => {
-										setSelectedTournament(item);
-										setIsModalVisible(true);
-									}}
-								>
-									<Image style={styles.infoIcon} source={require("@/assets/images/info.png")} />
+							<View
+								style={{
+									flexDirection: "row",
+									justifyContent: "space-between",
+									padding: 15,
+								}}
+							>
+								<Text style={{ fontWeight: "bold" }}>{item.tournament.name}</Text>
+								<TouchableOpacity onPress={() => openModal(item)}>
+									<Image
+										style={{ width: 20, height: 20 }}
+										source={require("@/assets/images/info.png")}
+									/>
 								</TouchableOpacity>
 							</View>
 						)}
-						ItemSeparatorComponent={() => <View style={styles.separator} />}
+						ItemSeparatorComponent={() => (
+							<View style={{ height: 1, backgroundColor: "#ccc", marginHorizontal: 10 }} />
+						)}
 					/>
 				)}
 			</View>
 
-			<Modal
-				style={styles.modal}
-				visible={isModalVisible}
-				transparent={true}
-				onRequestClose={() => setIsModalVisible(false)}
-			>
-				<View style={styles.centeredView}>
-					{selectedTournament && (
-						<PopUpTorneo
-							onClose={() => setIsModalVisible(false)}
-							tournamentId={selectedTournament.tournament.id}
-							name={selectedTournament.tournament.name}
-							sport={selectedTournament.tournament.sport}
-							location={fieldLocation}
-							date={new Date(selectedTournament.tournament.startDate)}
-							description={selectedTournament.tournament.description}
-							price={selectedTournament.tournament.price}
-							deadline={new Date(selectedTournament.tournament.deadline)}
-							cantPlayers={selectedTournament.tournament.players_required}
-							alreadyJoined={true}
-						/>
-					)}
-				</View>
-			</Modal>
+			{selectedTournament && <TournamentModal tournament={selectedTournament} />}
 		</View>
 	);
 }
 
 const styles = StyleSheet.create({
-	screen: {
-		flex: 1,
-		backgroundColor: "#f2f4f3",
+	container: {
+		backgroundColor: "#f8f8f8",
+		justifyContent: "space-between",
+		flexDirection: "column",
+		margin: 10,
+		width: ScreenHeight * 0.4,
+		height: ScreenHeight * 0.4,
 	},
-	backButton: {
+	topContent: {
+		flexDirection: "column",
+		alignItems: "center",
+		marginTop: 40,
+	},
+	bottomContent: {
+		backgroundColor: "black",
+		borderColor: "#747775",
+		paddingHorizontal: 12,
+		height: 30,
 		flexDirection: "row",
-		alignItems: "flex-start",
-		paddingVertical: 15,
-		paddingHorizontal: 10,
-	},
-	backText: {
-		fontSize: 14,
-		color: "#262626",
+		alignItems: "center",
+		justifyContent: "center",
+		opacity: 0.6,
+		borderBottomEndRadius: 15,
+		borderBottomStartRadius: 15,
 	},
 	title: {
-		fontSize: 30,
+		fontSize: 28,
 		fontWeight: "bold",
-		color: "#f18f01",
-		textAlign: "left",
-		paddingHorizontal: 16,
-		paddingBottom: 12,
+		color: "#fff",
+		marginBottom: 10,
 	},
-	tournamentName: {
-		fontWeight: "bold",
-		color: "#223332",
+	text: {
 		fontSize: 16,
+		color: "#fff",
+		marginTop: 1,
 	},
-	row: {
-		flexDirection: "row",
-		justifyContent: "space-between",
-		alignItems: "center",
-		padding: 15,
+	sport: {
+		fontSize: 16,
+		color: "#fff",
+		marginTop: 1,
+		fontWeight: "bold",
 	},
-	infoIcon: {
-		width: 20,
-		height: 20,
-	},
-	separator: {
-		height: 1,
-		backgroundColor: "#ccc",
-		marginHorizontal: 10,
-	},
-	emptyText: {
-		textAlign: "center",
-		marginTop: 40,
-		fontSize: 18,
-		color: "#555",
+	icon: {
+		width: 25,
+		height: 25,
+		borderRadius: 25,
 	},
 	centeredView: {
 		flex: 1,
