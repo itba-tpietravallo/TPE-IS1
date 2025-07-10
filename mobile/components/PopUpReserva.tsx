@@ -229,7 +229,7 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 					<Text style={{ fontSize: 16, fontStyle: "italic" }}>{location}</Text>
 				</View>
 			</View>
-			<Text style={{ padding: 20, paddingBottom: 0, fontSize: 18 }}>Descripción:</Text>
+			<Text style={{ padding: 20, paddingBottom: 0, paddingTop: 0, fontSize: 18 }}>Descripción:</Text>
 			<Text
 				style={{
 					fontSize: 16,
@@ -249,7 +249,7 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 				</TouchableOpacity>
 			)}
 
-			<Text style={{ padding: 20, fontSize: 18 }}>Precio: ${price}</Text>
+			<Text style={{ padding: 20, paddingBottom: 0, fontSize: 18 }}>Precio: ${price}</Text>
 			{/* ---------------------------------- Funciona en IOS??????? -------------------------------- */}
 			<View style={styles.selection}>
 				<View>
@@ -273,7 +273,7 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 				</Text>
 			)}
 			{!unavailable && (
-				<Text style={{ marginLeft: 20, marginBottom: 10, marginTop: 8, color: "green" }}>
+				<Text style={{ marginLeft: 20, marginBottom: 2, marginTop: 2, color: "green" }}>
 					Fecha y horario disponibles.
 				</Text>
 			)}
