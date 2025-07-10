@@ -4,13 +4,16 @@
 // This file is automatically copied to /web and /mobile in CI.
 // ===============================================================
 
-import { SupabaseClient, PostgrestSingleResponse } from "@supabase/supabase-js";
+import { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "./database.types";
 
+
+import { useEffect } from "react";
 import {
-  useQuery,
-  UseQueryOptions,
-  useQueryClient,
+	useQuery,
+	UseQueryOptions,
+	useQueryClient,
+
 } from "@tanstack/react-query";
 
 import {
@@ -21,6 +24,7 @@ import {
 } from "@supabase-cache-helpers/postgrest-react-query";
 
 export const queries = {
+
   getAllFields: (supabase: SupabaseClient<Database>) =>
     supabase.from("fields").select("*"),
 
@@ -176,6 +180,7 @@ export const queries = {
       .from("inscriptions")
       .select("tournament: tournaments(*), team: teams(*)")
       .contains("team.players", [userId]),
+
 };
 
 export const mutations = {
@@ -226,6 +231,7 @@ export const mutations = {
 };
 
 export function getAllFields(
+
   supabase: SupabaseClient<Database>,
   opts: any = undefined
 ) {
@@ -237,6 +243,7 @@ export function getIsFieldOwner(
   fieldId: string,
   userId: string,
   opts: any = undefined
+
 ) {
   return useQuerySupabase(queries.getIsFieldOwner(supabase, fieldId, userId), {
     enabled: !!(fieldId && userId),
@@ -245,6 +252,7 @@ export function getIsFieldOwner(
 }
 
 export function getNearbyFields(
+
   supabase: SupabaseClient<Database>,
   lat: number,
   long: number,
@@ -873,4 +881,64 @@ export function useDeleteReservation(supabase: SupabaseClient<Database>) {
       },
     }
   );
+
+}
+
+export const messagesQueryKey = (roomId: string) => ["supabase", "from", "messages", "eq", "room_id", roomId];
+
+export function useChatMessages(
+	supabase: SupabaseClient<Database> | null,
+	roomId: string
+) {
+	const queryClient = useQueryClient();
+
+	useEffect(() => {
+		if (!supabase || !roomId) return;
+
+		const channel = supabase
+			.channel(`room:${roomId}`)
+			.on(
+				"postgres_changes",
+				{
+					event: "INSERT",
+					schema: "public",
+					table: "messages",
+					filter: `room_id=eq.${roomId}`,
+				},
+				() => {
+					queryClient.invalidateQueries({ queryKey: key });
+				}
+			)
+			.subscribe();
+
+		return () => {
+			supabase.removeChannel(channel);
+		};
+	}, [supabase, roomId, queryClient]);
+
+	const key = messagesQueryKey(roomId);
+	return useQuery({
+		queryKey: key,
+		queryFn: async () => {
+			if (!supabase) throw new Error("Supabase client not provided.");
+			const { data, error } = await supabase
+				.from("messages")
+				.select("*, users(username, avatar_url)")
+				.eq("room_id", roomId)
+				.order("created_at");
+
+			if (error) throw error;
+			return data;
+		},
+		enabled: !!supabase && !!roomId,
+	});
+}
+
+export function useInsertMessage(supabase: SupabaseClient<Database>) {
+	// Using the built-in useInsertMutation from supabase-cache-helpers
+	return useInsertMutation(supabase.from("messages"), ["id"], "*", {
+		onError: (error) => {
+			console.error("Error inserting message:", error);
+		},
+	});
 }

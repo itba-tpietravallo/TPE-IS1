@@ -46,7 +46,9 @@ export default function PostTeam() {
 					name: teamName,
 					sport: sport,
 					description: description,
+feat-mytournaments
 					images: images.length > 0 ? images : [],
+
 					players: [user?.id!],
 					playerRequests: [],
 					admins: [user?.id!],
