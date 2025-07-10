@@ -93,7 +93,7 @@ export function FieldDetail(props: FieldProps) {
 	const updateFieldAdminsMutation = useUpdateFieldAdmins(supabase);
 
 	const [currentPage, setCurrentPage] = useState(1);
-	const reservationsPerPage = 1;
+	const reservationsPerPage = 5;
 
 	const totalPages = Math.ceil(reservations.length / reservationsPerPage);
 	const paginatedReservations = reservations.slice(
