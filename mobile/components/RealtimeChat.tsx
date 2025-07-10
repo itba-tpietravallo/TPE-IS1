@@ -35,11 +35,10 @@ export function RealtimeChat({ roomId, roomName, userId }: { roomId: string; roo
 
 		setLocalMessages((currentLocal) => {
 			const serverMessages = messages || [];
+
 			const filteredLocal = currentLocal.filter((localMsg) => {
 				const isOptimistic = localMsg.id.toString().includes("-");
-				if (!isOptimistic) {
-					return true;
-				}
+				if (!isOptimistic) return true;
 
 				const correspondingServerMessage = serverMessages.find(
 					(serverMsg) =>
@@ -48,13 +47,17 @@ export function RealtimeChat({ roomId, roomName, userId }: { roomId: string; roo
 						Math.abs(new Date(serverMsg.created_at).getTime() - new Date(localMsg.created_at).getTime()) <
 							10000,
 				);
-
 				return !correspondingServerMessage;
 			});
 
-			return [...serverMessages, ...filteredLocal].sort(
-				(a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-			);
+			const localIds = new Set(filteredLocal.map((m) => m.id));
+			const newMessagesFromServer = serverMessages.filter((serverMsg) => !localIds.has(serverMsg.id));
+
+			if (newMessagesFromServer.length === 0 && filteredLocal.length === currentLocal.length) {
+				return currentLocal;
+			}
+
+			return [...newMessagesFromServer, ...filteredLocal];
 		});
 	}, [messages]);
 

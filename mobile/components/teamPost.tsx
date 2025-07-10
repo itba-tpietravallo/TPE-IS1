@@ -24,8 +24,8 @@ function TeamPost(props: PropsTeam) {
 					style={styles.container}
 					imageStyle={{ borderRadius: 15, opacity: 0.9 }}
 					source={
-						team?.images
-							? team.images.length != 0 && team?.images[0]
+						team?.images && team.images.length > 0
+							? { uri: team.images[0] }
 							: require("@/assets/images/people-logo.jpg")
 					} //@TODO: IMAGENES
 				>
