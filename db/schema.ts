@@ -224,8 +224,8 @@ export const teamsTable = pgTable(
 		playerRequests: text().array().notNull(),
 		admins: text().array().notNull(),
 		isPublic: boolean().notNull(),
-		contactPhone: text().notNull(),
-		contactEmail: text().notNull(),
+		contactPhone: text(),
+		contactEmail: text(),
 	},
 	(table) => [
 		pgPolicy("teams - select authenticated", {
@@ -295,6 +295,8 @@ export const inscriptionsTable = pgTable(
 		teamId: uuid().references(() => teamsTable.team_id, {
 			onDelete: "cascade",
 		}),
+		contactPhone: text().notNull(),
+		contactEmail: text().notNull(),
 	},
 	(table) => [
 		pgPolicy("inscriptions - select authenticated", {
@@ -347,7 +349,6 @@ export const messagesTable = pgTable(
 		}),
 	]
 ).enableRLS();
-
 
 export const fieldReviewsTable = pgTable(
 	"field_reviews",
@@ -420,4 +421,5 @@ export const usersPreferencesTable = pgTable(
 			as: "permissive",
 		}),
 	],
+
 ).enableRLS();
