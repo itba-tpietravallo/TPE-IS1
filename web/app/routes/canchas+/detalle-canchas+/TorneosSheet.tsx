@@ -130,24 +130,45 @@ export function TournamentForm({ fieldId, onClose = () => {} }: { fieldId: strin
 	const insertTournamentMutation = useInsertTournament(supabase);
 
 	const onSubmit = async (data: any) => {
-		if (!selectedSport) throw new Error("Debe seleccionar un deporte");
+		if (!selectedSport) {
+			setFormError(true);
+			alert("Debe seleccionar un deporte");
+			onClose();
+			return;
+		}
 
-		await insertTournamentMutation.mutateAsync([
-			{
-				name: data.name,
-				fieldId: fieldId,
-				sport: selectedSport!,
-				startDate: data.startDate,
-				description: data.description,
-				price: data.price,
-				deadline: data.deadline,
-				cantPlayers: data.cantPlayers,
-			},
-		]);
+		const startDate = new Date(data.startDate);
+		const deadline = new Date(data.deadline);
 
-		field.refetch();
+		if (startDate <= deadline) {
+			setFormError(true);
+			alert("La fecha de inicio debe ser posterior a la fecha límite de inscripción.");
+			onClose();
+			return;
+		}
 
-		onClose();
+		try {
+			await insertTournamentMutation.mutateAsync([
+				{
+					name: data.name,
+					fieldId: fieldId,
+					sport: selectedSport!,
+					startDate: data.startDate,
+					description: data.description,
+					price: data.price,
+					deadline: data.deadline,
+					cantPlayers: data.cantPlayers,
+				},
+			]);
+			alert("Torneo creado correctamente");
+			field.refetch();
+
+			onClose();
+		} catch (error) {
+			console.error("Error insertando torneo:", error);
+			setFormError(true);
+			alert("Se encontró un error al crear el torneo, por favor intente nuevamente.");
+		}
 	};
 
 	return (
@@ -394,6 +415,8 @@ export function TorneosSheet({ fieldId, tournaments }: TorneosSheetProps) {
 	const handleDelete = async (t_id: string) => {
 		try {
 			await deleteTournamentMutation.mutateAsync({ id: t_id });
+			alert("Torneo eliminado correctamente");
+			return;
 		} catch (error) {
 			console.error("Error eliminando torneo:", error);
 		}
@@ -408,8 +431,10 @@ export function TorneosSheet({ fieldId, tournaments }: TorneosSheetProps) {
 				active: false,
 			});
 			console.log("Torneo finalizado correctamente");
+			alert("Torneo finalizado correctamente");
 		} catch (error) {
 			console.error("Error finalizando torneo:", error);
+			alert("Se encontró un error al finalizar el torneo, por favor intente nuevamente.");
 		}
 	};
 
