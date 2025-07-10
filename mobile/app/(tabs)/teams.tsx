@@ -63,14 +63,24 @@ function TeamsFeed() {
 						justifyContent: "center",
 						alignItems: "center",
 						paddingRight: 10,
+						paddingLeft: 20,
+						overflowY: "hidden",
 					}}
 				>
+					<TouchableOpacity
+						style={[styles.sportButton, showMyTeams ? styles.selectedSportButton : {}]}
+						onPress={() => {
+							setShowMyTeams((prev) => !prev);
+						}}
+					>
+						<Text>Mis equipos</Text>
+					</TouchableOpacity>
 					{(sports || []).length > 0 &&
 						(sports || []).map(
 							(sport) =>
 								sport &&
 								sport.name && (
-									<View key={sport.name} style={{ padding: 10 }}>
+									<View key={sport.name} style={{ padding: 5 }}>
 										<TouchableOpacity
 											style={[
 												styles.sportButton,
@@ -83,14 +93,6 @@ function TeamsFeed() {
 									</View>
 								),
 						)}
-					<TouchableOpacity
-						style={[styles.sportButton, showMyTeams ? styles.selectedSportButton : {}]}
-						onPress={() => {
-							setShowMyTeams((prev) => !prev);
-						}}
-					>
-						<Text>Mis equipos</Text>
-					</TouchableOpacity>
 					{(sports || []).length > 0 && (
 						<TouchableOpacity
 							style={{ padding: 10 }}
