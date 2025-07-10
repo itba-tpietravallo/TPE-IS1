@@ -43,7 +43,6 @@ export default function StarRating({ onRate, value = 0 }: { onRate: (rating: num
 const styles = StyleSheet.create({
 	container: {
 		alignItems: "center",
-		padding: 24,
 	},
 	row: {
 		flexDirection: "row",
@@ -52,13 +51,6 @@ const styles = StyleSheet.create({
 	},
 	starRow: {
 		flexDirection: "row",
-	},
-	submitButton: {
-		marginLeft: 16,
-		paddingVertical: 10,
-		paddingHorizontal: 16,
-		backgroundColor: "#E5E7EB",
-		borderRadius: 8,
 	},
 	submitText: {
 		fontSize: 16,

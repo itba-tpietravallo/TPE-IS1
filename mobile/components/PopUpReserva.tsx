@@ -102,11 +102,16 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 
 	const { data } = getFieldReviewsAvg(supabase, fieldId);
 	type Review = { rating: number };
-	const average = (
-		Array.isArray(data) && data.length > 0
-			? (data as Review[]).reduce((sum, r) => sum + r.rating, 0) / data.length
-			: 0
-	).toFixed(1);
+	let average = 0;
+	let count = 0;
+
+	if (Array.isArray(data) && data.length > 0) {
+		for (const review of data as Review[]) {
+			count++;
+			average = (average * (count - 1) + review.rating) / count;
+		}
+	}
+	const formattedAverage = average.toFixed(1);
 
 	const insertReviewMutation = useInsertFieldReview(supabase);
 	const handleReview = async () => {
@@ -217,7 +222,7 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 				</View>
 				<View style={{ flexDirection: "row", alignItems: "center" }}>
 					<Star size={25} />
-					<Text style={{ fontSize: 16, fontStyle: "italic" }}>{average}</Text>
+					<Text style={{ fontSize: 16, fontStyle: "italic" }}>{formattedAverage}</Text>
 				</View>
 				<View style={{ flexDirection: "row", alignItems: "center" }}>
 					<Image style={{ width: 25, height: 25 }} source={require("@/assets/images/cancha.png")} />
@@ -240,7 +245,7 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 			<StarRating value={rating} onRate={(r) => setRating(r)} />
 			{rating > 0 && (
 				<TouchableOpacity onPress={handleReview} style={styles.submitButton}>
-					<Text style={styles.submitButtonText}>Calificar</Text>
+					<Text style={styles.submitReviewButtonText}>Calificar</Text>
 				</TouchableOpacity>
 			)}
 
@@ -381,8 +386,9 @@ const styles = StyleSheet.create({
 		shadowColor: "#000",
 		elevation: 5,
 	},
-	submitButtonText: {
+	submitReviewButtonText: {
 		fontWeight: "bold",
+		paddingTop: 14,
 		fontSize: 18,
 		textAlign: "center",
 	},
