@@ -6,7 +6,7 @@ import { Session } from "@supabase/supabase-js";
 import { router } from "expo-router";
 import Icon from "react-native-vector-icons/FontAwesome6";
 
-import { getUserSession } from "@/lib/autogen/queries";
+import { getUserAuthSession, getUserSession, getUsername, getUserAvatar } from "@/lib/autogen/queries";
 
 export default function Index() {
 	const [userId, setUserId] = useState<string | null>(null);
@@ -17,26 +17,30 @@ export default function Index() {
 		});
 	}, []);
 
-	const { data: user } = getUserSession(supabase);
+	type UserData = { username?: string; full_name?: string } | null;
+
+	const { data } = getUsername(supabase, userId ?? "", {
+		enabled: !!userId,
+	}) as { data: UserData };
+
+	const username = data?.username;
+	const full_name = data?.full_name;
+
+	const { data: avatarData } = getUserAvatar(supabase, full_name ?? "", {
+		enabled: !!full_name,
+	});
+
+	const avatarUrl = typeof avatarData === "string" ? avatarData : (avatarData?.avatar_url ?? "undefined_image");
 
 	return (
 		<View style={buttonStyles.containter}>
 			<View style={{ alignItems: "center", padding: 30 }}>
 				{/* @todo undefined_image is a stub that'll hopefully get logged in RN Dev Tools */}
-				<Image
-					source={{ uri: user?.avatar_url || "undefined_image" }}
-					style={{ width: 100, height: 100 }}
-					borderRadius={100}
-				/>
-				<Text
-					style={{ fontSize: 25, fontWeight: "bold", paddingTop: 20, textAlign: "center", color: "#223332" }}
-				>
-					{user?.full_name}
-				</Text>
+				<Image source={{ uri: avatarUrl }} style={{ width: 100, height: 100 }} borderRadius={100} />
 				<Text
 					style={{ fontSize: 16, fontWeight: "bold", paddingTop: 20, textAlign: "center", color: "#223332" }}
 				>
-					USUARIO: {user?.username}
+					{String(username)}
 				</Text>
 			</View>
 
@@ -106,11 +110,12 @@ const itemStyles = StyleSheet.create({
 });
 
 const menuItems = [
-	{ label: "Mi actividad", icon: "money-check", action: () => router.push("/(tabs)/profileMenu/paymentActivity") },
-	{ label: "Mis reservas", icon: "calendar-check", action: () => router.push("/(tabs)/profileMenu/reservations") },
-	{ label: "Mis equipos", icon: "user-group", action: () => router.push("/(tabs)/profileMenu/teams") },
+	{ label: "Actividad", icon: "money-check", action: () => router.push("/(tabs)/profileMenu/paymentActivity") },
+	{ label: "Reservas", icon: "calendar-check", action: () => router.push("/(tabs)/profileMenu/reservations") },
+	{ label: "Equipos", icon: "user-group", action: () => router.push("/(tabs)/profileMenu/teams") },
 	// { label: "Mis torneos", icon: "medal", action: () => router.push("/(tabs)/profileMenu/teams") },
 	{ label: "Pendientes", icon: "spinner", action: () => router.push("/(tabs)/profileMenu/pendings") },
+	{ label: "Chats", icon: "comments", action: () => router.push("/(tabs)/profileMenu/chats") },
 ];
 
 export function ProfileMenuList() {
@@ -123,8 +128,10 @@ export function ProfileMenuList() {
 				renderItem={({ item }) => (
 					<TouchableOpacity style={itemStyles.item} onPress={item.action}>
 						<View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
-							<Icon name={item.icon} size={24} color="#f18f01" style={itemStyles.icon} />
-							<Text style={itemStyles.label}>{item.label}</Text>
+							<View style={{ width: 30, alignItems: "center" }}>
+								<Icon name={item.icon} size={24} color="#f18f01" />
+							</View>
+							<Text style={{ fontSize: 16, color: "#223332", marginLeft: 12 }}>{item.label}</Text>
 						</View>
 						<Icon name="angle-right" size={24} color="#f18f01" />
 					</TouchableOpacity>

@@ -3,34 +3,45 @@ import { View, Text, FlatList, StyleSheet, TouchableOpacity } from "react-native
 import Icon from "react-native-vector-icons/FontAwesome6";
 import { router } from "expo-router";
 import { supabase } from "@/lib/supabase";
-import { getUserSession, getPendingReservationsByUser } from "@/lib/autogen/queries";
+import { getUserSession, getPendingReservationsByUser, getUserAuthSession } from "@/lib/autogen/queries";
 import PayPending from "@components/PayPending";
 
 export default function Pendings() {
-	const { data: user } = getUserSession(supabase);
+	const { data: session } = getUserAuthSession(supabase);
+	const user = session?.user;
 	const { data: pendingReservations } = getPendingReservationsByUser(supabase, user?.id!, { enabled: !!user?.id });
 
 	return (
 		<View style={{ flex: 1, backgroundColor: "#f2f4f3", padding: 6 }}>
-			<TouchableOpacity
-				style={{ flexDirection: "row", alignItems: "flex-start", paddingVertical: 15, paddingHorizontal: 10 }}
-				onPress={() => router.push("/(tabs)/profile")}
-			>
-				<Icon name="arrow-left" size={14} color="#262626" style={{ marginRight: 8 }} />
-				<Text style={{ fontSize: 14, color: "#262626" }}>Atrás</Text>
-			</TouchableOpacity>
-
-			<Text
+			<View
 				style={{
-					fontSize: 30,
-					fontWeight: "bold",
-					color: "#f18f01",
-					textAlign: "left",
-					padding: 10,
+					flexDirection: "row",
+					alignItems: "center",
+					justifyContent: "center",
+					paddingVertical: 15,
+					paddingHorizontal: 10,
+					position: "relative",
 				}}
 			>
-				Pendientes
-			</Text>
+				<TouchableOpacity
+					onPress={() => router.push("/(tabs)/profile")}
+					style={{ position: "absolute", left: 10 }}
+				>
+					<Icon name="arrow-left" size={18} color="#262626" />
+				</TouchableOpacity>
+
+				<View style={{ flex: 1, alignItems: "center" }}>
+					<Text
+						style={{
+							fontSize: 30,
+							fontWeight: "bold",
+							color: "#f18f01",
+						}}
+					>
+						Pendientes
+					</Text>
+				</View>
+			</View>
 
 			{pendingReservations?.length === 0 ? (
 				<Text style={{ textAlign: "center", marginTop: 40, fontSize: 18, color: "#555" }}>

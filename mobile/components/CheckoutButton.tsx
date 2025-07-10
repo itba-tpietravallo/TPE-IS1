@@ -60,16 +60,16 @@ export default function CheckoutButton({
 		let reservationId: string | undefined;
 
 		try {
-			const resp = await insertReservation.mutateAsync({
+			const resp = await insertReservation.mutateAsync([{
 				owner_id: userId,
 				field_id: fieldId,
 				date_time: date_time,
 				bookers_count: 1,
 				pending_bookers_ids: singleBooker,
-			});
+			}]);
 
 			console.log("reservation inserted");
-			reservationId = resp.id;
+			reservationId = resp?.[0].id;
 		} catch (err) {
 			console.error("Error inserting reservation:", err);
 			setPending(false);
