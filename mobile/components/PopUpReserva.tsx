@@ -11,6 +11,7 @@ import {
 	getAllTeamsByAdminUser,
 	getUsername,
 	getUserAuthSession,
+	getFieldById,
 } from "@/lib/autogen/queries";
 import Selector from "./Selector";
 
@@ -40,6 +41,7 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 	const [selectedRenter, setSelectedRenter] = useState<Renter | null>(null);
 	const { data: teamData } = getAllTeamsByAdminUser(supabase, user?.id!, { enabled: !!user?.id });
 	const normalizedTeams = teamData ? teamData.filter((team) => team.team_id && team.name !== null) : [];
+	const { data: fieldData } = getFieldById(supabase, fieldId, { enabled: !!fieldId });
 
 	const teams: Renter[] = normalizedTeams.map((team) => ({
 		id: team.team_id,
@@ -52,6 +54,12 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 		...(user?.id && typeof userName.data === "string" ? [{ id: user.id, name: userName.data }] : []),
 		...teams,
 	];
+
+	const minimumDate = new Date( Date.now() );
+	minimumDate.setHours(Number(fieldData?.opening_hour.split(":")[0]) || 9, 0, 0, 0);
+
+	const maximumDate = new Date( Date.now() );
+	maximumDate.setHours(Number(fieldData?.closing_hour.split(":")[0]) || 20, 0, 0, 0);
 
 	// const handleDateTimeChange = async (event: any, date?: Date) => {
 	// 	if (event.type === "dismissed" || event.type === "set") {
@@ -203,6 +211,8 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 						value={selectedDateTime}
 						mode="time"
 						minuteInterval={30}
+						minimumDate={ minimumDate }
+						maximumDate={ maximumDate }
 						onChange={handleDateTimeChange}
 					/>
 				</View>
