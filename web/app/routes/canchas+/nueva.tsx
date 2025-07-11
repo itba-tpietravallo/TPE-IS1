@@ -421,10 +421,10 @@ function AddressSection({
 									position={{ lat: latitude, lng: longitude }}
 									draggable={true}
 									icon={{
-										url: "/matchpointpelota-logo.png",
-										//scaledSize: { width: 32, height: 32 },
+										url: "/matchpoint-marker.png",
+										//scaledSize: { width: 32, height: 32 }
 									}}
-									onDragEnd={(e) => handleMarkerDragEnd(e, setLatitude, setLongitude)}
+									onDragEnd={(e) => handleMarkerDragEnd(e, setLatitude, setLongitude, form)}
 								/>
 							)}
 							{showErrorPopup && (
@@ -440,16 +440,38 @@ function AddressSection({
 	);
 }
 
-function handleMarkerDragEnd(
+async function handleMarkerDragEnd(
 	e: google.maps.MapMouseEvent,
 	setLatitude: (lat: number) => void,
 	setLongitude: (lng: number) => void,
+	form: ReturnType<typeof useForm<FieldFormData>>,
 ) {
 	const newLat = e.latLng?.lat();
 	const newLng = e.latLng?.lng();
+
 	if (newLat !== undefined && newLng !== undefined) {
 		setLatitude(newLat);
 		setLongitude(newLng);
+
+		try {
+			const res = await fetch("/api/v1/geocode", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({ lat: newLat, lng: newLng }),
+			});
+			const data = await res.json();
+
+			if (!data.error) {
+				form.setValue("street", data.street);
+				form.setValue("street_number", data.street_number);
+				form.setValue("neighbourhood", data.neighbourhood);
+				form.setValue("city", data.city);
+			}
+		} catch (error) {
+			console.error("Reverse geocoding failed", error);
+		}
 	}
 }
 
