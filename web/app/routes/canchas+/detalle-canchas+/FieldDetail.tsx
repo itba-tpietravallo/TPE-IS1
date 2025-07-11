@@ -389,7 +389,7 @@ export default function MySheet({
 		setLocalPrice(price);
 		setLocalOpeningHour(openingHour?.slice(0, 5) || "09:00");
 		setLocalClosingHour(closingHour?.slice(0, 5) || "21:00");
-	}, [name, description]);
+	}, [name, description, openingHour, closingHour]);
 
 	return (
 		<Sheet open={open} onOpenChange={setOpen}>
