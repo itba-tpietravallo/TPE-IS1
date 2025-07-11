@@ -9,6 +9,7 @@ on:
 
 jobs:
     Update-Types:
+        if: false
         runs-on: ubuntu-latest
         defaults:
             run:
