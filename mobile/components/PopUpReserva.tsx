@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, Image, TouchableOpacity, Modal } from "react-native";
+import { View, Text, StyleSheet, Image, TouchableOpacity, Modal, Platform } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { ScreenWidth } from "@rneui/themed/dist/config";
 import { supabase } from "@/lib/supabase";
@@ -83,6 +83,9 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 		if (!renter) return false;
 		return teams.some((team) => team.id === renter.id);
 	}
+
+	const [showDatePicker, setShowDatePicker] = useState(false);
+	const [showTimePicker, setShowTimePicker] = useState(false);
 
 	return (
 		<View style={styles.modalView}>
@@ -190,23 +193,87 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 				{description}
 			</Text>
 			<Text style={{ padding: 20, fontSize: 18 }}>Precio: ${price}</Text>
-			{/* ---------------------------------- Funciona en IOS??????? -------------------------------- */}
-			<View style={styles.selection}>
-				<View>
-					<Text style={styles.select}>Seleccionar fecha:</Text>
-					<DateTimePicker value={selectedDateTime} mode="date" onChange={handleDateTimeChange} />
-				</View>
+			{/*Funciona en IOS ......................................................................................*/}
+			{Platform.OS === "ios" && (
+				<View style={styles.selection}>
+					<View>
+						<Text style={styles.select}>Seleccionar fecha:</Text>
+						<DateTimePicker value={selectedDateTime} mode="date" onChange={handleDateTimeChange} />
+					</View>
 
-				<View>
-					<Text style={styles.select}>Seleccionar hora:</Text>
-					<DateTimePicker
-						value={selectedDateTime}
-						mode="time"
-						minuteInterval={30}
-						onChange={handleDateTimeChange}
-					/>
+					<View>
+						<Text style={styles.select}>Seleccionar hora:</Text>
+						<DateTimePicker
+							value={selectedDateTime}
+							mode="time"
+							minuteInterval={30}
+							onChange={handleDateTimeChange}
+						/>
+					</View>
 				</View>
-			</View>
+			)}
+			{/* .......................................................................................................*/}
+			{/*funciona en android -------------------------------------------------------------------------------------*/}
+			{Platform.OS === "android" && (
+				<View style={styles.selection}>
+					<View>
+						<Text style={styles.select}>Seleccionar fecha:</Text>
+						<TouchableOpacity
+							onPress={() => setShowDatePicker(true)}
+							style={{
+								borderWidth: 1,
+								borderRadius: 5,
+								borderColor: "#ccc",
+								padding: 10,
+							}}
+						>
+							<Text>{selectedDateTime.toLocaleDateString()}</Text>
+						</TouchableOpacity>
+						{showDatePicker && (
+							<DateTimePicker
+								value={selectedDateTime}
+								mode="date"
+								display="default"
+								onChange={(event, date) => {
+									setShowDatePicker(false);
+									if (date) handleDateTimeChange(event, new Date(date));
+								}}
+							/>
+						)}
+					</View>
+
+					<View>
+						<Text style={styles.select}>Seleccionar hora:</Text>
+						<TouchableOpacity
+							onPress={() => setShowTimePicker(true)}
+							style={{
+								borderWidth: 1,
+								borderRadius: 5,
+								borderColor: "#ccc",
+								padding: 10,
+							}}
+						>
+							<Text>
+								{selectedDateTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+							</Text>
+						</TouchableOpacity>
+						{showTimePicker && (
+							<DateTimePicker
+								value={selectedDateTime}
+								mode="time"
+								display="default"
+								minuteInterval={30}
+								onChange={(event, date) => {
+									setShowTimePicker(false);
+									if (date) handleDateTimeChange(event, new Date(date));
+								}}
+							/>
+						)}
+					</View>
+				</View>
+			)}
+			{/* ----------------------------------------------------------------------------------------- */}
+
 			{unavailable && (
 				<Text style={{ marginLeft: 20, marginBottom: 10, marginTop: 8, color: "red" }}>
 					Fecha y horario no disponibles.
