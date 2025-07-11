@@ -56,10 +56,10 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 	];
 
 	const minimumDate = new Date( Date.now() );
-	minimumDate.setHours(Number(fieldData?.opening_hour.split(":")[0]) || 9, 0, 0, 0);
+	minimumDate.setHours(Number((fieldData?.opening_hour ?? '09:00').split(":")[0]) || 9, 0, 0, 0);
 
 	const maximumDate = new Date( Date.now() );
-	maximumDate.setHours(Number(fieldData?.closing_hour.split(":")[0]) || 20, 0, 0, 0);
+	maximumDate.setHours(Number((fieldData?.closing_hour ?? '20:00').split(":")[0]) || 20, 0, 0, 0);
 
 	// const handleDateTimeChange = async (event: any, date?: Date) => {
 	// 	if (event.type === "dismissed" || event.type === "set") {
