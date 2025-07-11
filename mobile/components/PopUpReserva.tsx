@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, Image, TouchableOpacity, Modal } from "react-native";
+import { View, Text, StyleSheet, Image, TouchableOpacity, Modal, Platform, ScrollView } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { ScreenWidth } from "@rneui/themed/dist/config";
+import { ScreenHeight, ScreenWidth } from "@rneui/themed/dist/config";
 import { supabase } from "@/lib/supabase";
 import CheckoutButton from "./CheckoutButton";
 import PreReserveButton from "./PreReserveButton";
@@ -101,12 +101,16 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 		return teams.some((team) => team.id === renter.id);
 	}
 
+	const [showDatePicker, setShowDatePicker] = useState(false);
+	const [showTimePicker, setShowTimePicker] = useState(false);
+
 	return (
 		<View style={styles.modalView}>
 			<TouchableOpacity style={{ padding: 10, alignItems: "flex-end" }} onPress={onClose}>
 				<Image style={{ width: 20, height: 20, marginTop: 10 }} source={require("@/assets/images/close.png")} />
 			</TouchableOpacity>
-			<View style={styles.mainInfo}>
+			
+			<ScrollView contentContainerStyle={styles.mainInfo} bounces={false}>
 				<View style={styles.topInfo}>
 					<View style={{ flex: 1, paddingRight: 10, alignItems: "center" }}>
 						<Text
@@ -193,59 +197,113 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 					<Image style={{ width: 25, height: 25 }} source={require("@/assets/images/cancha.png")} />
 					<Text style={{ fontSize: 16, fontStyle: "italic" }}>{location}</Text>
 				</View>
-			</View>
-			<Text style={{ padding: 20, paddingBottom: 0, fontSize: 18 }}>Descripción:</Text>
-			<Text
-				style={{
-					fontSize: 16,
-					color: "gray",
-					flexWrap: "wrap",
-					padding: 20,
-					paddingTop: 0,
-				}}
-			>
-				{description}
-			</Text>
-			<Text style={{ padding: 20, fontSize: 18 }}>Precio: ${price}</Text>
-			{/* ---------------------------------- Funciona en IOS??????? -------------------------------- */}
-			<View style={styles.selection}>
-				<View>
-					<Text style={styles.select}>Seleccionar fecha:</Text>
-					<DateTimePicker value={selectedDateTime} mode="date" onChange={handleDateTimeChange} />
+				<View style={{ alignSelf: "flex-start", paddingHorizontal: 20, marginTop: 20 }}>
+					<Text style={{ fontSize: 18, marginBottom: 6 }}>Descripción:</Text>
+					<Text style={{ fontSize: 16, color: "gray", marginBottom: 12 }}>{description}</Text>
+					<Text style={{ fontSize: 18 }}>Precio: ${price}</Text>
 				</View>
+				{/*Funciona en IOS ......................................................................................*/}
+				{Platform.OS === "ios" && (
+					<View style={styles.selection}>
+						<View>
+							<Text style={styles.select}>Seleccionar fecha:</Text>
+							<DateTimePicker value={selectedDateTime} mode="date" onChange={handleDateTimeChange} />
+						</View>
 
-				<View>
-					<Text style={styles.select}>Seleccionar hora:</Text>
-					<DateTimePicker
-						value={selectedDateTime}
-						mode="time"
-						minuteInterval={30}
-						onChange={handleDateTimeChange}
-					/>
-				</View>
-			</View>
-			{unavailable && (
-				<Text style={{ marginLeft: 20, marginBottom: 10, marginTop: 8, color: "red" }}>
-					Fecha y horario no disponibles.
-				</Text>
-			)}
-			{!unavailable && (
-				<Text style={{ marginLeft: 20, marginBottom: 10, marginTop: 8, color: "green" }}>
-					Fecha y horario disponibles.
-				</Text>
-			)}
-			{/* ---------------------------------- Funciona(ish) en Android --------------------------------*/}
-			{/* ... */}
-			{/* ---------------------------------- ------------------------ --------------------------------*/}
-			<Selector<Renter>
-				title="Reservar como..."
-				options={renters}
-				onSelect={setSelectedRenter}
-				initialLabel="Seleccionar"
-				getLabel={(renter) => renter.name}
-			/>
+						<View>
+							<Text style={styles.select}>Seleccionar hora:</Text>
+							<DateTimePicker
+								value={selectedDateTime}
+								mode="time"
+								minuteInterval={30}
+								onChange={handleDateTimeChange}
+							/>
+						</View>
+					</View>
+				)}
+				{/* .......................................................................................................*/}
+				{/*funciona en android -------------------------------------------------------------------------------------*/}
+				{Platform.OS === "android" && (
+					<View style={styles.selection}>
+						<View>
+							<Text style={styles.select}>Seleccionar fecha:</Text>
+							<TouchableOpacity
+								onPress={() => setShowDatePicker(true)}
+								style={{
+									borderWidth: 1,
+									borderRadius: 5,
+									borderColor: "#ccc",
+									padding: 10,
+								}}
+							>
+								<Text>{selectedDateTime.toLocaleDateString()}</Text>
+							</TouchableOpacity>
+							{showDatePicker && (
+								<DateTimePicker
+									value={selectedDateTime}
+									mode="date"
+									display="default"
+									onChange={(event, date) => {
+										setShowDatePicker(false);
+										if (date) handleDateTimeChange(event, new Date(date));
+									}}
+								/>
+							)}
+						</View>
 
-			{(!selectedRenter || unavailable) && (
+						<View>
+							<Text style={styles.select}>Seleccionar hora:</Text>
+							<TouchableOpacity
+								onPress={() => setShowTimePicker(true)}
+								style={{
+									borderWidth: 1,
+									borderRadius: 5,
+									borderColor: "#ccc",
+									padding: 10,
+								}}
+							>
+								<Text>
+									{selectedDateTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+								</Text>
+							</TouchableOpacity>
+							{showTimePicker && (
+								<DateTimePicker
+									value={selectedDateTime}
+									mode="time"
+									display="default"
+									minuteInterval={30}
+									onChange={(event, date) => {
+										setShowTimePicker(false);
+										if (date) handleDateTimeChange(event, new Date(date));
+									}}
+								/>
+							)}
+						</View>
+					</View>
+				)}
+				{/* ----------------------------------------------------------------------------------------- */}
+
+				{unavailable && (
+					<Text style={{ marginLeft: 20, marginBottom: 10, marginTop: 8, color: "red" }}>
+						Fecha y horario no disponibles.
+					</Text>
+				)}
+				{!unavailable && (
+					<Text style={{ marginLeft: 20, marginBottom: 10, marginTop: 8, color: "green" }}>
+						Fecha y horario disponibles.
+					</Text>
+				)}
+
+				<Selector<Renter>
+					title="Reservar como..."
+					options={renters}
+					onSelect={setSelectedRenter}
+					initialLabel="Seleccionar"
+					getLabel={(renter) => renter.name}
+				/>
+			</ScrollView>
+			
+			{!selectedRenter && (
 				<TouchableOpacity
 					disabled
 					style={{
@@ -299,11 +357,11 @@ const styles = StyleSheet.create({
 		color: "#00ff00",
 		overflow: "hidden",
 		width: ScreenWidth * 0.9,
+		height: ScreenHeight * 0.9,
 	},
 	mainInfo: {
 		justifyContent: "center",
 		alignItems: "center",
-		paddingBottom: 20,
 	},
 	topInfo: {
 		paddingTop: 5,
