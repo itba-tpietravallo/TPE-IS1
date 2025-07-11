@@ -21,7 +21,6 @@ mobile/lib/autogen/*
 .vscode/
 
 # Codegeneration
-**/autogen/*
 .vercel
 
 # Infrastructure - sst

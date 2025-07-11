@@ -9,6 +9,7 @@ import { Users, CreditCard, Trophy } from "lucide-react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "~/lib/database.types";
 import { ReservationSlot } from "./reservation-slot";
+import { getUsername } from "@lib/autogen/queries";
 
 type Reservation = {
 	date_time: string;
@@ -29,6 +30,11 @@ type WeekCalendarProps = {
 	reservations: Reservation[];
 	supabase: SupabaseClient<Database>;
 };
+
+function UsernameFromId({ userId, supabase }: { userId: string; supabase: SupabaseClient<Database> }) {
+	const { data } = getUsername(supabase, userId);
+	return <>{data?.full_name || ""}</>;
+}
 
 export function WeekCalendar({ reservations, supabase }: WeekCalendarProps) {
 	const [currentWeekStart, setCurrentWeekStart] = useState(() => {
@@ -254,7 +260,7 @@ export function WeekCalendar({ reservations, supabase }: WeekCalendarProps) {
 										<ul className="space-y-1">
 											{selectedReservation.team_members.map((member, index) => (
 												<li key={index} className="text-sm">
-													{member}
+													<UsernameFromId userId={member} supabase={supabase} />
 												</li>
 											))}
 										</ul>

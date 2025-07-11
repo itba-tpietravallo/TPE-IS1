@@ -70,6 +70,9 @@ export const queries = {
 	getUserAuthSession: (supabase: SupabaseClient<Database>) =>
 		supabase.auth.getSession().then((res) => res.data.session),
 
+	getIsLinkedToPaymentMethod: (supabase: SupabaseClient<Database>, user_id: string) =>
+		supabase.from("mp_oauth_authorization").select("user_id").eq("user_id", user_id).single(),
+
 	getLastUserPayments: (supabase: SupabaseClient<Database>, userId: string) =>
 		supabase
 			.from("mp_payments")
@@ -239,10 +242,21 @@ export function getUserSession(supabase: SupabaseClient<Database>, userId: strin
 	});
 }
 
+export function getUserLinkedToPaymentMethod(
+	supabase: SupabaseClient<Database>,
+	user_id: string,
+	opts: any = undefined,
+) {
+	return useQuerySupabase(queries.getIsLinkedToPaymentMethod(supabase, user_id), {
+		enabled: !!user_id,
+		...opts,
+	});
+}
+
 export function getUsername(supabase: SupabaseClient<Database>, userId: string, opts: any = undefined) {
-	return useQuery({
+	return useQuery<{ username: string; full_name: string }>({
 		queryKey: [userId, "username"],
-		queryFn: async () => {
+		queryFn: async (): Promise<{ username: string; full_name: string }> => {
 			let username: string;
 			const { data, error } = await queries.getUsername(supabase, userId);
 
@@ -258,7 +272,7 @@ export function getUsername(supabase: SupabaseClient<Database>, userId: string, 
 				username = data.username;
 			}
 
-			return { username, full_name: data?.full_name };
+			return { username, full_name: data?.full_name! };
 		},
 		enabled: !!userId,
 		...opts,
@@ -472,6 +486,20 @@ export function useDeleteTournament(supabase: SupabaseClient<Database>) {
 	return deleteHook;
 }
 
+// lo copié y pegué del updateTeam
+export function useUpdateTournament(supabase: SupabaseClient<Database>) {
+	// Using the built-in useUpdateMutation from supabase-cache-helpers
+	return useUpdateMutation(
+		supabase.from("tournaments"),
+		["id"], // Primary key columns
+		"*", // Select all columns for the cache update
+		{
+			onError: (error) => {
+				console.error("Error updating team:", error);
+			},
+		},
+	);
+}
 export function useInsertReservation(supabase: SupabaseClient<Database>) {
 	// Using the built-in useInsertMutation from supabase-cache-helpers
 	// This will automatically handle cache updates and optimistic updates
