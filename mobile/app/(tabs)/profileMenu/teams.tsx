@@ -13,8 +13,8 @@ type Field = {
 	team_id: string;
 	name: string;
 	sport: string;
-	description: string;
-	images: string[];
+	description: string | null;
+	images: string[] | null;
 	players: string[];
 };
 
@@ -35,73 +35,79 @@ function myTeams() {
 				padding: 6,
 			}}
 		>
-			<TouchableOpacity
-				style={{ flexDirection: "row", alignItems: "flex-start", paddingVertical: 15, paddingHorizontal: 10 }}
-				onPress={() => router.push("/(tabs)/profile")}
-			>
-				<Icon name="arrow-left" size={14} color="#262626" style={{ marginRight: 8 }} />
-				<Text style={{ fontSize: 14, color: "#262626" }}>Atrás</Text>
-			</TouchableOpacity>
-			<Text
+			<View
 				style={{
-					fontSize: 30,
-					fontWeight: "bold",
-					color: "#f18f01",
-					textAlign: "left",
-					padding: 10,
+					flexDirection: "row",
+					alignItems: "center",
+					justifyContent: "center",
+					paddingVertical: 15,
+					paddingHorizontal: 10,
+					position: "relative",
 				}}
 			>
-				Mis equipos
-			</Text>
+				<TouchableOpacity
+					onPress={() => router.push("/(tabs)/profile")}
+					style={{ position: "absolute", left: 10 }}
+				>
+					<Icon name="arrow-left" size={18} color="#262626" />
+				</TouchableOpacity>
+
+				<View style={{ flex: 1, alignItems: "center" }}>
+					<Text
+						style={{
+							fontSize: 30,
+							fontWeight: "bold",
+							color: "#f18f01",
+						}}
+					>
+						Equipos
+					</Text>
+				</View>
+			</View>
 			{/* {myTeams?.map((team, index) => (
 				<Text key={index}>
 					<Text style={{ fontSize: 18, marginLeft: 10 }}>{team.name}</Text>
 				</Text>
 			))} */}
-			<View style={{ padding: 5, borderWidth: 1, borderColor: "#ccc", borderRadius: 5, margin: 10 }}>
-				{myTeams?.length > 0 ? (
-					<View
-						style={{
-							flexDirection: "row",
-							justifyContent: "space-between",
-							padding: 15,
-						}}
-					>
-						<FlatList
-							data={myTeams}
-							keyExtractor={(item) => item.team_id.toString()}
-							scrollEnabled={true}
-							renderItem={({ item }) => (
-								<View
-									style={{
-										flexDirection: "row",
-										justifyContent: "space-between",
-										padding: 15,
+
+			{(myTeams ?? []).length > 0 ? (
+				<FlatList
+					data={myTeams}
+					keyExtractor={(item) => item.team_id.toString()}
+					contentContainerStyle={styles.container}
+					scrollEnabled={true}
+					renderItem={({ item }) => (
+						<View style={styles.card}>
+							<View
+								style={{
+									flexDirection: "row",
+									justifyContent: "space-between",
+									alignItems: "center",
+								}}
+							>
+								<Text style={styles.teamName}>{item.name}</Text>
+								<TouchableOpacity
+									onPress={() => {
+										setIsModalVisible(true);
+										setSelectedTeam(item);
 									}}
 								>
-									<Text style={{ fontWeight: "bold" }}>{item.name}</Text>
-									<TouchableOpacity
-										onPress={() => {
-											setIsModalVisible(true);
-											setSelectedTeam(item);
-										}}
-									>
-										<Image
-											style={{ width: 20, height: 20 }}
-											source={require("@/assets/images/info.png")}
-										/>
-									</TouchableOpacity>
-								</View>
-							)}
-							ItemSeparatorComponent={() => (
-								<View style={{ height: 1, backgroundColor: "#ccc", marginHorizontal: 10 }} />
-							)}
-						/>
-					</View>
-				) : (
-					<Text style={{ color: "gray", padding: 20 }}>Aún no tienes equipos asignados.</Text>
-				)}
-			</View>
+									<Icon name="circle-info" size={22} color="#223332" />
+								</TouchableOpacity>
+							</View>
+							<Text style={styles.sport}>{item.sport}</Text>
+							<Text style={styles.description} numberOfLines={2}>
+								{item.description || "Sin descripción."}
+							</Text>
+						</View>
+					)}
+				/>
+			) : (
+				<Text style={{ textAlign: "center", marginTop: 40, fontSize: 18, color: "#555" }}>
+					No perteneces a ningún equipo.
+				</Text>
+			)}
+
 			<Modal
 				style={styles.modal}
 				visible={isModalVisible}
@@ -110,14 +116,7 @@ function myTeams() {
 			>
 				<View style={styles.centeredView}>
 					{selectedTeam && (
-						<PopUpTeam
-							onClose={() => setIsModalVisible(false)}
-							team_id={selectedTeam.team_id}
-							name={selectedTeam.name}
-							sport={selectedTeam.sport}
-							description={selectedTeam.description || ""}
-							players={selectedTeam.players}
-						/>
+						<PopUpTeam onClose={() => setIsModalVisible(false)} team_id={selectedTeam.team_id} />
 					)}
 				</View>
 			</Modal>
@@ -126,14 +125,6 @@ function myTeams() {
 }
 
 const styles = StyleSheet.create({
-	container: {
-		backgroundColor: "#f8f8f8",
-		justifyContent: "space-between",
-		flexDirection: "column",
-		margin: 10,
-		width: ScreenHeight * 0.4,
-		height: ScreenHeight * 0.4,
-	},
 	topContent: {
 		flexDirection: "column",
 		alignItems: "center",
@@ -162,12 +153,6 @@ const styles = StyleSheet.create({
 		color: "#fff",
 		marginTop: 1,
 	},
-	sport: {
-		fontSize: 16,
-		color: "#fff",
-		marginTop: 1,
-		fontWeight: "bold",
-	},
 	icon: {
 		width: 25,
 		height: 25,
@@ -182,6 +167,37 @@ const styles = StyleSheet.create({
 	modal: {
 		justifyContent: "center",
 		alignItems: "center",
+	},
+	card: {
+		backgroundColor: "#fff",
+		borderRadius: 12,
+		padding: 24,
+		marginBottom: 12,
+		marginHorizontal: 6,
+		shadowColor: "#000",
+		shadowOffset: { width: 0, height: 2 },
+		shadowOpacity: 0.1,
+		shadowRadius: 4,
+		elevation: 3,
+	},
+	teamName: {
+		fontSize: 18,
+		fontWeight: "600",
+		color: "#262626",
+	},
+	sport: {
+		fontSize: 14,
+		color: "#888",
+		marginTop: 4,
+	},
+	description: {
+		marginTop: 6,
+		fontSize: 13,
+		color: "#555",
+	},
+	container: {
+		padding: 16,
+		paddingBottom: 90,
 	},
 });
 

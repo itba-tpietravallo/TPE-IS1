@@ -3,7 +3,7 @@ import type { Database } from "@lib/autogen/database.types";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import { DollarSign, MapPin, Loader2, Info, OctagonAlert, Check } from "lucide-react";
+import { DollarSign, MapPin, Loader2, Info, OctagonAlert, Check, ChevronRight, ChevronLeft } from "lucide-react";
 import { useEffect, useState, Suspense } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "~/components/ui/carousel";
@@ -23,6 +23,16 @@ import { useQuery, UseQuerySingleReturn } from "@supabase-cache-helpers/postgres
 import { en } from "@supabase/auth-ui-shared";
 import { WeekCalendar } from "@components/calendar";
 
+import {
+	Pagination,
+	PaginationContent,
+	PaginationEllipsis,
+	PaginationItem,
+	PaginationLink,
+	PaginationNext,
+	PaginationPrevious,
+} from "@/components/ui/pagination";
+
 type CarouselProps = {
 	imgSrc: string[];
 };
@@ -41,8 +51,10 @@ type FieldProps = {
 	tournaments: any[];
 	users: any[];
 	dependantQueries?: UseQueryResult[];
-	onSave: (newName: string, newDescription: string, price: number) => void;
+	onSave: (newName: string, newDescription: string, price: number, openingHour: string, closingHour: string) => void;
 	loading: boolean;
+	openingHour?: string;
+	closingHour?: string;
 };
 
 export const UserEmailFromId = (props: { supabase: SupabaseClient<Database>; id: string }) => {
@@ -72,6 +84,8 @@ export function FieldDetail(props: FieldProps) {
 		users,
 		onSave,
 		loading,
+		openingHour,
+		closingHour,
 	} = props;
 
 	const teamsData = getAllTeams(supabase);
@@ -82,9 +96,33 @@ export function FieldDetail(props: FieldProps) {
 		?.data?.id;
 	const updateFieldAdminsMutation = useUpdateFieldAdmins(supabase);
 
+	const [currentPage, setCurrentPage] = useState(1);
+	const reservationsPerPage = 5;
+
+	const totalPages = Math.ceil(reservations.length / reservationsPerPage);
+	const paginatedReservations = reservations.slice(
+		(currentPage - 1) * reservationsPerPage,
+		currentPage * reservationsPerPage,
+	);
+
+	const getPaginationRange = (totalPages: number, currentPage: number) => {
+		const delta = 2;
+		const range: (number | "...")[] = [];
+
+		for (let i = 1; i <= totalPages; i++) {
+			if (i === 1 || i === totalPages || (i >= currentPage - delta && i <= currentPage + delta)) {
+				range.push(i);
+			} else if (range[range.length - 1] !== "...") {
+				range.push("...");
+			}
+		}
+
+		return range;
+	};
+
 	return (
 		<div className="mb-10 h-full min-h-fit bg-[#f2f4f3] py-10">
-			<div className="flex h-full max-h-fit flex-row items-center justify-center space-x-12">
+			<div className="flex flex-row items-center justify-center space-x-12">
 				<Card className="w-full max-w-3xl bg-[#223332] p-10 shadow-lg">
 					<Suspense
 						fallback={
@@ -124,7 +162,7 @@ export function FieldDetail(props: FieldProps) {
 										</div>
 										<div className="divide-y divide-gray-600">
 											{reservations.length > 0 ? (
-												reservations.map((reservation) => {
+												paginatedReservations.map((reservation) => {
 													const team = teamsData.data?.find(
 														(team) => team.team_id === reservation?.team_id,
 													);
@@ -175,6 +213,76 @@ export function FieldDetail(props: FieldProps) {
 												</div>
 											)}
 										</div>
+										{totalPages > 1 && (
+											<div className="mt-6 flex justify-center">
+												<Pagination>
+													<PaginationContent className="text-white">
+														{currentPage > 1 && (
+															<PaginationItem>
+																<PaginationLink
+																	href="#"
+																	size="default"
+																	className="text-white"
+																	onClick={(e) => {
+																		e.preventDefault();
+																		setCurrentPage((prev) => Math.max(prev - 1, 1));
+																	}}
+																>
+																	<ChevronLeft />
+																	Anterior
+																</PaginationLink>
+															</PaginationItem>
+														)}
+
+														{getPaginationRange(totalPages, currentPage).map(
+															(page, index) => (
+																<PaginationItem key={index}>
+																	{page === "..." ? (
+																		<PaginationEllipsis />
+																	) : (
+																		<PaginationLink
+																			href="#"
+																			size="default"
+																			isActive={page === currentPage}
+																			className={`${
+																				page === currentPage
+																					? "bg-white text-black hover:bg-white"
+																					: "text-white"
+																			}`}
+																			onClick={(e) => {
+																				e.preventDefault();
+																				setCurrentPage(page);
+																			}}
+																		>
+																			{page}
+																		</PaginationLink>
+																	)}
+																</PaginationItem>
+															),
+														)}
+
+														{currentPage < totalPages && (
+															<PaginationItem>
+																<PaginationLink
+																	href="#"
+																	size="default"
+																	className="text-white"
+																	onClick={(e) => {
+																		e.preventDefault();
+																		setCurrentPage((prev) =>
+																			Math.min(prev + 1, totalPages),
+																		);
+																	}}
+																>
+																	Siguiente
+																	<ChevronRight />
+																</PaginationLink>
+															</PaginationItem>
+														)}
+													</PaginationContent>
+												</Pagination>
+											</div>
+										)}
 									</div>
 								</div>
 								<TorneosSheet fieldId={id || ""} tournaments={tournaments} />
@@ -315,7 +423,14 @@ export function FieldDetail(props: FieldProps) {
 				</Card>
 				<div className="flex h-screen max-h-fit w-[400px] flex-col items-center justify-center space-y-5">
 					<MyCarousel imgSrc={imgSrc} />
-					<MySheet name={name} description={description} price={price} onSave={onSave} />
+					<MySheet
+						name={name}
+						description={description}
+						price={price}
+						openingHour={openingHour}
+						closingHour={closingHour}
+						onSave={onSave}
+					/>
 				</div>
 			</div>
 			<div className="mt-10 flex w-full flex-col items-center justify-center space-y-10 bg-[#f2f4f3]">
@@ -343,20 +458,32 @@ export default function MySheet({
 	name,
 	description,
 	price,
+	openingHour,
+	closingHour,
 	onSave,
 }: {
 	name: string;
 	description: string;
 	price: number;
-	onSave: (newName: string, newDescription: string, price: number) => void;
+	openingHour?: string;
+	closingHour?: string;
+	onSave: (
+		newName: string,
+		newDescription: string,
+		price: number,
+		newOpeningHour?: string,
+		newClosingHour?: string,
+	) => void;
 }) {
 	const [open, setOpen] = useState(false);
 	const [localName, setLocalName] = useState(name);
 	const [localDescription, setLocalDescription] = useState(description);
 	const [localPrice, setLocalPrice] = useState(price);
+	const [localOpeningHour, setLocalOpeningHour] = useState(openingHour?.slice(0, 5) || "09:00");
+	const [localClosingHour, setLocalClosingHour] = useState(closingHour?.slice(0, 5) || "21:00");
 
 	const handleSave = () => {
-		onSave(localName, localDescription, localPrice);
+		onSave(localName, localDescription, localPrice, localOpeningHour, localClosingHour);
 		setOpen(false);
 	};
 
@@ -364,7 +491,9 @@ export default function MySheet({
 		setLocalName(name);
 		setLocalDescription(description);
 		setLocalPrice(price);
-	}, [name, description]);
+		setLocalOpeningHour(openingHour?.slice(0, 5) || "09:00");
+		setLocalClosingHour(closingHour?.slice(0, 5) || "21:00");
+	}, [name, description, openingHour, closingHour]);
 
 	return (
 		<Sheet open={open} onOpenChange={setOpen}>
@@ -404,6 +533,79 @@ export default function MySheet({
 							onChange={(e) => setLocalDescription(e.target.value)}
 						/>
 					</div>
+
+					<div>
+						<h3 className="mb-1 block font-semibold">Horarios de atención</h3>
+						<div className="flex space-x-4">
+							<div className="flex-1">
+								<label htmlFor="openingHour" className="mb-1 block text-sm font-semibold">
+									Horario de apertura
+								</label>
+								<select
+									id="openingHour"
+									value={localOpeningHour}
+									onChange={(e) => setLocalOpeningHour(e.target.value)}
+									className="input w-full rounded border px-2 py-1"
+								>
+									{/* ya sé que es muy feo, pero sino tengo que elegir los minutos, y queremos que sea mas lindo y que responda a lo que vamos a hacer */}
+									<option value="05:00">05:00</option>
+									<option value="06:00">06:00</option>
+									<option value="07:00">07:00</option>
+									<option value="08:00">08:00</option>
+									<option value="09:00">09:00</option>
+									<option value="10:00">10:00</option>
+									<option value="11:00">11:00</option>
+									<option value="12:00">12:00</option>
+									<option value="13:00">13:00</option>
+									<option value="14:00">14:00</option>
+									<option value="15:00">15:00</option>
+									<option value="16:00">16:00</option>
+									<option value="17:00">17:00</option>
+									<option value="18:00">18:00</option>
+									<option value="19:00">19:00</option>
+									<option value="20:00">20:00</option>
+									<option value="21:00">21:00</option>
+									<option value="22:00">22:00</option>
+									<option value="23:00">23:00</option>
+									<option value="00:00">00:00</option>
+								</select>
+							</div>
+
+							<div className="flex-1">
+								<label htmlFor="closingHour" className="mb-1 block text-sm font-semibold">
+									Horario de cierre
+								</label>
+								<select
+									id="closingHour"
+									value={localClosingHour}
+									onChange={(e) => setLocalClosingHour(e.target.value)}
+									className="input w-full rounded border px-2 py-1"
+								>
+									<option value="05:00">05:00</option>
+									<option value="06:00">06:00</option>
+									<option value="07:00">07:00</option>
+									<option value="08:00">08:00</option>
+									<option value="09:00">09:00</option>
+									<option value="10:00">10:00</option>
+									<option value="11:00">11:00</option>
+									<option value="12:00">12:00</option>
+									<option value="13:00">13:00</option>
+									<option value="14:00">14:00</option>
+									<option value="15:00">15:00</option>
+									<option value="16:00">16:00</option>
+									<option value="17:00">17:00</option>
+									<option value="18:00">18:00</option>
+									<option value="19:00">19:00</option>
+									<option value="20:00">20:00</option>
+									<option value="21:00">21:00</option>
+									<option value="22:00">22:00</option>
+									<option value="23:00">23:00</option>
+									<option value="00:00">00:00</option>
+								</select>
+							</div>
+						</div>
+					</div>
+
 					<Button onClick={handleSave}>Guardar cambios</Button>
 				</div>
 			</SheetContent>

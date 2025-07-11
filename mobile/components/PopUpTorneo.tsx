@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { StyleSheet, Text, View, TouchableOpacity, TextInput, Modal, Image, ScrollView } from "react-native";
-import { SearchBar } from "@rneui/themed";
+import { Input, SearchBar } from "@rneui/themed";
 import { ScreenHeight, ScreenWidth } from "@rneui/themed/dist/config";
 import { supabase } from "@lib/supabase";
 import Search from "./Search";
@@ -20,6 +20,7 @@ import { User } from "@supabase/supabase-js";
 import { get } from "http";
 import PopUpReserva from "./PopUpReserva";
 import { getUserSessionById } from "@db/queries";
+import Icon from "react-native-vector-icons/FontAwesome6";
 
 interface PopUpReservaProps {
 	onClose: () => void;
@@ -87,10 +88,14 @@ function PopUpTorneo({
 		}
 
 		try {
-			await insertInscriptionMutation.mutateAsync([{
-				tournamentId: tournamentId,
-				teamId: selectedTeam,
-			}]);
+			await insertInscriptionMutation.mutateAsync([
+				{
+					tournamentId: tournamentId,
+					teamId: selectedTeam,
+					contactEmail: contactEmail,
+					contactPhone: contactPhone,
+				},
+			]);
 			console.log("Team successfully registered for tournament");
 			onClose();
 		} catch (error) {
@@ -110,8 +115,8 @@ function PopUpTorneo({
 
 		if (teamData) {
 			setTeam(teamData.name);
-			setContactPhone(teamData.contactPhone);
-			setContactEmail(teamData.contactEmail);
+			setContactPhone(teamData.contactPhone ?? "");
+			setContactEmail(teamData.contactEmail ?? "");
 			setTeamMembers(teamData.players || []);
 
 			const players = teamData.players || [];
@@ -133,7 +138,7 @@ function PopUpTorneo({
 		<View style={styles.modalContainer}>
 			<View style={styles.modal}>
 				<TouchableOpacity style={styles.closeButton} onPress={() => onClose()}>
-					<Image style={styles.closeIcon} source={require("@/assets/images/close.png")} />
+					<Icon name="xmark" size={22} color="#333" />
 				</TouchableOpacity>
 				<View style={styles.infoContainer}>
 					<Text style={styles.title}>{name}</Text>
@@ -167,7 +172,7 @@ function PopUpTorneo({
 						<View style={styles.modalContainer}>
 							<View style={styles.modal}>
 								<TouchableOpacity style={styles.closeButton} onPress={() => setIsModalVisible(false)}>
-									<Image style={styles.closeIcon} source={require("@/assets/images/close.png")} />
+									<Icon name="xmark" size={22} color="#333" />
 								</TouchableOpacity>
 								<View style={styles.infoContainer}>
 									<Text style={styles.modalTitle}>Inscripción</Text>
@@ -195,17 +200,24 @@ function PopUpTorneo({
 										}}
 										renderItem={(item, index, isSelected) => {
 											return (
-												<View>
-													<Text style={styles.input}>{item.label}</Text>
+												<View
+													style={[
+														styles.dropdownItem,
+														isSelected && styles.dropdownItemSelected,
+													]}
+												>
+													<Text style={styles.dropdownButtonText}>{item.label}</Text>
 												</View>
 											);
 										}}
 									/>
 
 									<Text style={styles.label}>Telefono de contacto: </Text>
-									<Text style={styles.input}>{contactPhone}</Text>
+									{/* <Text style={styles.input}>{contactPhone}</Text> */}
+									<Input keyboardType="numeric" value={contactPhone} onChangeText={setContactPhone} />
 									<Text style={styles.label}>Mail de contacto: </Text>
-									<Text style={styles.input}>{contactEmail}</Text>
+									{/* <Text style={styles.input}>{contactEmail}</Text> */}
+									<Input value={contactEmail} onChangeText={setContactEmail} />
 									<View style={{ flexDirection: "column" }}>
 										<Text style={styles.label}>Jugadores:</Text>
 										<Text
@@ -283,11 +295,9 @@ const styles = StyleSheet.create({
 		overflow: "hidden",
 	},
 	closeButton: {
-		position: "absolute",
-		top: 10,
-		right: 10,
-		padding: 8,
-		zIndex: 100,
+		paddingTop: 20,
+		paddingLeft: 20,
+		alignItems: "flex-start",
 	},
 	closeIcon: {
 		width: 20,
@@ -305,7 +315,6 @@ const styles = StyleSheet.create({
 		textAlign: "center",
 		color: "#333",
 	},
-
 	label: {
 		fontWeight: "bold",
 		color: "#555",
@@ -379,6 +388,23 @@ const styles = StyleSheet.create({
 		color: "#fff",
 		fontWeight: "bold",
 		fontSize: 16,
+	},
+
+	dropdownButtonText: {
+		fontSize: 16,
+		color: "#223332",
+	},
+	dropdownItem: {
+		paddingVertical: 10,
+		paddingHorizontal: 16,
+		backgroundColor: "#fff",
+	},
+	dropdownItemSelected: {
+		backgroundColor: "#f18f04",
+	},
+	dropdownItemText: {
+		fontSize: 16,
+		color: "#223332",
 	},
 });
 

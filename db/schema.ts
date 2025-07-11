@@ -15,6 +15,7 @@ import {
 	bigint,
 	boolean,
 	unique,
+  	time,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm/sql";
 import { authenticatedRole } from "drizzle-orm/supabase";
@@ -26,7 +27,7 @@ import { authenticatedRole } from "drizzle-orm/supabase";
 // **** DO NOT ATTEMPT TO USE THEM IN YOUR CODE. ****
 const authSchema = pgSchema("auth");
 const authUsers = authSchema.table("users", {
-	id: uuid("id").primaryKey(),
+  id: uuid("id").primaryKey(),
 });
 // END NOTICE: WARNING
 
@@ -59,32 +60,34 @@ export const usersTable = pgTable(
 ).enableRLS();
 
 export const fieldsTable = pgTable(
-	"fields",
-	{
-		id: uuid().primaryKey().defaultRandom().notNull(),
-		owner: uuid()
-			.notNull()
-			.references(() => usersTable.id),
-		name: varchar({ length: 255 }).notNull(),
-		price: integer().notNull(),
-		location: geometry("location", {
-			type: "Point",
-			mode: "xy",
-			srid: 4326,
-		}),
-		street_number: varchar({ length: 6 }).notNull(),
-		street: varchar({ length: 255 }).notNull(),
-		neighborhood: varchar({ length: 255 }).notNull(),
-		sports: text().array().notNull(),
-		description: text(),
-		city: varchar({ length: 255 }).notNull(),
-		avatar_url: text(),
-		images: text().array(),
-		adminedBy: text().array().default([]).notNull(),
-		slot_duration: integer().default(60).notNull(),
-	},
-	(table) => [
-		// index("spatial_index").using("gist", table.location),
+  "fields",
+  {
+    id: uuid().primaryKey().defaultRandom().notNull(),
+    owner: uuid()
+      .notNull()
+      .references(() => usersTable.id),
+    name: varchar({ length: 255 }).notNull(),
+    price: integer().notNull(),
+    location: geometry("location", {
+      type: "Point",
+      mode: "xy",
+      srid: 4326,
+    }),
+    street_number: varchar({ length: 6 }).notNull(),
+    street: varchar({ length: 255 }).notNull(),
+    neighborhood: varchar({ length: 255 }).notNull(),
+    sports: text().array().notNull(),
+    description: text(),
+    city: varchar({ length: 255 }).notNull(),
+    avatar_url: text(),
+    images: text().array(),
+    adminedBy: text().array().default([]).notNull(),
+    slot_duration: integer().default(60).notNull(),
+    opening_hour: time({ withTimezone: false }).default("09:00").notNull(),
+    closing_hour: time({ withTimezone: false }).default("21:00").notNull(),
+  },
+  (table) => [
+    // index("spatial_index").using("gist", table.location),
 
 		// Ownership information is stored in the `owner` column. Validated with ON BEFORE INSERT/UPDATE/DELETE triggers.
 		// owner is verified by a trigger `on_field_created  -> validate_new_field()`
@@ -224,8 +227,8 @@ export const teamsTable = pgTable(
 		playerRequests: text().array().notNull(),
 		admins: text().array().notNull(),
 		isPublic: boolean().notNull(),
-		contactPhone: text().notNull(),
-		contactEmail: text().notNull(),
+		contactPhone: text(),
+		contactEmail: text(),
 	},
 	(table) => [
 		pgPolicy("teams - select authenticated", {
@@ -254,6 +257,7 @@ export const tournamentsTable = pgTable(
 		price: integer().notNull(),
 		deadline: timestamp({ withTimezone: true }).notNull(),
 		cantPlayers: integer().notNull(),
+		active: boolean().notNull().default(true),
 	},
 	(table) => [
 		pgPolicy("tournaments - select authenticated", {
@@ -294,6 +298,8 @@ export const inscriptionsTable = pgTable(
 		teamId: uuid().references(() => teamsTable.team_id, {
 			onDelete: "cascade",
 		}),
+		contactPhone: text().notNull(),
+		contactEmail: text().notNull(),
 	},
 	(table) => [
 		pgPolicy("inscriptions - select authenticated", {
@@ -347,7 +353,6 @@ export const messagesTable = pgTable(
 	]
 ).enableRLS();
 
-
 export const fieldReviewsTable = pgTable(
 	"field_reviews",
 	{
@@ -384,4 +389,40 @@ export const fieldReviewsTable = pgTable(
 			as: "permissive",
 		}),
 	]
+).enableRLS();
+
+export const usersPreferencesTable = pgTable(
+	"user_preferences",
+	{
+		user_id: uuid()
+			.primaryKey()
+			.notNull()
+			.references(() => usersTable.id, { onDelete: "cascade" }),
+		fav_users: text().array().notNull(),
+		fav_fields: text().array().notNull(),
+		team_invites: text().array().notNull(),
+	},
+	(table) => [
+		pgPolicy("user_preferences - select authenticated", {
+			for: "select",
+			using: sql`true`,
+			withCheck: sql``,
+			to: authenticatedRole, // only allow authenticated users to select from the table
+			as: "permissive",
+		}),
+		pgPolicy("user_preferences - update authenticated", {
+			for: "update",
+			withCheck: sql`true`,
+			using: sql`true`,
+			to: authenticatedRole, // only allow authenticated users to select from the table
+			as: "permissive",
+		}),
+		pgPolicy("user_preferences - insert authenticated", {
+			for: "insert",
+			withCheck: sql`true`,
+			to: authenticatedRole, // only allow authenticated users to select from the table
+			as: "permissive",
+		}),
+	],
+
 ).enableRLS();
