@@ -349,15 +349,12 @@ export type Database = {
       sports: {
         Row: {
           name: string
-          time: number
         }
         Insert: {
           name: string
-          time?: number
         }
         Update: {
           name?: string
-          time?: number
         }
         Relationships: []
       }

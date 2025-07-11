@@ -35,11 +35,13 @@ interface PopUpReservaProps {
 function PopUpReserva({ onClose, name, fieldId, sport, location, images, description, price }: PopUpReservaProps) {
 	const { data: session } = getUserAuthSession(supabase);
 	const user = session?.user;
+	const { data: teamData } = getAllTeamsByAdminUser(supabase, user?.id!, { enabled: !!user?.id });
+	const userName = getUsername(supabase, user?.id!, { enabled: !!user?.id });
+	const { data: reservations } = getAllReservationTimeSlots(supabase, fieldId);
 	const [isModalVisible, setIsModalVisible] = useState(false);
 	const [selectedDateTime, setSelectedDateTime] = useState<Date>(new Date());
 	const [unavailable, setUnavailability] = useState<boolean | null>(null);
 	const [selectedRenter, setSelectedRenter] = useState<Renter | null>(null);
-	const { data: teamData } = getAllTeamsByAdminUser(supabase, user?.id!, { enabled: !!user?.id });
 	const normalizedTeams = teamData ? teamData.filter((team) => team.team_id && team.name !== null) : [];
 	const { data: fieldData } = getFieldById(supabase, fieldId, { enabled: !!fieldId });
 
@@ -47,8 +49,6 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 		id: team.team_id,
 		name: team.name as string,
 	}));
-
-	const userName = getUsername(supabase, user?.id!, { enabled: !!user?.id });
 
 	const renters: Renter[] = [
 		...(user?.id && typeof userName.data === "string" ? [{ id: user.id, name: userName.data }] : []),
@@ -77,14 +77,14 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 	// };
 
 	const handleDateTimeChange = async (event: any, date?: Date) => {
-		if (date) {
-			setSelectedDateTime(date);
+		if (!date) return;
 
-			const taken = await isSlotUnavailable(fieldId, date);
+		setSelectedDateTime(date);
 
-			setUnavailability(taken);
-			console.log(new Date().getTime());
-		}
+		const taken = isSlotUnavailable(date, reservations ?? undefined);
+
+		setUnavailability(taken);
+		// console.log(new Date().getTime());
 	};
 
 	function isTeam(renter: Renter | null): boolean {
@@ -269,15 +269,12 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 	);
 }
 
-async function isSlotUnavailable(fieldId: string, selectedDateTime: Date): Promise<boolean> {
-	const { data, error } = await getAllReservationTimeSlots(supabase, fieldId);
-
-	if (error) {
-		console.error("Error checking availability:", error);
+function isSlotUnavailable(selectedDateTime: Date, reservations: { date_time: string }[] | undefined): boolean {
+	if (!reservations) {
 		return false;
 	}
 
-	const isTaken = data?.some((reservation) => {
+	const isTaken = reservations.some((reservation) => {
 		const reservationDate = new Date(reservation.date_time);
 		reservationDate.setUTCHours(reservationDate.getUTCHours() + reservationDate.getTimezoneOffset() / 60);
 
