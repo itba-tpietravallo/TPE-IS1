@@ -361,65 +361,67 @@ function AddressSection({
 	const showErrorPopup = geocodingError !== null;
 
 	return (
-		<div className="flex flex-col space-y-5">
+		<div className="flex flex-col gap-4">
 			<FormLabel className="font-sans text-base text-[#223332]">Dirección</FormLabel>
-			<div className="flex flex-row space-x-10">
-				<BasicBox
-					section="street"
-					label="Calle"
-					placeholder=""
-					description=""
-					box_specifications="w-400 h-10 text-lg px-4"
-					form={form}
-				/>
-				<BasicBox
-					section="street_number"
-					label="Número"
-					placeholder=""
-					description=""
-					box_specifications="w-400 h-10 text-lg px-4"
-					form={form}
-				/>
-				<BasicBox
-					section="neighbourhood"
-					label="Barrio"
-					placeholder=""
-					description=""
-					box_specifications="w-400 h-10 text-lg px-4"
-					form={form}
-				/>
-				<BasicBox
-					section="city"
-					label="Ciudad"
-					placeholder=""
-					description=""
-					box_specifications="w-400 h-10 text-lg px-4"
-					form={form}
-				/>
-			</div>
-			<APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
-				<div style={{ width: "100%", height: "400px" }}>
-					<Map
-						mapId={mapId}
-						zoom={mapZoom}
-						center={mapCenter}
-						key={`${mapCenter.lat}-${mapCenter.lng}-${mapZoom}`}
-						gestureHandling="greedy"
-						disableDefaultUI={true}
-					>
-						{latitude !== null && longitude !== null && (
-							<AdvancedMarker position={{ lat: latitude, lng: longitude }}>
-								<Pin />
-							</AdvancedMarker>
-						)}
-						{showErrorPopup && (
-							<InfoWindow position={mapCenter} onCloseClick={onCloseErrorPopup}>
-								<p>{geocodingError}</p>
-							</InfoWindow>
-						)}
-					</Map>
+			<div className="flex flex-row gap-6">
+				<div className="flex w-1/2 flex-col gap-4">
+					<BasicBox
+						section="street"
+						label="Calle"
+						placeholder=""
+						description=""
+						box_specifications="w-400 h-10 text-lg px-4"
+						form={form}
+					/>
+					<BasicBox
+						section="street_number"
+						label="Número"
+						placeholder=""
+						description=""
+						box_specifications="w-400 h-10 text-lg px-4"
+						form={form}
+					/>
+					<BasicBox
+						section="neighbourhood"
+						label="Barrio"
+						placeholder=""
+						description=""
+						box_specifications="w-400 h-10 text-lg px-4"
+						form={form}
+					/>
+					<BasicBox
+						section="city"
+						label="Ciudad"
+						placeholder=""
+						description=""
+						box_specifications="w-400 h-10 text-lg px-4"
+						form={form}
+					/>
 				</div>
-			</APIProvider>
+				<div className="h-[400px] w-1/2">
+					<APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
+						<Map
+							mapId={mapId}
+							zoom={mapZoom}
+							center={mapCenter}
+							key={`${mapCenter.lat}-${mapCenter.lng}-${mapZoom}`}
+							gestureHandling="greedy"
+							disableDefaultUI={true}
+						>
+							{latitude !== null && longitude !== null && (
+								<AdvancedMarker position={{ lat: latitude, lng: longitude }}>
+									<img src="/matchpointpelota-logo.png" alt="Marker" className="h-8 w-8" />
+								</AdvancedMarker>
+							)}
+							{showErrorPopup && (
+								<InfoWindow position={mapCenter} onCloseClick={onCloseErrorPopup}>
+									<p>{geocodingError}</p>
+								</InfoWindow>
+							)}
+						</Map>
+					</APIProvider>
+				</div>
+			</div>
 		</div>
 	);
 }
