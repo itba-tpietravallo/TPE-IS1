@@ -4,10 +4,10 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - feat-build-apk  
+      - main  
   pull_request:
     branches:
-      - dev  
+      - main  
   
 
 jobs:
