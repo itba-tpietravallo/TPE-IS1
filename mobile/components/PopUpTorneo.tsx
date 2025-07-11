@@ -313,6 +313,7 @@ const styles = StyleSheet.create({
 	infoContainer: {
 		width: "100%",
 		padding: 20,
+		paddingTop: 0,
 	},
 	title: {
 		fontSize: 22,
