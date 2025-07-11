@@ -106,7 +106,10 @@ export const queries = {
   getUserAuthSession: (supabase: SupabaseClient<Database>) =>
     supabase.auth.getSession().then((res) => res.data.session),
 
-  getIsLinkedToPaymentMethod: (supabase: SupabaseClient<Database>, user_id: string) =>
+  getIsLinkedToPaymentMethod: (
+    supabase: SupabaseClient<Database>,
+    user_id: string
+  ) =>
     supabase
       .from("mp_oauth_authorization")
       .select("user_id")
@@ -167,16 +170,34 @@ export const queries = {
     supabase.from("inscriptions").select("*").eq("tournamentId", tournamentId),
 
   getFavoriteFieldsByUserId: (
-    supabase: SupabaseClient<Database>, 
+    supabase: SupabaseClient<Database>,
     userId: string
   ) =>
-		supabase.from("user_preferences").select("fav_fields").eq("user_id", userId).single(),
+    supabase
+      .from("user_preferences")
+      .select("fav_fields")
+      .eq("user_id", userId)
+      .single(),
 
-	getFavoriteUsersByUserId: (
-    supabase: SupabaseClient<Database>, 
+  getFavoriteUsersByUserId: (
+    supabase: SupabaseClient<Database>,
     userId: string
   ) =>
-		supabase.from("user_preferences").select("fav_users").eq("user_id", userId).single(),
+    supabase
+      .from("user_preferences")
+      .select("fav_users")
+      .eq("user_id", userId)
+      .single(),
+
+  getTeamInvitesByUserId: (
+    supabase: SupabaseClient<Database>,
+    userId: string
+  ) =>
+    supabase
+      .from("user_preferences")
+      .select("team_invites")
+      .eq("user_id", userId)
+      .single(),
 };
 
 export const mutations = {
@@ -379,9 +400,9 @@ export function getUsername(
   userId: string,
   opts: any = undefined
 ) {
-  return useQuery<{ username: string, full_name: string }>({
+  return useQuery<{ username: string; full_name: string }>({
     queryKey: [userId, "username"],
-    queryFn: async (): Promise<{ username: string, full_name: string }> => {
+    queryFn: async (): Promise<{ username: string; full_name: string }> => {
       let username: string;
       const { data, error } = await queries.getUsername(supabase, userId);
 
@@ -521,17 +542,36 @@ export function getUserEmailById(
 }
 
 export function getFavoriteFieldsByUserId(
-  supabase: SupabaseClient<Database>, 
-  userId: string, opts: any = undefined
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  opts: any = undefined
 ) {
-	return useQuerySupabase(queries.getFavoriteFieldsByUserId(supabase, userId), opts);
+  return useQuerySupabase(
+    queries.getFavoriteFieldsByUserId(supabase, userId),
+    opts
+  );
+}
+
+export function getTeamInvitesByUserId(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  opts: any = undefined
+) {
+  return useQuerySupabase(
+    queries.getTeamInvitesByUserId(supabase, userId),
+    opts
+  );
 }
 
 export function getFavoriteUsersByUserId(
-  supabase: SupabaseClient<Database>, 
-  userId: string, opts: any = undefined
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  opts: any = undefined
 ) {
-	return useQuerySupabase(queries.getFavoriteUsersByUserId(supabase, userId), opts);
+  return useQuerySupabase(
+    queries.getFavoriteUsersByUserId(supabase, userId),
+    opts
+  );
 }
 
 export function useUpdateField(supabase: SupabaseClient<Database>) {
@@ -938,29 +978,29 @@ export function useInsertMessage(supabase: SupabaseClient<Database>) {
 }
 
 export function useInsertUserPreferences(supabase: SupabaseClient<Database>) {
-	// Using the built-in useInsertMutation from supabase-cache-helpers
-	return useInsertMutation(
-		supabase.from("user_preferences"),
-		["user_id"], // Primary key columns
-		"*", // Select all columns for the cache update
-		{
-			onError: (error) => {
-				console.error("Error inserting user preferences:", error);
-			},
-		},
-	);
+  // Using the built-in useInsertMutation from supabase-cache-helpers
+  return useInsertMutation(
+    supabase.from("user_preferences"),
+    ["user_id"], // Primary key columns
+    "*", // Select all columns for the cache update
+    {
+      onError: (error) => {
+        console.error("Error inserting user preferences:", error);
+      },
+    }
+  );
 }
 
 export function useUpdateUserPreferences(supabase: SupabaseClient<Database>) {
-	// Using the built-in useUpdateMutation from supabase-cache-helpers
-	return useUpdateMutation(
-		supabase.from("user_preferences"),
-		["user_id"], // Primary key columns
-		"*", // Select all columns for the cache update
-		{
-			onError: (error) => {
-				console.error("Error updating user preferences:", error);
-			},
-		},
-	);
+  // Using the built-in useUpdateMutation from supabase-cache-helpers
+  return useUpdateMutation(
+    supabase.from("user_preferences"),
+    ["user_id"], // Primary key columns
+    "*", // Select all columns for the cache update
+    {
+      onError: (error) => {
+        console.error("Error updating user preferences:", error);
+      },
+    }
+  );
 }

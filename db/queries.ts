@@ -112,6 +112,9 @@ export const queries = {
 
 	getFavoriteUsersByUserId: (supabase: SupabaseClient<Database>, userId: string) =>
 		supabase.from("user_preferences").select("fav_users").eq("user_id", userId).single(),
+
+	getTeamInvitesByUserId: (supabase: SupabaseClient<Database>, userId: string) =>
+		supabase.from("user_preferences").select("team_invites").eq("user_id", userId).single(),
 };
 
 export const mutations = {
@@ -346,6 +349,10 @@ export function getUserEmailById(supabase: SupabaseClient<Database>, id: string)
 
 export function getFavoriteFieldsByUserId(supabase: SupabaseClient<Database>, userId: string, opts: any = undefined) {
 	return useQuerySupabase(queries.getFavoriteFieldsByUserId(supabase, userId), opts);
+}
+
+export function getTeamInvitesByUserId(supabase: SupabaseClient<Database>, userId: string, opts: any = undefined) {
+	return useQuerySupabase(queries.getTeamInvitesByUserId(supabase, userId), opts);
 }
 
 export function getFavoriteUsersByUserId(supabase: SupabaseClient<Database>, userId: string, opts: any = undefined) {
