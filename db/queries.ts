@@ -905,17 +905,8 @@ export function getInscriptionsByUser(
 
       if (error) throw error;
 
-      const inscriptions = Array.isArray(data)
-        ? data.flatMap((team) =>
-            typeof team === "object" &&
-            team !== null &&
-            "inscriptions" in team &&
-            Array.isArray((team as any).inscriptions)
-              ? (team as any).inscriptions
-              : []
-          )
-        : [];
-
+      const inscriptions =
+        (data as any[])?.flatMap((team) => team.inscriptions ?? []) ?? [];
       return inscriptions;
     },
     ...opts,

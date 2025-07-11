@@ -15,12 +15,13 @@ import {
 	queries,
 	useInsertInscription,
 	getUserAuthSession,
+	useDeleteInscription,
 	getInscriptionsByUser,
 } from "@lib/autogen/queries";
 import { User } from "@supabase/supabase-js";
 import { get } from "http";
 import PopUpReserva from "./PopUpReserva";
-import { getUserSessionById, useDeleteInscription } from "@db/queries";
+import { getUserSessionById } from "@db/queries";
 
 interface PopUpReservaProps {
 	onClose: () => void;
@@ -50,6 +51,7 @@ function getTeamMembers() {
 
 	return data as NonNullable<ReturnType<typeof getAllUsers>["data"]>;
 }
+
 function PopUpTorneo({
 	tournamentId,
 	onClose,
@@ -69,7 +71,6 @@ function PopUpTorneo({
 	const user = session?.user;
 	const { data: teams } = getAllTeams(supabase);
 	const insertInscriptionMutation = useInsertInscription(supabase);
-	const deleteInscriptionMutation = useDeleteInscription(supabase);
 	const myTeams = teams?.filter((team) => team.players.some((member) => member === user?.id));
 
 	const [selectedTeam, setSelectedTeam] = useState<string>("");
@@ -77,20 +78,6 @@ function PopUpTorneo({
 	const [teamMembers, setTeamMembers] = useState<string[]>([]);
 	const [contactPhone, setContactPhone] = useState<string>("");
 	const [contactEmail, setContactEmail] = useState<string>("");
-
-	const { data: userInscriptions } = getInscriptionsByUser(supabase, user?.id!, {
-		enabled: !!user?.id,
-	});
-
-	const isInscripted = !!userInscriptions?.some(
-		(insc: NonNullable<ReturnType<typeof getInscriptionsByUser>["data"]>[number]) =>
-			insc.tournamentId === tournamentId,
-	); //CAMBIAR PARA QUE APROVECHE LA LOGICA DEL DE ABAJO
-
-	const userInscription = userInscriptions?.find(
-		(insc: NonNullable<ReturnType<typeof getInscriptionsByUser>["data"]>[number]) =>
-			insc.tournamentId === tournamentId,
-	);
 
 	const [canJoin, setCanJoin] = useState<boolean>(false);
 	const [selectedPlayers, setSelectedPlayers] = useState<
@@ -116,19 +103,6 @@ function PopUpTorneo({
 		} catch (error) {
 			console.error("Error registering for tournament:", error);
 			alert("Error al inscribir el equipo al torneo. Por favor, intenta de nuevo.");
-		}
-	};
-
-	const handleUnsuscribe = async () => {
-		if (!userInscription) return;
-
-		try {
-			await deleteInscriptionMutation.mutateAsync({ id: userInscription.id });
-			alert("Te desinscribiste del torneo.");
-			onClose(); //no cierra el modal
-		} catch (error) {
-			console.error("Error desinscribiendo:", error);
-			alert("No se pudo desinscribir del torneo.");
 		}
 	};
 
@@ -160,6 +134,26 @@ function PopUpTorneo({
 
 	const getUserById = async (userId: string) => {
 		return getUsername(supabase, userId);
+	};
+
+	const deleteInscriptionMutation = useDeleteInscription(supabase);
+	const { data: userInscriptions = [] } = getInscriptionsByUser(supabase, user?.id!);
+
+	const userInscription = (userInscriptions as any[])?.find((insc) => insc.tournamentId === tournamentId);
+
+	const isInscripted = !!userInscription;
+
+	const handleUnsuscribe = async () => {
+		if (!userInscription) return;
+
+		try {
+			await deleteInscriptionMutation.mutateAsync({ id: userInscription.id });
+			alert("Te desinscribiste del torneo");
+			onClose(); // cerramos modal
+		} catch (error) {
+			console.error("Error al desinscribirse:", error);
+			alert("Ocurrió un error al desinscribirse del torneo.");
+		}
 	};
 
 	return (
