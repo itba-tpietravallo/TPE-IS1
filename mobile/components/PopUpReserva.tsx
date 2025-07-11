@@ -268,8 +268,6 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 									value={selectedDateTime}
 									mode="date"
 									display="default"
-									minimumDate={ minimumDate }
-									maximumDate={ maximumDate }
 									onChange={(event, date) => {
 										setShowDatePicker(false);
 										if (date) handleDateTimeChange(event, new Date(date));
@@ -299,6 +297,8 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 									mode="time"
 									display="default"
 									minuteInterval={30}
+									minimumDate={ minimumDate }
+									maximumDate={ maximumDate }
 									onChange={(event, date) => {
 										setShowTimePicker(false);
 										if (date) handleDateTimeChange(event, new Date(date));
