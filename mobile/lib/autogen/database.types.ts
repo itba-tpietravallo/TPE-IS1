@@ -14,17 +14,55 @@ export type Database = {
   }
   public: {
     Tables: {
+      field_reviews: {
+        Row: {
+          field_id: string
+          id: string
+          rating: number
+          user_id: string
+        }
+        Insert: {
+          field_id: string
+          id?: string
+          rating: number
+          user_id: string
+        }
+        Update: {
+          field_id?: string
+          id?: string
+          rating?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "field_reviews_field_id_fields_id_fk"
+            columns: ["field_id"]
+            isOneToOne: false
+            referencedRelation: "fields"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "field_reviews_user_id_users_id_fk"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fields: {
         Row: {
           adminedBy: string[]
           avatar_url: string | null
           city: string
+          closing_hour: string
           description: string | null
           id: string
           images: string[] | null
           location: unknown | null
           name: string
           neighborhood: string
+          opening_hour: string
           owner: string
           price: number
           slot_duration: number
@@ -36,12 +74,14 @@ export type Database = {
           adminedBy?: string[]
           avatar_url?: string | null
           city: string
+          closing_hour?: string
           description?: string | null
           id?: string
           images?: string[] | null
           location?: unknown | null
           name: string
           neighborhood: string
+          opening_hour?: string
           owner: string
           price: number
           slot_duration?: number
@@ -53,12 +93,14 @@ export type Database = {
           adminedBy?: string[]
           avatar_url?: string | null
           city?: string
+          closing_hour?: string
           description?: string | null
           id?: string
           images?: string[] | null
           location?: unknown | null
           name?: string
           neighborhood?: string
+          opening_hour?: string
           owner?: string
           price?: number
           slot_duration?: number
@@ -78,16 +120,22 @@ export type Database = {
       }
       inscriptions: {
         Row: {
+          contactEmail: string
+          contactPhone: string
           id: string
           teamId: string | null
           tournamentId: string
         }
         Insert: {
+          contactEmail: string
+          contactPhone: string
           id?: string
           teamId?: string | null
           tournamentId: string
         }
         Update: {
+          contactEmail?: string
+          contactPhone?: string
           id?: string
           teamId?: string | null
           tournamentId?: string
@@ -105,6 +153,45 @@ export type Database = {
             columns: ["tournamentId"]
             isOneToOne: false
             referencedRelation: "tournaments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          room_id: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          room_id: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          room_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_room_id_teams_team_id_fk"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["team_id"]
+          },
+          {
+            foreignKeyName: "messages_user_id_users_id_fk"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -274,8 +361,8 @@ export type Database = {
       teams: {
         Row: {
           admins: string[]
-          contactEmail: string
-          contactPhone: string
+          contactEmail: string | null
+          contactPhone: string | null
           description: string | null
           images: string[] | null
           isPublic: boolean
@@ -287,8 +374,8 @@ export type Database = {
         }
         Insert: {
           admins: string[]
-          contactEmail: string
-          contactPhone: string
+          contactEmail?: string | null
+          contactPhone?: string | null
           description?: string | null
           images?: string[] | null
           isPublic: boolean
@@ -300,8 +387,8 @@ export type Database = {
         }
         Update: {
           admins?: string[]
-          contactEmail?: string
-          contactPhone?: string
+          contactEmail?: string | null
+          contactPhone?: string | null
           description?: string | null
           images?: string[] | null
           isPublic?: boolean
@@ -323,6 +410,7 @@ export type Database = {
       }
       tournaments: {
         Row: {
+          active: boolean
           cantPlayers: number
           deadline: string
           description: string | null
@@ -334,6 +422,7 @@ export type Database = {
           startDate: string
         }
         Insert: {
+          active?: boolean
           cantPlayers: number
           deadline: string
           description?: string | null
@@ -345,6 +434,7 @@ export type Database = {
           startDate: string
         }
         Update: {
+          active?: boolean
           cantPlayers?: number
           deadline?: string
           description?: string | null
@@ -369,6 +459,35 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "sports"
             referencedColumns: ["name"]
+          },
+        ]
+      }
+      user_preferences: {
+        Row: {
+          fav_fields: string[]
+          fav_users: string[]
+          team_invites: string[]
+          user_id: string
+        }
+        Insert: {
+          fav_fields: string[]
+          fav_users: string[]
+          team_invites: string[]
+          user_id: string
+        }
+        Update: {
+          fav_fields?: string[]
+          fav_users?: string[]
+          team_invites?: string[]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_preferences_user_id_users_id_fk"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
           },
         ]
       }
