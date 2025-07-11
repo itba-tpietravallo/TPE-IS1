@@ -10,9 +10,10 @@ import type { Database } from "./database.types";
 
 import { useEffect } from "react";
 import {
-	useQuery,
-	UseQueryOptions,
-	useQueryClient,
+
+  useQuery,
+  UseQueryOptions,
+  useQueryClient,
 
 } from "@tanstack/react-query";
 
@@ -109,6 +110,14 @@ export const queries = {
   getUserAuthSession: (supabase: SupabaseClient<Database>) =>
     supabase.auth.getSession().then((res) => res.data.session),
 
+  getIsLinkedToPaymentMethod: (supabase: SupabaseClient<Database>, user_id: string) =>
+    supabase
+      .from("mp_oauth_authorization")
+      .select("user_id")
+      .eq("user_id", user_id)
+      .single(),
+
+
   getLastUserPayments: (supabase: SupabaseClient<Database>, userId: string) =>
     supabase
       .from("mp_payments")
@@ -127,7 +136,9 @@ export const queries = {
   getAllTeamsByUser: (supabase: SupabaseClient<Database>, userId: string) =>
     supabase
       .from("teams")
-      .select("team_id, name")
+
+      .select("team_id, name, images")
+
       .contains("players", [userId]),
 
   getAllTeamsByAdminUser: (
@@ -162,6 +173,7 @@ export const queries = {
   ) =>
     supabase.from("inscriptions").select("*").eq("tournamentId", tournamentId),
 
+
   getTeamsByUser: (supabase: SupabaseClient<Database>, userId: string) =>
     supabase.from("teams").select("*").eq("owner", userId),
 
@@ -180,6 +192,7 @@ export const queries = {
       .from("inscriptions")
       .select("tournament: tournaments(*), team: teams(*)")
       .contains("team.players", [userId]),
+
 
 };
 
@@ -232,17 +245,20 @@ export const mutations = {
 
 export function getAllFields(
 
-	supabase: SupabaseClient<Database>,
-	opts: any = undefined
+  supabase: SupabaseClient<Database>,
+  opts: any = undefined
+
 ) {
-	return useQuerySupabase(queries.getAllFields(supabase), opts);
+  return useQuerySupabase(queries.getAllFields(supabase), opts);
 }
 
 export function getIsFieldOwner(
+
 	supabase: SupabaseClient<Database>,
 	fieldId: string,
 	userId: string,
 	opts: any = undefined
+
 
 ) {
   return useQuerySupabase(queries.getIsFieldOwner(supabase, fieldId, userId), {
@@ -365,6 +381,22 @@ export function getUserSession(
     enabled: !!userId,
     ...opts,
   });
+
+}
+
+export function getUserLinkedToPaymentMethod(
+  supabase: SupabaseClient<Database>,
+  user_id: string,
+  opts: any = undefined
+) {
+  return useQuerySupabase(
+    queries.getIsLinkedToPaymentMethod(supabase, user_id),
+    {
+      enabled: !!user_id,
+      ...opts,
+    }
+  );
+
 }
 
 export function getUsername(
@@ -372,9 +404,11 @@ export function getUsername(
   userId: string,
   opts: any = undefined
 ) {
-  return useQuery({
+
+  return useQuery<{ username: string, full_name: string }>({
     queryKey: [userId, "username"],
-    queryFn: async () => {
+    queryFn: async (): Promise<{ username: string, full_name: string }> => {
+
       let username: string;
       const { data, error } = await queries.getUsername(supabase, userId);
 
@@ -400,7 +434,9 @@ export function getUsername(
         username = data.username;
       }
 
-      return { username, full_name: data?.full_name };
+
+      return { username, full_name: data?.full_name! };
+
     },
     enabled: !!userId,
     ...opts,
@@ -504,6 +540,7 @@ export function getUserReservations(
 export function getUserEmailById(
   supabase: SupabaseClient<Database>,
   id: string
+
 ) {
   return useQuerySupabase(
     supabase.from("users").select("email").eq("id", id).single(),
@@ -558,6 +595,7 @@ export function getUserTournaments(
     enabled: !!userId,
     ...opts,
   });
+
 }
 
 export function useUpdateField(supabase: SupabaseClient<Database>) {
@@ -708,8 +746,24 @@ export function useDeleteTournament(supabase: SupabaseClient<Database>) {
 
   // Return the mutation with the correct interface
   return deleteHook;
+
 }
 
+// lo copié y pegué del updateTeam
+export function useUpdateTournament(supabase: SupabaseClient<Database>) {
+  // Using the built-in useUpdateMutation from supabase-cache-helpers
+  return useUpdateMutation(
+    supabase.from("tournaments"),
+    ["id"], // Primary key columns
+    "*", // Select all columns for the cache update
+    {
+      onError: (error) => {
+        console.error("Error updating team:", error);
+      },
+    }
+  );
+
+}
 export function useInsertReservation(supabase: SupabaseClient<Database>) {
   // Using the built-in useInsertMutation from supabase-cache-helpers
   // This will automatically handle cache updates and optimistic updates
@@ -884,61 +938,69 @@ export function useDeleteReservation(supabase: SupabaseClient<Database>) {
 
 }
 
-export const messagesQueryKey = (roomId: string) => ["supabase", "from", "messages", "eq", "room_id", roomId];
+export const messagesQueryKey = (roomId: string) => [
+  "supabase",
+  "from",
+  "messages",
+  "eq",
+  "room_id",
+  roomId,
+];
+
 
 export function useChatMessages(
-	supabase: SupabaseClient<Database> | null,
-	roomId: string
+  supabase: SupabaseClient<Database> | null,
+  roomId: string
 ) {
-	const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
 
-	useEffect(() => {
-		if (!supabase || !roomId) return;
+  useEffect(() => {
+    if (!supabase || !roomId) return;
 
-		const channel = supabase
-			.channel(`room:${roomId}`)
-			.on(
-				"postgres_changes",
-				{
-					event: "INSERT",
-					schema: "public",
-					table: "messages",
-					filter: `room_id=eq.${roomId}`,
-				},
-				() => {
-					queryClient.invalidateQueries({ queryKey: key });
-				}
-			)
-			.subscribe();
+    const channel = supabase
+      .channel(`room:${roomId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "messages",
+          filter: `room_id=eq.${roomId}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: key });
+        }
+      )
+      .subscribe();
 
-		return () => {
-			supabase.removeChannel(channel);
-		};
-	}, [supabase, roomId, queryClient]);
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [supabase, roomId, queryClient]);
 
-	const key = messagesQueryKey(roomId);
-	return useQuery({
-		queryKey: key,
-		queryFn: async () => {
-			if (!supabase) throw new Error("Supabase client not provided.");
-			const { data, error } = await supabase
-				.from("messages")
-				.select("*, users(username, avatar_url)")
-				.eq("room_id", roomId)
-				.order("created_at");
+  const key = messagesQueryKey(roomId);
+  return useQuery({
+    queryKey: key,
+    queryFn: async () => {
+      if (!supabase) throw new Error("Supabase client not provided.");
+      const { data, error } = await supabase
+        .from("messages")
+        .select("*, users(username, avatar_url)")
+        .eq("room_id", roomId)
+        .order("created_at");
 
-			if (error) throw error;
-			return data;
-		},
-		enabled: !!supabase && !!roomId,
-	});
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!supabase && !!roomId,
+  });
 }
 
 export function useInsertMessage(supabase: SupabaseClient<Database>) {
-	// Using the built-in useInsertMutation from supabase-cache-helpers
-	return useInsertMutation(supabase.from("messages"), ["id"], "*", {
-		onError: (error) => {
-			console.error("Error inserting message:", error);
-		},
-	});
+  // Using the built-in useInsertMutation from supabase-cache-helpers
+  return useInsertMutation(supabase.from("messages"), ["id"], "*", {
+    onError: (error) => {
+      console.error("Error inserting message:", error);
+    },
+  });
 }
