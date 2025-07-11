@@ -243,7 +243,7 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 				getLabel={(renter) => renter.name}
 			/>
 
-			{!selectedRenter && (
+			{(!selectedRenter || unavailable) && (
 				<TouchableOpacity
 					disabled
 					style={{
@@ -257,7 +257,7 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 				</TouchableOpacity>
 			)}
 
-			{selectedRenter && isTeam(selectedRenter) && user?.id && (
+			{selectedRenter && !unavailable && isTeam(selectedRenter) && user?.id && (
 				<PreReserveButton
 					userId={user.id}
 					fieldId={fieldId}
@@ -267,7 +267,7 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 				/>
 			)}
 
-			{selectedRenter && !isTeam(selectedRenter) && user?.id && (
+			{selectedRenter && !unavailable && !isTeam(selectedRenter) && user?.id && (
 				<CheckoutButton userId={user.id} fieldId={fieldId} date_time={selectedShiftedDateTime.toISOString()} />
 			)}
 		</View>
