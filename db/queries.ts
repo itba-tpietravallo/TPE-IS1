@@ -367,9 +367,9 @@ export function getUsername(
   userId: string,
   opts: any = undefined
 ) {
-  return useQuery({
+  return useQuery<{ username: string, full_name: string }>({
     queryKey: [userId, "username"],
-    queryFn: async () => {
+    queryFn: async (): Promise<{ username: string, full_name: string }> => {
       let username: string;
       const { data, error } = await queries.getUsername(supabase, userId);
 
@@ -395,7 +395,7 @@ export function getUsername(
         username = data.username;
       }
 
-      return { username, full_name: data?.full_name };
+      return { username, full_name: data?.full_name! };
     },
     enabled: !!userId,
     ...opts,

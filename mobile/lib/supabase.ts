@@ -12,6 +12,8 @@ import { MODE_BASE_URL } from "./mode";
 
 export let supabase: ReturnType<typeof createClient>;
 
+export let DATABASE_ANON_KEY: string;
+
 export const initializeSupabaseClient = async () => {
 	if (supabase) {
 		return supabase;
@@ -35,6 +37,8 @@ export const initializeSupabaseClient = async () => {
 
 	const supabaseUrl = data.DATABASE_ENDPOINT!;
 	const supabaseAnonKey = data.DATABASE_ANON_KEY!;
+
+	DATABASE_ANON_KEY = data.DATABASE_ANON_KEY!;
 
 	supabase = createClient(supabaseUrl, supabaseAnonKey, {
 		auth: {
