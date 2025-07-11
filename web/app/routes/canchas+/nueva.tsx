@@ -258,6 +258,8 @@ export function NewField() {
 						form={form}
 						latitude={latitude}
 						longitude={longitude}
+						setLatitude={setLatitude}
+						setLongitude={setLongitude}
 						geocodingError={geocodingError}
 						mapCenter={mapView.center}
 						mapZoom={mapView.zoom}
@@ -340,6 +342,9 @@ type AddressSectionProps = {
 	form: ReturnType<typeof useForm<FieldFormData>>;
 	latitude: number | null;
 	longitude: number | null;
+	setLatitude: (lat: number) => void;
+	setLongitude: (lng: number) => void;
+
 	GOOGLE_MAPS_API_KEY: string;
 	geocodingError: string | null;
 	mapCenter: { lat: number; lng: number };
@@ -351,6 +356,8 @@ function AddressSection({
 	form,
 	latitude,
 	longitude,
+	setLatitude,
+	setLongitude,
 	GOOGLE_MAPS_API_KEY,
 	geocodingError,
 	mapCenter,
@@ -410,9 +417,15 @@ function AddressSection({
 							mapTypeId="roadmap"
 						>
 							{latitude !== null && longitude !== null && (
-								<AdvancedMarker position={{ lat: latitude, lng: longitude }}>
-									<img src="/matchpoint-marker.png" alt="Marker" className="h-8 w-8" />
-								</AdvancedMarker>
+								<Marker
+									position={{ lat: latitude, lng: longitude }}
+									draggable={true}
+									icon={{
+										url: "/matchpointpelota-logo.png",
+										//scaledSize: { width: 32, height: 32 },
+									}}
+									onDragEnd={(e) => handleMarkerDragEnd(e, setLatitude, setLongitude)}
+								/>
 							)}
 							{showErrorPopup && (
 								<InfoWindow position={mapCenter} onCloseClick={onCloseErrorPopup}>
@@ -425,6 +438,19 @@ function AddressSection({
 			</div>
 		</div>
 	);
+}
+
+function handleMarkerDragEnd(
+	e: google.maps.MapMouseEvent,
+	setLatitude: (lat: number) => void,
+	setLongitude: (lng: number) => void,
+) {
+	const newLat = e.latLng?.lat();
+	const newLng = e.latLng?.lng();
+	if (newLat !== undefined && newLng !== undefined) {
+		setLatitude(newLat);
+		setLongitude(newLng);
+	}
 }
 
 function SelectFormSection({ form, options }: { form: ReturnType<typeof useForm<FieldFormData>>; options: Option[] }) {
