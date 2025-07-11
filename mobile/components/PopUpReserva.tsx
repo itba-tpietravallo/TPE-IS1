@@ -36,14 +36,17 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 	const { data: session } = getUserAuthSession(supabase);
 	const user = session?.user;
 	const { data: teamData } = getAllTeamsByAdminUser(supabase, user?.id!, { enabled: !!user?.id });
-	const userName = getUsername(supabase, user?.id!, { enabled: !!user?.id });
+	const { data: userName } = getUsername(supabase, user?.id!, { enabled: !!user?.id });
 	const { data: reservations } = getAllReservationTimeSlots(supabase, fieldId);
 	const [isModalVisible, setIsModalVisible] = useState(false);
 	const [selectedDateTime, setSelectedDateTime] = useState<Date>(new Date());
+	const [selectedShiftedDateTime, setSelectedShiftedDateTime] = useState<Date>(new Date());
 	const [unavailable, setUnavailability] = useState<boolean | null>(null);
 	const [selectedRenter, setSelectedRenter] = useState<Renter | null>(null);
 	const normalizedTeams = teamData ? teamData.filter((team) => team.team_id && team.name !== null) : [];
 	const { data: fieldData } = getFieldById(supabase, fieldId, { enabled: !!fieldId });
+
+	const timezone = "America/Argentina/Buenos_Aires";
 
 	const teams: Renter[] = normalizedTeams.map((team) => ({
 		id: team.team_id,
@@ -51,7 +54,9 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 	}));
 
 	const renters: Renter[] = [
-		...(user?.id && typeof userName.data === "string" ? [{ id: user.id, name: userName.data }] : []),
+		...(user?.id && userName && typeof userName.username === "string"
+			? [{ id: user.id, name: userName.username }]
+			: []),
 		...teams,
 	];
 
@@ -81,11 +86,38 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 
 		setSelectedDateTime(date);
 
-		const taken = isSlotUnavailable(date, reservations ?? undefined);
+		const offset = getOffsetHours(date, timezone);
+		setSelectedShiftedDateTime(new Date(date.getTime() - offset * 60 * 60 * 1000));
+
+		const taken = isSlotUnavailable(selectedShiftedDateTime, reservations ?? undefined);
 
 		setUnavailability(taken);
-		// console.log(new Date().getTime());
 	};
+
+	function getOffsetHours(date: Date, timeZone: string) {
+		const dtf = new Intl.DateTimeFormat("en-US", {
+			timeZone,
+			hour12: false,
+			year: "numeric",
+			month: "2-digit",
+			day: "2-digit",
+			hour: "2-digit",
+			minute: "2-digit",
+			second: "2-digit",
+		});
+
+		const parts = dtf.formatToParts(date);
+		const map: Record<string, string> = {};
+		for (const { type, value } of parts) {
+			map[type] = value;
+		}
+
+		const localDateStr = `${map.year}-${map.month}-${map.day}T${map.hour}:${map.minute}:${map.second}`;
+		const localDate = new Date(localDateStr + "Z"); // treat local time as UTC temporarily
+
+		const offsetMs = date.getTime() - localDate.getTime();
+		return offsetMs / (1000 * 60 * 60); // offset in hours
+	}
 
 	function isTeam(renter: Renter | null): boolean {
 		if (!renter) return false;
@@ -238,7 +270,7 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 				getLabel={(renter) => renter.name}
 			/>
 
-			{!selectedRenter && (
+			{(!selectedRenter || unavailable) && (
 				<TouchableOpacity
 					disabled
 					style={{
@@ -252,33 +284,32 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 				</TouchableOpacity>
 			)}
 
-			{selectedRenter && isTeam(selectedRenter) && user?.id && (
+			{selectedRenter && !unavailable && isTeam(selectedRenter) && user?.id && (
 				<PreReserveButton
 					userId={user.id}
 					fieldId={fieldId}
 					fieldName={selectedRenter.name}
 					teamId={selectedRenter.id}
-					date_time={selectedDateTime.toISOString()}
+					date_time={selectedShiftedDateTime.toISOString()}
 				/>
 			)}
 
-			{selectedRenter && !isTeam(selectedRenter) && user?.id && (
-				<CheckoutButton userId={user.id} fieldId={fieldId} date_time={selectedDateTime.toISOString()} />
+			{selectedRenter && !unavailable && !isTeam(selectedRenter) && user?.id && (
+				<CheckoutButton userId={user.id} fieldId={fieldId} date_time={selectedShiftedDateTime.toISOString()} />
 			)}
 		</View>
 	);
 }
 
-function isSlotUnavailable(selectedDateTime: Date, reservations: { date_time: string }[] | undefined): boolean {
+function isSlotUnavailable(selectedShiftedDateTime: Date, reservations: { date_time: string }[] | undefined): boolean {
 	if (!reservations) {
 		return false;
 	}
 
 	const isTaken = reservations.some((reservation) => {
 		const reservationDate = new Date(reservation.date_time);
-		reservationDate.setUTCHours(reservationDate.getUTCHours() + reservationDate.getTimezoneOffset() / 60);
 
-		return reservationDate.getTime() === selectedDateTime.getTime();
+		return reservationDate.getTime() === selectedShiftedDateTime.getTime();
 	});
 
 	return !!isTaken;
