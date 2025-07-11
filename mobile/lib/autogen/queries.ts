@@ -110,6 +110,7 @@ export const queries = {
   getUserAuthSession: (supabase: SupabaseClient<Database>) =>
     supabase.auth.getSession().then((res) => res.data.session),
 
+
   getIsLinkedToPaymentMethod: (supabase: SupabaseClient<Database>, user_id: string) =>
     supabase
       .from("mp_oauth_authorization")
@@ -245,8 +246,9 @@ export const mutations = {
 
 export function getAllFields(
 
-  supabase: SupabaseClient<Database>,
-  opts: any = undefined
+
+	supabase: SupabaseClient<Database>,
+	opts: any = undefined
 
 ) {
   return useQuerySupabase(queries.getAllFields(supabase), opts);
@@ -254,11 +256,10 @@ export function getAllFields(
 
 export function getIsFieldOwner(
 
-	supabase: SupabaseClient<Database>,
-	fieldId: string,
-	userId: string,
-	opts: any = undefined
-
+  supabase: SupabaseClient<Database>,
+  fieldId: string,
+  userId: string,
+  opts: any = undefined
 
 ) {
   return useQuerySupabase(queries.getIsFieldOwner(supabase, fieldId, userId), {
