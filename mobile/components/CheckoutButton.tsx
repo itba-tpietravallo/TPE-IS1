@@ -7,7 +7,7 @@ import * as Linking from "expo-linking";
 import { fetch } from "expo/fetch";
 
 import { Image, Text } from "@rneui/themed";
-import { supabase } from "@/lib/supabase";
+import { DATABASE_ANON_KEY, supabase } from "@/lib/supabase";
 import { usePathname } from "expo-router";
 import { IS_DEV_MODE, MODE_BASE_URL } from "@lib/mode";
 import { useInsertReservation } from "@/lib/autogen/queries";
@@ -60,13 +60,15 @@ export default function CheckoutButton({
 		let reservationId: string | undefined;
 
 		try {
-			const resp = await insertReservation.mutateAsync([{
-				owner_id: userId,
-				field_id: fieldId,
-				date_time: date_time,
-				bookers_count: 1,
-				pending_bookers_ids: singleBooker,
-			}]);
+			const resp = await insertReservation.mutateAsync([
+				{
+					owner_id: userId,
+					field_id: fieldId,
+					date_time: date_time,
+					bookers_count: 1,
+					pending_bookers_ids: singleBooker,
+				},
+			]);
 
 			console.log("reservation inserted");
 			reservationId = resp?.[0].id;
@@ -103,7 +105,7 @@ export default function CheckoutButton({
 				headers: {
 					"Content-Type": "application/json",
 					Accept: "application/json",
-					apiKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!,
+					apiKey: DATABASE_ANON_KEY,
 					access_token: `${res.data.session!.access_token}`,
 					refresh_token: `${res.data.session!.refresh_token}`,
 				},
