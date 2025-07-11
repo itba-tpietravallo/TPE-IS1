@@ -44,7 +44,7 @@ function FieldPost(props: props) {
 				</ImageBackground>
 			</TouchableOpacity>
 			<Modal
-				style={styles.modal}
+				// style={styles.modal}
 				visible={isModalVisible}
 				transparent={true}
 				onRequestClose={() => setIsModalVisible(false)}
