@@ -21,14 +21,14 @@ on:
             - "./.github/workflows"
 
 jobs:
-    Database-Changes:
-        uses: ./.github/workflows/db-types.yaml
-        secrets: inherit
+    # Database-Changes:
+    #     uses: ./.github/workflows/db-types.yaml
+    #     secrets: inherit
     API-Tests:
         uses: ./.github/workflows/api-tests.yaml
         secrets: inherit
     Browser-Tests:
-        needs: [Database-Changes, API-Tests]
+        needs: [API-Tests]
         uses: ./.github/workflows/playwright.yml
         secrets: inherit
     Deploy:
