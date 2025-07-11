@@ -84,6 +84,8 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 	const handleDateTimeChange = async (event: any, date?: Date) => {
 		if (!date) return;
 
+		date.getHours() < minimumDate.getHours() && (date.setHours(minimumDate.getHours(), 0, 0, 0));
+		date.getHours() > maximumDate.getHours() && (date.setHours(maximumDate.getHours(), 0, 0, 0));
 		setSelectedDateTime(date);
 
 		const offset = getOffsetHours(date, timezone);
