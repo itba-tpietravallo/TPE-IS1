@@ -19,14 +19,12 @@ export type Database = {
           adminedBy: string[]
           avatar_url: string | null
           city: string
-          closing_hour: string
           description: string | null
           id: string
           images: string[] | null
           location: unknown | null
           name: string
           neighborhood: string
-          opening_hour: string
           owner: string
           price: number
           slot_duration: number
@@ -38,14 +36,12 @@ export type Database = {
           adminedBy?: string[]
           avatar_url?: string | null
           city: string
-          closing_hour?: string
           description?: string | null
           id?: string
           images?: string[] | null
           location?: unknown | null
           name: string
           neighborhood: string
-          opening_hour?: string
           owner: string
           price: number
           slot_duration?: number
@@ -57,14 +53,12 @@ export type Database = {
           adminedBy?: string[]
           avatar_url?: string | null
           city?: string
-          closing_hour?: string
           description?: string | null
           id?: string
           images?: string[] | null
           location?: unknown | null
           name?: string
           neighborhood?: string
-          opening_hour?: string
           owner?: string
           price?: number
           slot_duration?: number
@@ -84,22 +78,16 @@ export type Database = {
       }
       inscriptions: {
         Row: {
-          contactEmail: string
-          contactPhone: string
           id: string
           teamId: string | null
           tournamentId: string
         }
         Insert: {
-          contactEmail: string
-          contactPhone: string
           id?: string
           teamId?: string | null
           tournamentId: string
         }
         Update: {
-          contactEmail?: string
-          contactPhone?: string
           id?: string
           teamId?: string | null
           tournamentId?: string
@@ -286,8 +274,8 @@ export type Database = {
       teams: {
         Row: {
           admins: string[]
-          contactEmail: string | null
-          contactPhone: string | null
+          contactEmail: string
+          contactPhone: string
           description: string | null
           images: string[] | null
           isPublic: boolean
@@ -299,8 +287,8 @@ export type Database = {
         }
         Insert: {
           admins: string[]
-          contactEmail?: string | null
-          contactPhone?: string | null
+          contactEmail: string
+          contactPhone: string
           description?: string | null
           images?: string[] | null
           isPublic: boolean
@@ -312,8 +300,8 @@ export type Database = {
         }
         Update: {
           admins?: string[]
-          contactEmail?: string | null
-          contactPhone?: string | null
+          contactEmail?: string
+          contactPhone?: string
           description?: string | null
           images?: string[] | null
           isPublic?: boolean
@@ -335,7 +323,6 @@ export type Database = {
       }
       tournaments: {
         Row: {
-          active: boolean
           cantPlayers: number
           deadline: string
           description: string | null
@@ -347,7 +334,6 @@ export type Database = {
           startDate: string
         }
         Insert: {
-          active?: boolean
           cantPlayers: number
           deadline: string
           description?: string | null
@@ -359,7 +345,6 @@ export type Database = {
           startDate: string
         }
         Update: {
-          active?: boolean
           cantPlayers?: number
           deadline?: string
           description?: string | null
@@ -384,35 +369,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "sports"
             referencedColumns: ["name"]
-          },
-        ]
-      }
-      user_preferences: {
-        Row: {
-          fav_fields: string[]
-          fav_users: string[]
-          team_invites: string[]
-          user_id: string
-        }
-        Insert: {
-          fav_fields: string[]
-          fav_users: string[]
-          team_invites: string[]
-          user_id: string
-        }
-        Update: {
-          fav_fields?: string[]
-          fav_users?: string[]
-          team_invites?: string[]
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_preferences_user_id_users_id_fk"
-            columns: ["user_id"]
-            isOneToOne: true
-            referencedRelation: "users"
-            referencedColumns: ["id"]
           },
         ]
       }
