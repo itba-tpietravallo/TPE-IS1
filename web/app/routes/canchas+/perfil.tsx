@@ -209,7 +209,7 @@ export function ProfileInfo({ email, userName, phone, url_origin, isLinked }: Pr
 						<div className="space-y-2">
 							<div className="flex items-center gap-2">
 								<CreditCard className="h-4 w-4 text-muted-foreground" />
-								<Label htmlFor="payment">Método de pago</Label>
+								<Label htmlFor="payment">Método de cobro</Label>
 							</div>
 							<div className="flex gap-2">
 								{isLinked ? (
