@@ -50,20 +50,32 @@ export default function FieldDetailPage() {
 	// Use the mutation hook
 	const updateFieldMutation = useUpdateField(supabase);
 
-	const handleUpdate = async (newName: string, newDesc: string, newPrice: number) => {
+	const handleUpdate = async (
+		newName: string,
+		newDesc: string,
+		newPrice: number,
+		newOpeningHour: string,
+		newClosingHour: string,
+	) => {
 		setName(newName);
 		setDescription(newDesc);
 		setPrice(newPrice);
+		setOpeningHour(newOpeningHour);
+		setClosingHour(newClosingHour);
 
 		// Use the mutation instead of direct Supabase call
-		await updateFieldMutation.mutateAsync({
-			id: id || "",
-			name: newName,
-			description: newDesc,
-			price: newPrice,
-		}).catch((error) => {
-			console.error("Error updating field:", error);
-		});
+		await updateFieldMutation
+			.mutateAsync({
+				id: id || "",
+				name: newName,
+				description: newDesc,
+				price: newPrice,
+				opening_hour: newOpeningHour,
+				closing_hour: newClosingHour,
+			})
+			.catch((error) => {
+				console.error("Error updating field:", error);
+			});
 	};
 	// sin este useEffect, cuando hago hard refresh pierdo nombre, descripcion, precio
 	useEffect(() => {
@@ -95,6 +107,8 @@ export default function FieldDetailPage() {
 			dependantQueries={[allFieldsQuery, tournaments, reservations]}
 			onSave={handleUpdate}
 			loading={isLoading}
+			openingHour={field.data?.opening_hour || "09:00"}
+			closingHour={field.data?.closing_hour || "21:00"}
 		/>
 	);
 }

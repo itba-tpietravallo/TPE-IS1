@@ -7,7 +7,7 @@ import * as Linking from "expo-linking";
 import { fetch } from "expo/fetch";
 
 import { Button, Image, Text } from "@rneui/themed";
-import { supabase } from "@/lib/supabase";
+import { DATABASE_ANON_KEY, supabase } from "@/lib/supabase";
 import { IconSymbol } from "./ui/IconSymbol";
 import { Link, usePathname } from "expo-router";
 import { MODE_BASE_URL } from "@lib/mode";
@@ -76,7 +76,7 @@ export default function PayPending({
 				headers: {
 					"Content-Type": "application/json",
 					Accept: "application/json",
-					apiKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!,
+					apiKey: DATABASE_ANON_KEY,
 					access_token: `${res.data.session!.access_token}`,
 					refresh_token: `${res.data.session!.refresh_token}`,
 				},

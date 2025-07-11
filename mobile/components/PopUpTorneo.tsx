@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { StyleSheet, Text, View, TouchableOpacity, TextInput, Modal, Image, ScrollView } from "react-native";
-import { SearchBar } from "@rneui/themed";
+import { Input, SearchBar } from "@rneui/themed";
 import { ScreenHeight, ScreenWidth } from "@rneui/themed/dist/config";
 import { supabase } from "@lib/supabase";
 import Search from "./Search";
@@ -87,10 +87,12 @@ function PopUpTorneo({
 		}
 
 		try {
-			await insertInscriptionMutation.mutateAsync([{
-				tournamentId: tournamentId,
-				teamId: selectedTeam,
-			}]);
+			await insertInscriptionMutation.mutateAsync([
+				{
+					tournamentId: tournamentId,
+					teamId: selectedTeam,
+				},
+			]);
 			console.log("Team successfully registered for tournament");
 			onClose();
 		} catch (error) {
@@ -195,17 +197,24 @@ function PopUpTorneo({
 										}}
 										renderItem={(item, index, isSelected) => {
 											return (
-												<View>
-													<Text style={styles.input}>{item.label}</Text>
+												<View
+													style={[
+														styles.dropdownItem,
+														isSelected && styles.dropdownItemSelected,
+													]}
+												>
+													<Text style={styles.dropdownButtonText}>{item.label}</Text>
 												</View>
 											);
 										}}
 									/>
 
 									<Text style={styles.label}>Telefono de contacto: </Text>
-									<Text style={styles.input}>{contactPhone}</Text>
+									{/* <Text style={styles.input}>{contactPhone}</Text> */}
+									<Input keyboardType="numeric" value={contactPhone} onChangeText={setContactPhone} />
 									<Text style={styles.label}>Mail de contacto: </Text>
-									<Text style={styles.input}>{contactEmail}</Text>
+									{/* <Text style={styles.input}>{contactEmail}</Text> */}
+									<Input value={contactEmail} onChangeText={setContactEmail} />
 									<View style={{ flexDirection: "column" }}>
 										<Text style={styles.label}>Jugadores:</Text>
 										<Text
@@ -379,6 +388,23 @@ const styles = StyleSheet.create({
 		color: "#fff",
 		fontWeight: "bold",
 		fontSize: 16,
+	},
+
+	dropdownButtonText: {
+		fontSize: 16,
+		color: "#223332",
+	},
+	dropdownItem: {
+		paddingVertical: 10,
+		paddingHorizontal: 16,
+		backgroundColor: "#fff",
+	},
+	dropdownItemSelected: {
+		backgroundColor: "#f18f04",
+	},
+	dropdownItemText: {
+		fontSize: 16,
+		color: "#223332",
 	},
 });
 

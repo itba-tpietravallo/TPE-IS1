@@ -13,9 +13,13 @@ jobs:
         defaults:
             run:
                 working-directory: ./db
+        permissions: write-all
         steps:
             - name: Checkout Repository
               uses: actions/checkout@v4
+              with:
+                  ref: ${{ github.head_ref }}
+                  token: ${{ secrets.GHA_TOKEN_BYPASS_BRANCH_PROTECTION }}
 
             - name: Extract branch name
               shell: bash
@@ -27,8 +31,8 @@ jobs:
               uses: actions/cache@v3
               with:
                   path: |
-                    **/node_modules
-                    ~/.npm
+                      **/node_modules
+                      ~/.npm
                   key: node_modules-${{ runner.os }}-db-${{hashFiles('package-lock.json')}}
                   restore-keys: node_modules-${{ runner.os }}-db-
 
@@ -48,5 +52,5 @@ jobs:
 
             - uses: stefanzweifel/git-auto-commit-action@v5
               with:
-                  commit_message: "bot(db): generate database types"
-                  file_pattern: "**/autogen/*.ts"
+                  commit_message: "[skip ci] bot(db): generate database types"
+                  add_options: --all

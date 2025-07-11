@@ -1,18 +1,12 @@
 import { ScreenHeight } from "@rneui/themed/dist/config";
 import React, { useState } from "react";
 import PopUpTeam from "./PopUpTeam";
-import { StyleSheet, Text, View, ImageBackground, Image, TouchableOpacity, Modal } from "react-native";
-import { Player } from "../app/(tabs)/teams.tsx";
+import { StyleSheet, Text, View, ImageBackground, TouchableOpacity, Modal } from "react-native";
+import { supabase } from "@/lib/supabase";
+import { getTeamById } from "@lib/autogen/queries";
 
 type PropsTeam = {
 	team_id: string;
-	name: string;
-	sport: string;
-	description: string;
-	players: string[];
-	playerRequests: string[];
-	images: string[];
-	isPublic: boolean;
 };
 
 function TeamPost(props: PropsTeam) {
@@ -21,16 +15,22 @@ function TeamPost(props: PropsTeam) {
 		setIsModalVisible(false);
 	};
 
+	const { data: team } = getTeamById(supabase, props.team_id);
+
 	return (
 		<View style={{ flex: 1 }}>
 			<TouchableOpacity onPress={() => setIsModalVisible(true)}>
 				<ImageBackground
 					style={styles.container}
 					imageStyle={{ borderRadius: 15, opacity: 0.9 }}
-					source={props.images.length == 0 ? require("@/assets/images/people-logo.jpg") : props.images[0]}   //@TODO: IMAGENES
+					source={
+						team?.images && team.images.length > 0
+							? { uri: team.images[0] }
+							: require("@/assets/images/people-logo.jpg")
+					} //@TODO: IMAGENES
 				>
 					<View style={styles.topContent}>
-						<Text style={styles.title}>{props.name}</Text>
+						<Text style={styles.title}>{team?.name}</Text>
 					</View>
 				</ImageBackground>
 			</TouchableOpacity>
@@ -41,16 +41,7 @@ function TeamPost(props: PropsTeam) {
 				onRequestClose={() => setIsModalVisible(false)}
 			>
 				<View style={styles.centeredView}>
-					<PopUpTeam
-						onClose={handleCloseModal}
-						team_id={props.team_id}
-						name={props.name}
-						sport={props.sport}
-						description={props.description}
-						players={props.players}
-						playerRequests={props.playerRequests}   
-						public={props.isPublic}   
-					/>
+					<PopUpTeam onClose={handleCloseModal} team_id={props.team_id} />
 				</View>
 			</Modal>
 		</View>
@@ -71,18 +62,6 @@ const styles = StyleSheet.create({
 		alignItems: "center",
 		marginTop: 40,
 	},
-	bottomContent: {
-		backgroundColor: "black",
-		borderColor: "#747775",
-		paddingHorizontal: 12,
-		height: 30,
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "center",
-		opacity: 0.6,
-		borderBottomEndRadius: 15,
-		borderBottomStartRadius: 15,
-	},
 	title: {
 		fontSize: 28,
 		fontWeight: "bold",
@@ -99,11 +78,6 @@ const styles = StyleSheet.create({
 		color: "#fff",
 		marginTop: 1,
 		fontWeight: "bold",
-	},
-	icon: {
-		width: 25,
-		height: 25,
-		borderRadius: 25,
 	},
 	centeredView: {
 		flex: 1,
