@@ -53,3 +53,4 @@ jobs:
               with:
                   commit_message: "[skip ci] bot(db): generate database types"
                   add_options: --all
+                  skip_dirty_check: true
