@@ -15,6 +15,7 @@ import {
 	bigint,
 	boolean,
 	unique,
+  time,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm/sql";
 import { authenticatedRole } from "drizzle-orm/supabase";
@@ -82,6 +83,8 @@ export const fieldsTable = pgTable(
     images: text().array(),
     adminedBy: text().array().default([]).notNull(),
     slot_duration: integer().default(60).notNull(),
+    opening_hour: time({ withTimezone: false }).default("09:00").notNull(),
+    closing_hour: time({ withTimezone: false }).default("21:00").notNull(),
   },
   (table) => [
     // index("spatial_index").using("gist", table.location),
