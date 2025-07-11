@@ -50,14 +50,9 @@ export function RealtimeChat({ roomId, roomName, userId }: { roomId: string; roo
 				return !correspondingServerMessage;
 			});
 
-			const localIds = new Set(filteredLocal.map((m) => m.id));
-			const newMessagesFromServer = serverMessages.filter((serverMsg) => !localIds.has(serverMsg.id));
-
-			if (newMessagesFromServer.length === 0 && filteredLocal.length === currentLocal.length) {
-				return currentLocal;
-			}
-
-			return [...newMessagesFromServer, ...filteredLocal];
+			return [...serverMessages, ...filteredLocal].sort(
+				(a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+			);
 		});
 	}, [messages]);
 
