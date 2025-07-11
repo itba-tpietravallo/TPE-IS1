@@ -60,6 +60,8 @@ export default function FieldDetailPage() {
 		setName(newName);
 		setDescription(newDesc);
 		setPrice(newPrice);
+		setOpeningHour(newOpeningHour);
+		setClosingHour(newClosingHour);
 
 		// Use the mutation instead of direct Supabase call
 		await updateFieldMutation
