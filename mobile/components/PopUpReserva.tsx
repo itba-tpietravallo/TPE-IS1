@@ -35,7 +35,7 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 	const { data: session } = getUserAuthSession(supabase);
 	const user = session?.user;
 	const { data: teamData } = getAllTeamsByAdminUser(supabase, user?.id!, { enabled: !!user?.id });
-	const userName = getUsername(supabase, user?.id!, { enabled: !!user?.id });
+	const { data: userName } = getUsername(supabase, user?.id!, { enabled: !!user?.id });
 	const { data: reservations } = getAllReservationTimeSlots(supabase, fieldId);
 	const [isModalVisible, setIsModalVisible] = useState(false);
 	const [selectedDateTime, setSelectedDateTime] = useState<Date>(new Date());
@@ -52,7 +52,9 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 	}));
 
 	const renters: Renter[] = [
-		...(user?.id && typeof userName.data === "string" ? [{ id: user.id, name: userName.data }] : []),
+		...(user?.id && userName && typeof userName.username === "string"
+			? [{ id: user.id, name: userName.username }]
+			: []),
 		...teams,
 	];
 
