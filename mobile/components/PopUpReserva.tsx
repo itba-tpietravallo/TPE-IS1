@@ -165,12 +165,11 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 	return (
 		<View style={styles.modalView}>
 			<View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-				<TouchableOpacity style={{ padding: 10, alignItems: "flex-end" }} onPress={onClose}>
-					<Image
-						style={{ width: 20, height: 20, marginTop: 10 }}
-						source={require("@/assets/images/close.png")}
-					/>
+				{/* Boton cerrar PopUp */}
+				<TouchableOpacity style={{ padding: 10, alignItems: "flex-start", marginLeft: 10 }} onPress={onClose}>
+					<Icon name="xmark" size={24} color="black" style={{ marginTop: 10 }} />
 				</TouchableOpacity>
+
 				{/* Boton agregar a favoritos */}
 				<TouchableOpacity
 					style={{ padding: 10, alignItems: "flex-start", marginLeft: 10 }}
