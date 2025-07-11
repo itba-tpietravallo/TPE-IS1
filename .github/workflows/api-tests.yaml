@@ -35,6 +35,7 @@ jobs:
               run: |
                   cat ./web/.env | grep '^[^#]' >> "$GITHUB_ENV"
                   echo "GCP_PRODUCTION_API_KEY=${{ secrets.GCP_PRODUCTION_API_KEY }}" >> "$GITHUB_ENV"
+                  echo "GOOGLE_MAPS_WEB_API_KEY=${{ secrets.GOOGLE_MAPS_WEB_API_KEY }}" >> "$GITHUB_ENV"
 
             - name: Run tests
               if: steps.extract_branch.outputs.branch != 'main'

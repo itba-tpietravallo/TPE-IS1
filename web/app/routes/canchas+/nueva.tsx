@@ -200,20 +200,22 @@ export function NewField() {
 				uploadedImageUrls.push(downloadURL);
 			}
 
-			await insertFieldMutation.mutateAsync([{
-				owner: user.user.id,
-				name: data.name,
-				street: data.street,
-				street_number: data.street_number,
-				neighborhood: data.neighbourhood,
-				city: data.city,
-				sports: data.sports.map((s) => s.value),
-				images: uploadedImageUrls,
-				price: Number(data.price),
-				location: `POINT(${latitude || 0} ${longitude || 0})`,
-				description: data.description || "",
-				avatar_url: user.avatar_url,
-			}]);
+			await insertFieldMutation.mutateAsync([
+				{
+					owner: user.user.id,
+					name: data.name,
+					street: data.street,
+					street_number: data.street_number,
+					neighborhood: data.neighbourhood,
+					city: data.city,
+					sports: data.sports.map((s) => s.value),
+					images: uploadedImageUrls,
+					price: Number(data.price),
+					location: `POINT(${latitude || 0} ${longitude || 0})`,
+					description: data.description || "",
+					avatar_url: user.avatar_url,
+				},
+			]);
 
 			window.location.href = `${URL_ORIGIN}/canchas`;
 		} catch (err: any) {
