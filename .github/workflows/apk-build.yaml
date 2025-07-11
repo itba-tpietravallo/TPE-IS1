@@ -26,7 +26,7 @@ jobs:
       - name: Install dependencies
         run: |
           cd mobile
-          npm install
+          npm install --legacy-peer-deps
 
       - name: Build Android APK (Debug)
         run: |
