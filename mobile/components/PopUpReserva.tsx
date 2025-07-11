@@ -92,7 +92,7 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 			<TouchableOpacity style={{ padding: 10, alignItems: "flex-end" }} onPress={onClose}>
 				<Image style={{ width: 20, height: 20, marginTop: 10 }} source={require("@/assets/images/close.png")} />
 			</TouchableOpacity>
-			{/* <View style={styles.mainInfo}> */}
+			
 			<ScrollView contentContainerStyle={styles.mainInfo} bounces={false}>
 				<View style={styles.topInfo}>
 					<View style={{ flex: 1, paddingRight: 10, alignItems: "center" }}>
