@@ -25,7 +25,7 @@ import { authenticateUser } from "~/lib/auth.server";
 import { User } from "@supabase/supabase-js";
 import { DollarSign } from "lucide-react";
 import { getAllSports, useInsertField } from "@/lib/autogen/queries";
-import { APIProvider, Map, AdvancedMarker, Pin, InfoWindow } from "@vis.gl/react-google-maps";
+import { APIProvider, Map, AdvancedMarker, Pin, InfoWindow, Marker } from "@vis.gl/react-google-maps";
 import debounce from "lodash.debounce";
 import { Database } from "@lib/autogen/database.types";
 import { __GET_PUBLIC_ENV } from "@lib/getenv.server";
@@ -364,7 +364,7 @@ function AddressSection({
 		<div className="flex flex-col gap-4">
 			<FormLabel className="font-sans text-base text-[#223332]">Dirección</FormLabel>
 			<div className="flex flex-row gap-6">
-				<div className="flex w-1/2 flex-col gap-4">
+				<div className="flex w-1/3 flex-col gap-4">
 					<BasicBox
 						section="street"
 						label="Calle"
@@ -398,7 +398,7 @@ function AddressSection({
 						form={form}
 					/>
 				</div>
-				<div className="h-[400px] w-1/2">
+				<div className="h-[400px] w-2/3">
 					<APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
 						<Map
 							mapId={mapId}
@@ -406,11 +406,12 @@ function AddressSection({
 							center={mapCenter}
 							key={`${mapCenter.lat}-${mapCenter.lng}-${mapZoom}`}
 							gestureHandling="greedy"
-							disableDefaultUI={true}
+							disableDefaultUI={false}
+							mapTypeId="roadmap"
 						>
 							{latitude !== null && longitude !== null && (
 								<AdvancedMarker position={{ lat: latitude, lng: longitude }}>
-									<img src="/matchpointpelota-logo.png" alt="Marker" className="h-8 w-8" />
+									<img src="/matchpoint-marker.png" alt="Marker" className="h-8 w-8" />
 								</AdvancedMarker>
 							)}
 							{showErrorPopup && (
