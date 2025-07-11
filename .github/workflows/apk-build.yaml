@@ -1,13 +1,14 @@
 name: Build and Upload Android APK
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - feat-build-apk  
   pull_request:
     branches:
       - dev  
-  workflow_dispatch:
+  
 
 jobs:
   build:
