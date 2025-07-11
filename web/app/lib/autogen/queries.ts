@@ -355,7 +355,10 @@ export function getUserLinkedToPaymentMethod(
 ) {
   return useQuerySupabase(
     queries.getIsLinkedToPaymentMethod(supabase, user_id),
-    opts
+    {
+      enabled: !!user_id,
+      ...opts,
+    }
   );
 }
 
