@@ -11,6 +11,7 @@ import {
 	getAllTeamsByAdminUser,
 	getUsername,
 	getUserAuthSession,
+	getFieldById,
 } from "@/lib/autogen/queries";
 import Selector from "./Selector";
 
@@ -43,6 +44,7 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 	const [unavailable, setUnavailability] = useState<boolean | null>(null);
 	const [selectedRenter, setSelectedRenter] = useState<Renter | null>(null);
 	const normalizedTeams = teamData ? teamData.filter((team) => team.team_id && team.name !== null) : [];
+	const { data: fieldData } = getFieldById(supabase, fieldId, { enabled: !!fieldId });
 
 	const timezone = "America/Argentina/Buenos_Aires";
 
@@ -58,9 +60,32 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 		...teams,
 	];
 
+	const minimumDate = new Date( Date.now() );
+	minimumDate.setHours(Number((fieldData?.opening_hour ?? '09:00').split(":")[0]) || 9, 0, 0, 0);
+
+	const maximumDate = new Date( Date.now() );
+	maximumDate.setHours(Number((fieldData?.closing_hour ?? '20:00').split(":")[0]) || 20, 0, 0, 0);
+
+	// const handleDateTimeChange = async (event: any, date?: Date) => {
+	// 	if (event.type === "dismissed" || event.type === "set") {
+	// 		setShow(false);
+	// 	}
+
+	// 	if (date && event.type === "set") {
+	// 		setSelectedDateTime(date);
+
+	// 		const taken = await isSlotUnavailable(fieldId, date);
+
+	// 		setUnavailability(taken);
+	// 		console.log(new Date().getTime());
+	// 	}
+	// };
+
 	const handleDateTimeChange = async (event: any, date?: Date) => {
 		if (!date) return;
 
+		date.getHours() < minimumDate.getHours() && (date.setHours(minimumDate.getHours(), 0, 0, 0));
+		date.getHours() > maximumDate.getHours() && (date.setHours(maximumDate.getHours(), 0, 0, 0));
 		setSelectedDateTime(date);
 
 		const offset = getOffsetHours(date, timezone);
@@ -214,6 +239,8 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 							<Text style={styles.select}>Seleccionar hora:</Text>
 							<DateTimePicker
 								value={selectedDateTime}
+								minimumDate={ minimumDate }
+								maximumDate={ maximumDate }
 								mode="time"
 								minuteInterval={30}
 								onChange={handleDateTimeChange}
@@ -272,6 +299,8 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 									mode="time"
 									display="default"
 									minuteInterval={30}
+									minimumDate={ minimumDate }
+									maximumDate={ maximumDate }
 									onChange={(event, date) => {
 										setShowTimePicker(false);
 										if (date) handleDateTimeChange(event, new Date(date));
