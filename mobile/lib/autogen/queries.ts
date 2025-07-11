@@ -106,6 +106,13 @@ export const queries = {
   getUserAuthSession: (supabase: SupabaseClient<Database>) =>
     supabase.auth.getSession().then((res) => res.data.session),
 
+  getIsLinkedToPaymentMethod: (supabase: SupabaseClient<Database>, user_id: string) =>
+    supabase
+      .from("mp_oauth_authorization")
+      .select("user_id")
+      .eq("user_id", user_id)
+      .single(),
+
   getLastUserPayments: (supabase: SupabaseClient<Database>, userId: string) =>
     supabase
       .from("mp_payments")
@@ -339,6 +346,20 @@ export function getUserSession(
     enabled: !!userId,
     ...opts,
   });
+}
+
+export function getUserLinkedToPaymentMethod(
+  supabase: SupabaseClient<Database>,
+  user_id: string,
+  opts: any = undefined
+) {
+  return useQuerySupabase(
+    queries.getIsLinkedToPaymentMethod(supabase, user_id),
+    {
+      enabled: !!user_id,
+      ...opts,
+    }
+  );
 }
 
 export function getUsername(
