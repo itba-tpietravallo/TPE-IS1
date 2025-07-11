@@ -15,11 +15,12 @@ import {
 	queries,
 	useInsertInscription,
 	getUserAuthSession,
+	getInscriptionsByUser,
 } from "@lib/autogen/queries";
 import { User } from "@supabase/supabase-js";
 import { get } from "http";
 import PopUpReserva from "./PopUpReserva";
-import { getUserSessionById } from "@db/queries";
+import { getUserSessionById, useDeleteInscription } from "@db/queries";
 
 interface PopUpReservaProps {
 	onClose: () => void;
@@ -32,6 +33,7 @@ interface PopUpReservaProps {
 	deadline: Date;
 	cantPlayers: number;
 	tournamentId: string;
+	alreadyJoined?: boolean;
 }
 
 function getPlayerListItem(player: NonNullable<ReturnType<typeof getAllUsers>["data"]>[number] & { id: string }) {
@@ -59,6 +61,7 @@ function PopUpTorneo({
 	price,
 	deadline,
 	cantPlayers,
+	alreadyJoined,
 }: PopUpReservaProps) {
 	const [isModalVisible, setIsModalVisible] = useState(false);
 	const usersData = getAllUsers(supabase);
@@ -66,6 +69,7 @@ function PopUpTorneo({
 	const user = session?.user;
 	const { data: teams } = getAllTeams(supabase);
 	const insertInscriptionMutation = useInsertInscription(supabase);
+	const deleteInscriptionMutation = useDeleteInscription(supabase);
 	const myTeams = teams?.filter((team) => team.players.some((member) => member === user?.id));
 
 	const [selectedTeam, setSelectedTeam] = useState<string>("");
@@ -73,6 +77,20 @@ function PopUpTorneo({
 	const [teamMembers, setTeamMembers] = useState<string[]>([]);
 	const [contactPhone, setContactPhone] = useState<string>("");
 	const [contactEmail, setContactEmail] = useState<string>("");
+
+	const { data: userInscriptions } = getInscriptionsByUser(supabase, user?.id!, {
+		enabled: !!user?.id,
+	});
+
+	const isInscripted = !!userInscriptions?.some(
+		(insc: NonNullable<ReturnType<typeof getInscriptionsByUser>["data"]>[number]) =>
+			insc.tournamentId === tournamentId,
+	); //CAMBIAR PARA QUE APROVECHE LA LOGICA DEL DE ABAJO
+
+	const userInscription = userInscriptions?.find(
+		(insc: NonNullable<ReturnType<typeof getInscriptionsByUser>["data"]>[number]) =>
+			insc.tournamentId === tournamentId,
+	);
 
 	const [canJoin, setCanJoin] = useState<boolean>(false);
 	const [selectedPlayers, setSelectedPlayers] = useState<
@@ -98,6 +116,19 @@ function PopUpTorneo({
 		} catch (error) {
 			console.error("Error registering for tournament:", error);
 			alert("Error al inscribir el equipo al torneo. Por favor, intenta de nuevo.");
+		}
+	};
+
+	const handleUnsuscribe = async () => {
+		if (!userInscription) return;
+
+		try {
+			await deleteInscriptionMutation.mutateAsync({ id: userInscription.id });
+			alert("Te desinscribiste del torneo.");
+			onClose(); //no cierra el modal
+		} catch (error) {
+			console.error("Error desinscribiendo:", error);
+			alert("No se pudo desinscribir del torneo.");
 		}
 	};
 
@@ -160,9 +191,18 @@ function PopUpTorneo({
 						<Text style={styles.value}>{deadline.toLocaleDateString()}</Text>
 					</View>
 				</View>
-				<TouchableOpacity style={styles.button} onPress={() => setIsModalVisible(true)}>
-					<Text style={styles.buttonText}>Inscribirse</Text>
-				</TouchableOpacity>
+				{isInscripted ? (
+					<TouchableOpacity
+						style={[styles.button, { backgroundColor: "#d9534f" }]}
+						onPress={handleUnsuscribe}
+					>
+						<Text style={styles.buttonText}>Desinscribirse</Text>
+					</TouchableOpacity>
+				) : (
+					<TouchableOpacity style={styles.button} onPress={() => setIsModalVisible(true)}>
+						<Text style={styles.buttonText}>Inscribirse</Text>
+					</TouchableOpacity>
+				)}
 
 				<Modal visible={isModalVisible} transparent={true} onRequestClose={() => setIsModalVisible(false)}>
 					<AutocompleteDropdownContextProvider>
