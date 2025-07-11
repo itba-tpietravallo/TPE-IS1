@@ -888,3 +888,36 @@ export function useDeleteInscription(supabase: SupabaseClient<Database>) {
     },
   });
 }
+
+export function getInscriptionsByUser(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  opts: any = undefined
+) {
+  return useQuery({
+    queryKey: ["inscriptions_by_user", userId],
+    enabled: !!userId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("teams")
+        .select("id, inscriptions(*), users!inner(id)")
+        .eq("users.id", userId);
+
+      if (error) throw error;
+
+      const inscriptions = Array.isArray(data)
+        ? data.flatMap((team) =>
+            typeof team === "object" &&
+            team !== null &&
+            "inscriptions" in team &&
+            Array.isArray((team as any).inscriptions)
+              ? (team as any).inscriptions
+              : []
+          )
+        : [];
+
+      return inscriptions;
+    },
+    ...opts,
+  });
+}
