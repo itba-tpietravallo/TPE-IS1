@@ -108,10 +108,10 @@ function PopUpFriend(props: PropsPopUpFriend) {
 
 				<View style={styles.buttonsContainer}>
 					<SelectDropdown
-						data={myTeams?.length! > 0 ? myTeams?.map((team) => team.name) || [] : ["No tienes equipos"]}
-						onSelect={(itemValue, index) => {
-							if (itemValue === "No tienes equipos") return;
-							setSelectedTeam(itemValue);
+						data={myTeams?.length! > 0 ? myTeams || [] : [{ name: "No tienes equipos", team_id: null }]}
+						onSelect={(selectedTeamObj) => {
+							if (selectedTeamObj.team_id === null) return;
+							setSelectedTeam(selectedTeamObj.team_id);
 						}}
 						dropdownStyle={{
 							backgroundColor: "white",
@@ -127,14 +127,14 @@ function PopUpFriend(props: PropsPopUpFriend) {
 										{noTeams
 											? "No puedes invitar sin equipos"
 											: selectedItem
-												? "Invitar a mi Equipo: " + selectedItem
+												? "Invitar a mi Equipo: " + selectedItem.name
 												: "Invitar a mis equipos"}
 									</Text>
 								</View>
 							);
 						}}
 						renderItem={(item, isSelected) => {
-							const isMessage = item === "No tienes equipos";
+							const isMessage = item.team_id === null;
 							return (
 								<View
 									style={{
@@ -149,7 +149,7 @@ function PopUpFriend(props: PropsPopUpFriend) {
 											fontStyle: isMessage ? "italic" : "normal",
 										}}
 									>
-										{item}
+										{item.name}
 									</Text>
 								</View>
 							);
