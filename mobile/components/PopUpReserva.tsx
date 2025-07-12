@@ -287,12 +287,17 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 						<Text numberOfLines={2} ellipsizeMode="tail" style={styles.descriptionText}>
 							{description}
 						</Text>
-						<Text style={styles.label}>Precio</Text>
-						<Text style={styles.priceText}>${price}</Text>
+
+						<View style={{ flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
+							<View>
+								<Text style={styles.label}>Precio</Text>
+								<Text style={styles.priceText}>${price}</Text>
+							</View>
+							<TouchableOpacity onPress={() => setShowReviewModal(true)} style={styles.reviewButton}>
+								<Text style={styles.reviewButtonText}>Agregar reseña</Text>
+							</TouchableOpacity>
+						</View>
 					</View>
-					<TouchableOpacity onPress={() => setShowReviewModal(true)} style={styles.reviewButton}>
-						<Text style={styles.reviewButtonText}>Agregar reseña</Text>
-					</TouchableOpacity>
 					{/*Funciona en IOS ......................................................................................*/}
 					{Platform.OS === "ios" && (
 						<View style={styles.selection}>
@@ -555,6 +560,7 @@ const styles = StyleSheet.create({
 	priceText: {
 		fontSize: 16,
 		color: "#555",
+		flexShrink: 1,
 	},
 
 	descriptionContainer: {
@@ -642,7 +648,6 @@ const styles = StyleSheet.create({
 		borderRadius: 12,
 		paddingHorizontal: 10,
 		paddingVertical: 4,
-		alignSelf: "flex-start",
 	},
 	reviewButtonText: {
 		color: "#555",
