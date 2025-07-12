@@ -33,7 +33,7 @@ export function ReservationSheet({
 				<div className="mt-4 space-y-3">
 					<div className="rounded-md border border-gray-300 bg-white p-4 shadow-sm">
 						<p>
-							<strong>Fecha: </strong> {new Date(reservation.date_time).toLocaleDateString('es-AR')}
+							<strong>Fecha: </strong> {new Date(reservation.date_time).toLocaleDateString("es-AR")}
 						</p>
 						<p>
 							<strong>Horario: </strong>

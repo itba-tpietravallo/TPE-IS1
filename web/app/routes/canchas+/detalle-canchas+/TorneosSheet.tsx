@@ -474,7 +474,7 @@ export function TorneosSheet({ fieldId, tournaments }: TorneosSheetProps) {
 											onClick={() => handleDelete(tournament.id)}
 										/>
 									</div>
-									<p>Fecha de inicio: {new Date(tournament.startDate).toLocaleDateString('es-AR')}</p>
+									<p>Fecha de inicio: {new Date(tournament.startDate).toLocaleDateString("es-AR")}</p>
 									{tournament.active ? (
 										<Button
 											variant="outline"

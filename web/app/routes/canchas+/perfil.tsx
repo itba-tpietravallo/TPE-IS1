@@ -64,10 +64,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export default function Index() {
 	const { user, avatar_url, email, phone, full_name, env, URL_ORIGIN } = useLoaderData<typeof loader>();
-	
 	const supabase = createBrowserClient<Database>(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
 	const data = getUserLinkedToPaymentMethod(supabase, user.id!, { enabled: !!user.id });
-	
+
 	return (
 		<>
 			<Card className="m-16">
@@ -88,7 +87,12 @@ export default function Index() {
 							<div className="text-muted-foreground">
 								<Badge variant="outline" className="mt-1">
 									<CalendarDays className="mr-1 h-3 w-3" />
-									Miembro desde {new Date(user?.created_at).toLocaleDateString('es-AR', { 'day': '2-digit', 'month': '2-digit', year: 'numeric' })}
+									Miembro desde{" "}
+									{new Date(user?.created_at).toLocaleDateString("es-AR", {
+										day: "2-digit",
+										month: "2-digit",
+										year: "numeric",
+									})}
 								</Badge>
 							</div>
 						</div>
@@ -130,7 +134,12 @@ export function ReservsList({ reservs }: ReservsListProps) {
 				{reservs?.map((reservation, index) => (
 					<li key={index} className="rounded-lg border p-4 shadow-sm">
 						<p>
-							<strong>Date:</strong> {new Date(reservation.date).toLocaleString('es-AR', { 'day': '2-digit', 'month': '2-digit', year: 'numeric' })}
+							<strong>Date:</strong>{" "}
+							{new Date(reservation.date).toLocaleString("es-AR", {
+								day: "2-digit",
+								month: "2-digit",
+								year: "numeric",
+							})}
 						</p>
 						<p>
 							<strong>Field:</strong> {reservation.fieldName}
@@ -215,12 +224,27 @@ export function ProfileInfo({ email, userName, phone, url_origin, isLinked }: Pr
 								{isLinked ? (
 									<div className="group relative flex w-full items-center justify-center gap-2 rounded-md border border-green-200 bg-green-50 p-2 text-green-700">
 										<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-											<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+											<path
+												strokeLinecap="round"
+												strokeLinejoin="round"
+												strokeWidth={2}
+												d="M5 13l4 4L19 7"
+											/>
 										</svg>
 										<span className="text-sm font-medium">Mercado Pago vinculado</span>
 										<button className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-green-600 hover:bg-green-100 hover:text-red-600">
-											<svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-												<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+											<svg
+												className="h-3 w-3"
+												fill="none"
+												stroke="currentColor"
+												viewBox="0 0 24 24"
+											>
+												<path
+													strokeLinecap="round"
+													strokeLinejoin="round"
+													strokeWidth={2}
+													d="M6 18L18 6M6 6l12 12"
+												/>
 											</svg>
 											<span className="absolute right-full top-1/2 mr-2 -translate-y-1/2 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100">
 												Desvincular
@@ -228,7 +252,10 @@ export function ProfileInfo({ email, userName, phone, url_origin, isLinked }: Pr
 										</button>
 									</div>
 								) : (
-									<Link className="w-full" to={`${new URL("/api/v1/payments/oauth/mercadopago", url_origin)}`}>
+									<Link
+										className="w-full"
+										to={`${new URL("/api/v1/payments/oauth/mercadopago", url_origin)}`}
+									>
 										<Button variant="outline" className="w-full">
 											<CreditCard className="mr-2 h-4 w-full" />
 											Vincular a Mercado Pago

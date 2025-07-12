@@ -33,9 +33,7 @@ type WeekCalendarProps = {
 
 function UsernameFromId({ userId, supabase }: { userId: string; supabase: SupabaseClient<Database> }) {
 	const { data } = getUsername(supabase, userId);
-	return <>
-		{data?.full_name || ""}
-	</>
+	return <>{data?.full_name || ""}</>;
 }
 
 export function WeekCalendar({ reservations, supabase }: WeekCalendarProps) {
@@ -262,7 +260,7 @@ export function WeekCalendar({ reservations, supabase }: WeekCalendarProps) {
 										<ul className="space-y-1">
 											{selectedReservation.team_members.map((member, index) => (
 												<li key={index} className="text-sm">
-													<UsernameFromId userId={member} supabase={supabase}/>
+													<UsernameFromId userId={member} supabase={supabase} />
 												</li>
 											))}
 										</ul>

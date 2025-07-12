@@ -112,10 +112,11 @@ const itemStyles = StyleSheet.create({
 const menuItems = [
 	{ label: "Actividad", icon: "money-check", action: () => router.push("/(tabs)/profileMenu/paymentActivity") },
 	{ label: "Reservas", icon: "calendar-check", action: () => router.push("/(tabs)/profileMenu/reservations") },
-	{ label: "Equipos", icon: "user-group", action: () => router.push("/(tabs)/profileMenu/teams") },
+	{ label: "Equipos", icon: "people-group", action: () => router.push("/(tabs)/profileMenu/teams") },
 	// { label: "Mis torneos", icon: "medal", action: () => router.push("/(tabs)/profileMenu/teams") },
 	{ label: "Pendientes", icon: "spinner", action: () => router.push("/(tabs)/profileMenu/pendings") },
 	{ label: "Chats", icon: "comments", action: () => router.push("/(tabs)/profileMenu/chats") },
+	{ label: "Usuarios Favoritos", icon: "user-group", action: () => router.push("/(tabs)/profileMenu/favUsers") },
 ];
 
 export function ProfileMenuList() {

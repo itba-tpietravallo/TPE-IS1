@@ -12,7 +12,9 @@ import {
 	getAllTeamsByAdminUser,
 	getUsername,
 	getUserAuthSession,
+	getUserPreferencesByUserId,
 	getFieldById,
+	useUpsertUserPreferences,
 } from "@/lib/autogen/queries";
 import Selector from "./Selector";
 
@@ -48,6 +50,9 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 	const { data: fieldData } = getFieldById(supabase, fieldId, { enabled: !!fieldId });
 
 	const timezone = "America/Argentina/Buenos_Aires";
+
+	const { data: userPreferences } = getUserPreferencesByUserId(supabase, user?.id!);
+	const upsertUserPreferences = useUpsertUserPreferences(supabase);
 
 	const teams: Renter[] = normalizedTeams.map((team) => ({
 		id: team.team_id,
@@ -127,15 +132,63 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 		return teams.some((team) => team.id === renter.id);
 	}
 
+	const handleManageFavorites = async (field: string) => {
+		var updatedFavorites;
+		if (!fieldIsFavorite(field)) {
+			updatedFavorites = [...(userPreferences?.fav_fields || []), field];
+		} else {
+			updatedFavorites = userPreferences?.fav_fields.filter((item) => item !== field);
+		}
+
+		try {
+			await upsertUserPreferences.mutateAsync([
+				{
+					user_id: user?.id!,
+					fav_fields: updatedFavorites!,
+					fav_users: userPreferences?.fav_users || [],
+					team_invites: userPreferences?.team_invites || [],
+				},
+			]);
+
+			console.log("managed favorites");
+		} catch (error) {
+			console.error("Error managing fav field:", error);
+		}
+	};
+
+	function fieldIsFavorite(fieldId: string) {
+		if (userPreferences?.fav_fields.includes(fieldId)) {
+			return true;
+		}
+		return false;
+	}
+
 	const [showDatePicker, setShowDatePicker] = useState(false);
 	const [showTimePicker, setShowTimePicker] = useState(false);
 
 	return (
 		<View style={styles.modalView}>
-			<TouchableOpacity style={{ padding: 20, alignItems: "flex-start" }} onPress={onClose}>
-				<Icon name="xmark" size={22} color="#333" />
-			</TouchableOpacity>
+			<View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+				{/* Boton cerrar PopUp */}
+				<TouchableOpacity style={{ padding: 10, alignItems: "flex-start", marginLeft: 10 }} onPress={onClose}>
+					<Icon name="xmark" size={24} color="black" style={{ marginTop: 10 }} />
+				</TouchableOpacity>
 
+				{/* Boton agregar a favoritos */}
+				<TouchableOpacity
+					style={{ padding: 10, alignItems: "flex-start", marginLeft: 10 }}
+					onPress={() => {
+						handleManageFavorites(fieldId);
+					}}
+				>
+					<Icon
+						name={fieldIsFavorite(fieldId) ? "heart-circle-check" : "heart"}
+						size={24}
+						color="black"
+						style={{ marginTop: 10 }}
+					/>
+				</TouchableOpacity>
+			</View>
 			<View style={{ flex: 1, justifyContent: "space-between" }}>
 				<ScrollView contentContainerStyle={[styles.mainInfo, { flexGrow: 1 }]} bounces={false}>
 					<View style={styles.topInfo}>

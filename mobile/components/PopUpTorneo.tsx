@@ -145,9 +145,15 @@ function PopUpTorneo({
 	return (
 		<View style={styles.modalContainer}>
 			<View style={styles.modal}>
-				<TouchableOpacity style={styles.closeButton} onPress={() => onClose()}>
-					<Icon name="xmark" size={22} color="#333" />
-				</TouchableOpacity>
+				<View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+					{/* Boton cerrar PopUp */}
+					<TouchableOpacity
+						style={{ padding: 10, alignItems: "flex-start", marginLeft: 10 }}
+						onPress={onClose}
+					>
+						<Icon name="xmark" size={24} color="black" style={{ marginTop: 10 }} />
+					</TouchableOpacity>
+				</View>
 				<View style={styles.infoContainer}>
 					<Text style={styles.title}>{name}</Text>
 					<View style={{ flexDirection: "row" }}>
@@ -315,6 +321,7 @@ const styles = StyleSheet.create({
 	infoContainer: {
 		width: "100%",
 		padding: 20,
+		paddingTop: 0,
 	},
 	title: {
 		fontSize: 22,
