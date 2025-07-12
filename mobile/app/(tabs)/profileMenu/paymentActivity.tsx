@@ -30,18 +30,10 @@ export default function CardList() {
 	const memoPayments = useMemo(() => {
 		return (
 			payments?.map((payment) => {
-				date = new Date(payment.last_updated);
-				day = date.getDay();
-				month = date.getMonth() + 1;
-				year = date.getFullYear();
-				hours = date.getHours();
-				minutes = date.getMinutes();
-				payment.last_updated = `${day.toString().padStart(2, "0")}/${month.toString().padStart(2, "0")}/${year} a las ${hours}:${minutes.toString().padStart(2, "0")}`;
-
-				if (payment.status == "payment.created") {
-					payment.status = "Completado";
-				}
-				return payment;
+				return {
+					...payment,
+					status: payment.status === "payment.created" ? "Completado" : payment.status,
+				};
 			}) ?? []
 		);
 	}, [payments]);
@@ -75,7 +67,7 @@ export default function CardList() {
 				<View style={{ flex: 1, alignItems: "center" }}>
 					<Text
 						style={{
-							fontSize: 30,
+							fontSize: 26,
 							fontWeight: "bold",
 							color: "#f18f01",
 						}}
@@ -96,10 +88,21 @@ export default function CardList() {
 					contentContainerStyle={styles.container}
 					scrollEnabled={true}
 					renderItem={({ item }) => (
-						<View style={styles.payment}>
-							<Text style={styles.last_updated}>{item.last_updated}</Text>
+						<View style={styles.card}>
+							<Text style={styles.last_updated}>
+								{new Date(item.last_updated).toLocaleDateString("es-ES", {
+									year: "numeric",
+									month: "short",
+									day: "numeric",
+								})}
+								{" • "}
+								{new Date(item.last_updated).toLocaleTimeString("es-ES", {
+									hour: "2-digit",
+									minute: "2-digit",
+								})}
+							</Text>
 							<View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-								<Text style={styles.transaction_amount}>{item.transaction_amount}</Text>
+								<Text style={styles.transaction_amount}>${item.transaction_amount}</Text>
 								<Text
 									style={{
 										fontWeight: "bold",
@@ -123,26 +126,26 @@ const styles = StyleSheet.create({
 		padding: 16,
 		paddingBottom: 90,
 	},
-	payment: {
-		backgroundColor: "#223332",
-		padding: 16,
-		marginBottom: 16,
+	card: {
+		backgroundColor: "#fff",
 		borderRadius: 12,
+		padding: 24,
+		marginBottom: 12,
+		marginHorizontal: 6,
 		shadowColor: "#000",
 		shadowOffset: { width: 0, height: 2 },
 		shadowOpacity: 0.1,
 		shadowRadius: 4,
-		elevation: 3, // for Android
+		elevation: 3,
 	},
 	transaction_amount: {
-		fontSize: 22,
+		fontSize: 18,
 		fontWeight: "bold",
-		color: "#f2f4f3",
-		marginBottom: 4,
+		color: "#262626",
 	},
 	last_updated: {
+		marginBottom: 8,
 		fontSize: 14,
-		color: "#d9dcdb",
-		marginBottom: 20,
+		color: "#555",
 	},
 });

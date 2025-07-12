@@ -3,7 +3,13 @@ import { ScreenWidth } from "@rneui/themed/dist/config";
 import Icon from "react-native-vector-icons/FontAwesome6";
 import { Image } from "@rneui/themed";
 import { supabase } from "@lib/supabase";
-import { getUserAuthSession, useUpdateTeam, getTeamById } from "@/lib/autogen/queries";
+import {
+	getUserAuthSession,
+	useUpdateTeam,
+	getTeamById,
+	useUpsertUserPreferences,
+	getUserPreferencesByUserId,
+} from "@/lib/autogen/queries";
 
 type PropsPopUpTeamMemberInfo = {
 	onClose: () => void;
@@ -20,6 +26,9 @@ function PopUpTeamMemberInfo(props: PropsPopUpTeamMemberInfo) {
 	const updateTeamMutation = useUpdateTeam(supabase);
 
 	const { data: team } = getTeamById(supabase, props.team_id);
+
+	const { data: userPreferences } = getUserPreferencesByUserId(supabase, user?.id!);
+	const upsertUserPreferences = useUpsertUserPreferences(supabase);
 
 	const handleDeletePlayer = async (player: string) => {
 		const updatedPlayers = team!.players.filter((member) => member !== player);
@@ -68,15 +77,58 @@ function PopUpTeamMemberInfo(props: PropsPopUpTeamMemberInfo) {
 		return false;
 	}
 
+	const handleManageFavorites = async (player: string) => {
+		var updatedFavorites;
+		if (!userIsFavorite(player)) {
+			updatedFavorites = [...(userPreferences?.fav_users || []), player];
+		} else {
+			updatedFavorites = userPreferences?.fav_users.filter((member) => member !== player);
+		}
+
+		try {
+			await upsertUserPreferences.mutateAsync([
+				{
+					user_id: user?.id!,
+					fav_fields: userPreferences?.fav_fields || [],
+					fav_users: updatedFavorites!,
+					team_invites: userPreferences?.team_invites || [],
+				},
+			]);
+
+			console.log("added to favorites");
+		} catch (error) {
+			console.error("Error adding fav user:", error);
+		}
+	};
+
+	function userIsFavorite(userId: string) {
+		if (userPreferences?.fav_users.includes(userId)) {
+			return true;
+		}
+		return false;
+	}
+
 	return (
 		<View style={styles.modalView}>
 			<View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
 				{/* Boton cerrar PopUp */}
+				<TouchableOpacity style={{ alignItems: "flex-start" }} onPress={props.onClose}>
+					<Icon name="xmark" size={24} color="black" />
+				</TouchableOpacity>
+
+				{/* Boton agregar a favoritos */}
 				<TouchableOpacity
 					style={{ padding: 10, alignItems: "flex-start", marginLeft: 10 }}
-					onPress={props.onClose}
+					onPress={() => {
+						handleManageFavorites(props.id);
+					}}
 				>
-					<Icon name="xmark" size={24} color="black" style={{ marginTop: 10 }} />
+					<Icon
+						name={userIsFavorite(props.id) ? "heart-circle-check" : "heart"}
+						size={24}
+						color="black"
+						style={{ marginTop: 10 }}
+					/>
 				</TouchableOpacity>
 			</View>
 
@@ -84,7 +136,7 @@ function PopUpTeamMemberInfo(props: PropsPopUpTeamMemberInfo) {
 				{props.avatar ? (
 					<Image source={{ uri: props.avatar || "undefined_image" }} style={styles.avatar} />
 				) : (
-					<Icon name="user" size={35} color="black" />
+					<Icon name="user" size={35} style={{ padding: 20 }} color="black" />
 				)}
 
 				{/* full_name y username */}
@@ -124,60 +176,96 @@ function PopUpTeamMemberInfo(props: PropsPopUpTeamMemberInfo) {
 					</TouchableOpacity>
 				</View>
 			)}
+
+			<View style={{ marginBottom: 10 }} />
 		</View>
 	);
 }
 
 const styles = StyleSheet.create({
-	name: {
-		fontSize: 22,
-		fontWeight: "bold",
-		justifyContent: "center",
-		color: "#f18f01",
-		marginBottom: 10,
-	},
 	modalView: {
 		backgroundColor: "white",
 		borderRadius: 20,
-		color: "#00ff00",
 		overflow: "hidden",
 		width: ScreenWidth * 0.9,
+		padding: 20,
+		// optional shadow (iOS)
+		shadowColor: "#000",
+		shadowOffset: { width: 0, height: 2 },
+		shadowOpacity: 0.15,
+		shadowRadius: 5,
+		// elevation (Android)
+		elevation: 5,
 	},
 	mainInfo: {
-		padding: 15,
 		alignItems: "center",
-	},
-	topInfo: {
-		flexDirection: "column",
-		justifyContent: "space-between",
-		alignItems: "center",
+		marginBottom: 10,
 	},
 	avatar: {
-		width: 100,
-		height: 100,
+		width: 90,
+		height: 90,
 		borderRadius: 100,
 		marginBottom: 20,
 	},
+	topInfo: {
+		flexDirection: "column",
+		alignItems: "center",
+		marginBottom: 10,
+	},
+	name: {
+		fontSize: 24,
+		fontWeight: "bold",
+		color: "#f18f01",
+		marginBottom: 6,
+		textAlign: "center",
+	},
+	username: {
+		fontSize: 16,
+		color: "gray",
+	},
+	adminBadge: {
+		fontSize: 16,
+		color: "#4caf50",
+		fontWeight: "600",
+		marginTop: 4,
+	},
 	buttonsContainer: {
 		flexDirection: "column",
-		justifyContent: "space-between",
+		justifyContent: "center",
 		alignItems: "center",
-		marginBottom: 20,
-	},
-	buttonText: {
-		color: "#000",
-		fontSize: 16,
-		fontWeight: "bold",
-		textAlign: "center",
+		gap: 12, // works in React Native >=0.71; otherwise, use marginBottom on buttons
 	},
 	button: {
 		flexDirection: "row",
-		width: "80%",
-		padding: 17,
+		width: "85%",
+		paddingVertical: 14,
+		paddingHorizontal: 20,
 		justifyContent: "center",
 		alignItems: "center",
 		borderWidth: 1,
 		borderColor: "#ccc",
+		borderRadius: 12,
+		backgroundColor: "#fff",
+		shadowColor: "#000",
+		shadowOffset: { width: 0, height: 1 },
+		shadowOpacity: 0.1,
+		shadowRadius: 2,
+		elevation: 2,
+	},
+	buttonText: {
+		color: "#333",
+		fontSize: 16,
+		fontWeight: "600",
+		textAlign: "center",
+	},
+	friendRequestButton: {
+		backgroundColor: "#f18f01",
+	},
+	friendsButtonText: {
+		color: "#fff",
+		fontSize: 16,
+		fontWeight: "bold",
+		textAlign: "center",
 	},
 });
 
