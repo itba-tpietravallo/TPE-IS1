@@ -151,31 +151,32 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 							</Text>
 							<Text style={{ fontSize: 16, color: "gray", margin: 10 }}>{sport.join(", ")} </Text>
 						</View>
-						<TouchableOpacity onPress={() => setIsModalVisible(true)}>
-							<Image
-								style={{
-									width: 120,
-									height: 120,
-									marginTop: 10,
-									marginRight: 10,
-									borderRadius: 15,
-								}}
-								source={{ uri: images[0] }}
-							/>
-							<Modal
-								style={{
-									backgroundColor: "white",
-									borderRadius: 20,
-									justifyContent: "center",
-									margin: 20,
-									overflow: "hidden",
-									flex: 1,
-								}}
-								visible={isModalVisible}
-								transparent={true}
-								onRequestClose={() => setIsModalVisible(false)}
-							>
-								{/* <View
+						{images && images.length > 0 && (
+							<TouchableOpacity onPress={() => setIsModalVisible(true)}>
+								<Image
+									style={{
+										width: 120,
+										height: 120,
+										marginTop: 10,
+										marginRight: 10,
+										borderRadius: 15,
+									}}
+									source={{ uri: images[0] }}
+								/>
+								<Modal
+									style={{
+										backgroundColor: "white",
+										borderRadius: 20,
+										justifyContent: "center",
+										margin: 20,
+										overflow: "hidden",
+										flex: 1,
+									}}
+									visible={isModalVisible}
+									transparent={true}
+									onRequestClose={() => setIsModalVisible(false)}
+								>
+									{/* <View
               style={{
                 fontSize: 32,
                 fontWeight: "bold",
@@ -186,39 +187,40 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
                 margin: 10,
                 }}
                 ></View> */}
-								<View
-									style={{
-										flex: 1,
-										justifyContent: "center",
-										alignItems: "center",
-										backgroundColor: "rgba(0,0,0,0.8)", // Semi-transparent background
-										padding: 20,
-									}}
-								>
-									<View>
-										<TouchableOpacity style={{ alignItems: "flex-end" }} onPress={onClose}>
-											<Image
-												style={{ width: 20, height: 20, marginTop: 10 }}
-												source={require("@/assets/images/close_white.png")}
-											/>
-										</TouchableOpacity>
-										{images.map((uri, index) => (
-											<Image
-												key={index}
-												style={{
-													width: ScreenWidth * 0.8,
-													height: ScreenWidth * 0.8,
-													borderRadius: 10,
-													marginBottom: 20,
-												}}
-												source={{ uri: uri }}
-												resizeMode="contain"
-											/>
-										))}
+									<View
+										style={{
+											flex: 1,
+											justifyContent: "center",
+											alignItems: "center",
+											backgroundColor: "rgba(0,0,0,0.8)", // Semi-transparent background
+											padding: 20,
+										}}
+									>
+										<View>
+											<TouchableOpacity
+												style={{ alignItems: "flex-start" }}
+												onPress={() => setIsModalVisible(false)}
+											>
+												<Icon name="xmark" size={20} color="white" />
+											</TouchableOpacity>
+											{images.map((uri, index) => (
+												<Image
+													key={index}
+													style={{
+														width: ScreenWidth * 0.8,
+														height: ScreenWidth * 0.8,
+														borderRadius: 10,
+														marginBottom: 20,
+													}}
+													source={{ uri: uri }}
+													resizeMode="contain"
+												/>
+											))}
+										</View>
 									</View>
-								</View>
-							</Modal>
-						</TouchableOpacity>
+								</Modal>
+							</TouchableOpacity>
+						)}
 					</View>
 					<View style={{ flexDirection: "row", alignItems: "center" }}>
 						<Image style={{ width: 25, height: 25 }} source={require("@/assets/images/cancha.png")} />
