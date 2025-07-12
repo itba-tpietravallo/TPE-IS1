@@ -130,188 +130,203 @@ function PopUpTeam(props: PropsPopUpTeam) {
 
 	return (
 		<View style={styles.modalView}>
-			<View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-				{/* Boton cerrar PopUp */}
-				<TouchableOpacity
-					style={{ padding: 10, alignItems: "flex-start", marginLeft: 10 }}
-					onPress={props.onClose}
+			<ScrollView>
+				<View
+					style={{
+						flexDirection: "row",
+						justifyContent: "space-between",
+						alignItems: "center",
+						paddingHorizontal: 20,
+						paddingTop: 20,
+					}}
 				>
-					<Icon name="xmark" size={24} color="black" style={{ marginTop: 10 }} />
-				</TouchableOpacity>
+					{/* Botón cerrar PopUp */}
+					<TouchableOpacity onPress={props.onClose}>
+						<Icon name="xmark" size={22} color="#333" />
+					</TouchableOpacity>
 
-				{/* Boton join requests (arriba a la derecha) (si es publico no aparece) */}
-				{userAlreadyOnTeam(user?.id!) && !team?.isPublic && userIsAdmin(user!.id) && (
-					<TouchableOpacity
-						style={{ padding: 10, alignItems: "flex-start" }}
-						onPress={() => {
-							setIsModalVisibleJoinRequests(true);
-						}}
+					{/* Botón Join Requests (si aplica) */}
+					{userAlreadyOnTeam(user?.id!) && !team?.isPublic && userIsAdmin(user!.id) && (
+						<TouchableOpacity onPress={() => setIsModalVisibleJoinRequests(true)}>
+							<Icon name="users" size={22} color="#333" />
+						</TouchableOpacity>
+					)}
+
+					{/* PopUpJoinRequests */}
+					<Modal
+						style={styles.modal}
+						visible={isModalVisibleJoinRequests}
+						transparent={true}
+						onRequestClose={() => setIsModalVisibleJoinRequests(false)}
 					>
-						<Icon name="users" size={24} color="black" style={{ marginTop: 10 }} />
+						<View style={styles.centeredView}>
+							<PopUpJoinRequests onClose={handleCloseModalJoinRequest} team_id={props.team_id} />
+						</View>
+					</Modal>
+
+					{/* Ícono de equipo público */}
+					{team?.isPublic && (
+						<View>
+							<Icon name="globe" size={22} color="#333" />
+						</View>
+					)}
+				</View>
+
+				<View style={styles.mainInfo}>
+					{/* Nombre del equipo y deporte */}
+					<View style={styles.topInfo}>
+						<Text style={styles.teamName}>{team?.name}</Text>
+						<Text style={{ fontSize: 16, color: "gray", marginBottom: 10 }}>{team?.sport}</Text>
+					</View>
+
+					{/* Miembros del Equipo */}
+					<ScrollView style={styles.scrollArea}>
+						<View style={{ width: "100%" }}>
+							{team?.players?.map((member, index) => {
+								const isLast = index === team.players.length - 1;
+								return (
+									<View key={member} style={[styles.row, isLast && { borderBottomWidth: 0 }]}>
+										<View style={{ height: 60, width: 15 }}></View>
+
+										{usersData.data?.find((user) => user.id === member)?.avatar_url ? (
+											<Image
+												source={{
+													uri:
+														usersData.data?.find((user) => user.id === member)
+															?.avatar_url || "undefined_image",
+												}}
+												style={{ width: 35, height: 35, borderRadius: 100 }}
+											/>
+										) : (
+											<Icon name="user" size={35} color="black" />
+										)}
+
+										<View style={styles.info}>
+											<Text style={styles.name}>
+												{usersData.data?.find((user) => user.id === member)?.full_name}
+											</Text>
+										</View>
+
+										{/* PopUpTeamMemberInfo */}
+										{user?.id != member && (
+											<TouchableOpacity onPress={() => setSelectedMember(member)}>
+												<Icon name="circle-info" size={24} color="black" />
+											</TouchableOpacity>
+										)}
+
+										<Modal
+											style={styles.modal}
+											visible={selectedMember !== null}
+											transparent={true}
+											onRequestClose={() => setSelectedMember(null)}
+										>
+											<View style={styles.centeredView}>
+												{selectedMember &&
+													(() => {
+														const memberData = usersData.data?.find(
+															(user) => user.id === selectedMember,
+														)!;
+														return user ? (
+															<PopUpTeamMemberInfo
+																onClose={() => setSelectedMember(null)}
+																id={memberData.id}
+																full_name={memberData.full_name}
+																username={""} //TODO: FIX
+																avatar={memberData.avatar_url!}
+																team_id={props.team_id}
+															/>
+														) : null;
+													})()}
+											</View>
+										</Modal>
+
+										{/* <Text style={styles.number}/>FEAT: NUMEROS DE JUGADORES */}
+									</View>
+								);
+							})}
+						</View>
+					</ScrollView>
+
+					{/* Descripcion del equipo */}
+					{team?.description && (
+						<Text style={styles.description} numberOfLines={3}>
+							{team?.description}
+						</Text>
+					)}
+				</View>
+			</ScrollView>
+			<View>
+				{/* Boton Join team - request to join team */}
+				{!userAlreadyOnTeam(user?.id!) && !joinRequested(user?.id!) && (
+					<TouchableOpacity
+						style={[styles.joinTeamButton]}
+						onPress={() =>
+							handleJoinTeam()
+								.then(() => console.log("Joined team"))
+								.catch((e) => console.log("Error joining team", e))
+						}
+					>
+						<Text style={styles.buttonText}>
+							{team?.isPublic ? "Unirme al equipo" : "Solicitar unión al equipo"}
+						</Text>
 					</TouchableOpacity>
 				)}
-
-				{/* Public team icon */}
-				{team?.isPublic && (
-					<View style={{ padding: 10, alignItems: "flex-start" }}>
-						<Icon name="globe" size={24} color="black" style={{ marginTop: 10 }} />
+				{/* Boton request to join sent */}
+				{!userAlreadyOnTeam(user?.id!) && joinRequested(user?.id!) && (
+					<View style={[styles.joinRequestSentLabel]}>
+						<Text style={styles.buttonText}>{"Request sent!"}</Text>
 					</View>
 				)}
-
-				{/* PopUpJoinRequests */}
-				<Modal
-					style={styles.modal}
-					visible={isModalVisibleJoinRequests}
-					transparent={true}
-					onRequestClose={() => setIsModalVisibleJoinRequests(false)}
-				>
-					<View style={styles.centeredView}>
-						<PopUpJoinRequests onClose={handleCloseModalJoinRequest} team_id={props.team_id} />
-					</View>
-				</Modal>
+				{/* Boton leave team */}
+				{userAlreadyOnTeam(user?.id!) && (
+					<TouchableOpacity
+						style={[styles.leaveTeamButton]}
+						onPress={() =>
+							handleLeaveTeam()
+								.then(() => console.log("Left team"))
+								.catch((e) => console.log("Error leaving team", e))
+						}
+					>
+						<Text style={styles.buttonText}>Abandonar equipo</Text>
+					</TouchableOpacity>
+				)}
 			</View>
-
-			<View style={styles.mainInfo}>
-				{/* Nombre del equipo y deporte */}
-				<View style={styles.topInfo}>
-					<Text style={styles.teamName}>{team?.name}</Text>
-					<Text style={{ fontSize: 16, color: "gray", marginBottom: 10 }}>{team?.sport}</Text>
-				</View>
-
-				{/* Miembros del Equipo */}
-				<ScrollView style={styles.scrollArea}>
-					<View style={{ width: "100%" }}>
-						{team?.players?.map((member) => (
-							<View key={member} style={styles.row}>
-								<View style={{ height: 60, width: 15 }}></View>
-
-								{usersData.data?.find((user) => user.id === member)?.avatar_url ? (
-									<Image
-										source={{
-											uri:
-												usersData.data?.find((user) => user.id === member)?.avatar_url ||
-												"undefined_image",
-										}}
-										style={{ width: 35, height: 35, borderRadius: 100 }}
-									/>
-								) : (
-									<Icon name="user" size={35} color="black" />
-								)}
-
-								<View style={styles.info}>
-									<Text style={styles.name}>
-										{usersData.data?.find((user) => user.id === member)?.full_name}
-									</Text>
-								</View>
-
-								{/* PopUpTeamMemberInfo */}
-								{user?.id != member && (
-									<TouchableOpacity onPress={() => setSelectedMember(member)}>
-										<Icon name="circle-info" size={24} color="black" />
-									</TouchableOpacity>
-								)}
-
-								<Modal
-									style={styles.modal}
-									visible={selectedMember !== null}
-									transparent={true}
-									onRequestClose={() => setSelectedMember(null)}
-								>
-									<View style={styles.centeredView}>
-										{selectedMember &&
-											(() => {
-												const memberData = usersData.data?.find(
-													(user) => user.id === selectedMember,
-												)!;
-												return user ? (
-													<PopUpTeamMemberInfo
-														onClose={() => setSelectedMember(null)}
-														id={memberData.id}
-														full_name={memberData.full_name}
-														username={""} //TODO: FIX
-														avatar={memberData.avatar_url!}
-														team_id={props.team_id}
-													/>
-												) : null;
-											})()}
-									</View>
-								</Modal>
-
-								{/* <Text style={styles.number}/>FEAT: NUMEROS DE JUGADORES */}
-							</View>
-						))}
-					</View>
-				</ScrollView>
-
-				{/* Descripcion del equipo */}
-				{team?.description && <Text style={styles.description}>{team?.description}</Text>}
-			</View>
-
-			{/* Boton Join team - request to join team */}
-			{!userAlreadyOnTeam(user?.id!) && !joinRequested(user?.id!) && (
-				<TouchableOpacity
-					style={[styles.joinTeamButton]}
-					onPress={() =>
-						handleJoinTeam()
-							.then(() => console.log("Joined team"))
-							.catch((e) => console.log("Error joining team", e))
-					}
-				>
-					<Text style={styles.buttonText}>{team?.isPublic ? "Join Team" : "Request to Join Team"}</Text>
-				</TouchableOpacity>
-			)}
-
-			{/* Boton request to join sent */}
-			{!userAlreadyOnTeam(user?.id!) && joinRequested(user?.id!) && (
-				<View style={[styles.joinRequestSentLabel]}>
-					<Text style={styles.buttonText}>{"Request sent!"}</Text>
-				</View>
-			)}
-
-			{/* Boton leave team */}
-			{userAlreadyOnTeam(user?.id!) && (
-				<TouchableOpacity
-					style={[styles.leaveTeamButton]}
-					onPress={() =>
-						handleLeaveTeam()
-							.then(() => console.log("Left team"))
-							.catch((e) => console.log("Error leaving team", e))
-					}
-				>
-					<Text style={styles.buttonText}>Leave Team</Text>
-				</TouchableOpacity>
-			)}
 		</View>
 	);
 }
 
 const styles = StyleSheet.create({
 	teamName: {
-		fontSize: 32,
+		fontSize: 26,
 		fontWeight: "bold",
-		justifyContent: "center",
 		color: "#f18f01",
+		textAlign: "center",
+		marginBottom: 8,
 	},
 	description: {
-		paddingTop: 20,
-		paddingBottom: 10,
-		fontSize: 18,
+		marginTop: 10,
+		fontSize: 15,
+		color: "#555",
+		textAlign: "left",
 	},
 	modalView: {
-		backgroundColor: "white",
+		backgroundColor: "#fff",
 		borderRadius: 20,
-		color: "#00ff00",
 		overflow: "hidden",
 		width: ScreenWidth * 0.9,
+		height: 500,
+		alignSelf: "center",
+		justifyContent: "space-between",
 	},
 	scrollArea: {
-		backgroundColor: "#f0f0f0",
-		marginBottom: 10,
-		flexGrow: 0,
-		maxHeight: 320,
+		backgroundColor: "#f9f9f9",
+		borderRadius: 12,
+		padding: 10,
+		marginVertical: 10,
+		height: 180,
 	},
 	mainInfo: {
-		padding: 15,
+		padding: 20,
 	},
 	topInfo: {
 		flexDirection: "column",
@@ -322,10 +337,10 @@ const styles = StyleSheet.create({
 	row: {
 		flexDirection: "row",
 		alignItems: "center",
+		justifyContent: "space-between",
+		paddingVertical: 10,
 		borderBottomWidth: 1,
-		borderColor: "#ccc",
-		backgroundColor: "white",
-		width: "100%",
+		borderBottomColor: "#e0e0e0",
 	},
 	avatar: {
 		width: 48,
@@ -335,10 +350,12 @@ const styles = StyleSheet.create({
 	info: {
 		flex: 1,
 		marginLeft: 12,
+		justifyContent: "center",
 	},
 	name: {
 		fontSize: 16,
-		fontWeight: "bold",
+		fontWeight: "600",
+		color: "#333",
 	},
 	number: {
 		fontSize: 18,
@@ -353,16 +370,16 @@ const styles = StyleSheet.create({
 		justifyContent: "center",
 		marginTop: 10,
 	},
-	joinRequestSentLabel: {
-		backgroundColor: "#5fd700",
+	leaveTeamButton: {
+		backgroundColor: "#c4c4c4",
 		width: "100%",
 		padding: 17,
 		alignItems: "center",
 		justifyContent: "center",
 		marginTop: 10,
 	},
-	leaveTeamButton: {
-		backgroundColor: "#c7c7c7",
+	joinRequestSentLabel: {
+		backgroundColor: "#5fd700",
 		width: "100%",
 		padding: 17,
 		alignItems: "center",
@@ -383,6 +400,12 @@ const styles = StyleSheet.create({
 		justifyContent: "center",
 		alignItems: "center",
 		backgroundColor: "rgba(0, 0, 0, 0.5)",
+	},
+	buttonsContainer: {
+		position: "absolute",
+		bottom: 0,
+		left: 0,
+		right: 0,
 	},
 });
 
