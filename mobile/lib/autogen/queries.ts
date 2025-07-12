@@ -649,6 +649,20 @@ export function useDeleteReservation(supabase: SupabaseClient<Database>) {
 	);
 }
 
+export function useDeleteOAuthAuthorization(supabase: SupabaseClient<Database>) {
+	// Using the built-in useDeleteMutation from supabase-cache-helpers
+	return useDeleteMutation(
+		supabase.from("mp_oauth_authorization"),
+		["user_id"], // Primary key columns
+		"*", // Select all columns for the cache update
+		{
+			onError: (error) => {
+				console.error("Error deleting OAuth authorization:", error);
+			},
+		},
+	);
+}
+
 export const messagesQueryKey = (roomId: string) => ["supabase", "from", "messages", "eq", "room_id", roomId];
 
 export function useChatMessages(supabase: SupabaseClient<Database> | null, roomId: string) {
