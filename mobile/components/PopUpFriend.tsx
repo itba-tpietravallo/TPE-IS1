@@ -3,7 +3,14 @@ import { ScreenWidth } from "@rneui/themed/dist/config";
 import Icon from "react-native-vector-icons/FontAwesome6";
 import { Image } from "@rneui/themed";
 import { supabase } from "@lib/supabase";
-import { getUserAuthSession, getFavoriteUsersByUserId, useUpdateUserPreferences } from "@/lib/autogen/queries";
+import {
+	getUserAuthSession,
+	getFavoriteUsersByUserId,
+	useUpdateUserPreferences,
+	getAllTeamsByAdminUser,
+	getTeamInvitesByUserId,
+	useUpsertUserPreferences,
+} from "@/lib/autogen/queries";
 import { useState } from "react";
 import SelectDropdown from "react-native-select-dropdown";
 
@@ -20,9 +27,12 @@ function PopUpFriend(props: PropsPopUpFriend) {
 	const user = session?.user;
 
 	const [selectedTeam, setSelectedTeam] = useState<string>();
+	const { data: myTeams } = getAllTeamsByAdminUser(supabase, user?.id!);
 	const { data: favUsers } = getFavoriteUsersByUserId(supabase, user?.id!);
+	const { data: userTeamInvites } = getTeamInvitesByUserId(supabase, props.id);
 
 	const updateUserPreferences = useUpdateUserPreferences(supabase);
+	const upsertUserPreferences = useUpsertUserPreferences(supabase);
 
 	const handleDeleteFavorite = async (player: string) => {
 		const updatedFavorites = favUsers?.fav_users.filter((member) => member !== player);
@@ -40,12 +50,35 @@ function PopUpFriend(props: PropsPopUpFriend) {
 		}
 	};
 
-	function userIsFavorite(userId: string) {
-		if (favUsers?.fav_users.some((user) => user === userId)) {
-			return true;
+	const handleInviteToTeam = async (userId: string, teamId: string) => {
+		const updatedInvitations = [...(userTeamInvites?.team_invites || []), teamId];
+
+		try {
+			await upsertUserPreferences.mutateAsync([
+				{
+					user_id: props.id,
+					fav_fields: [],
+					fav_users: [],
+					team_invites: updatedInvitations,
+				},
+			]);
+
+			console.log("invited");
+		} catch (error) {
+			console.error("Error upserting user preferences:", error);
 		}
-		return false;
-	}
+
+		// try {
+		// 	await updateUserPreferences.mutateAsync({
+		// 		user_id: userId,
+		// 		team_invites: updatedInvitations,
+		// 	});
+
+		// 	console.log("invited");
+		// } catch (error) {
+		// 	console.error("Error inviting user to team:", error);
+		// }
+	};
 
 	return (
 		<View style={styles.modalView}>
@@ -75,61 +108,63 @@ function PopUpFriend(props: PropsPopUpFriend) {
 				</View>
 			</View>
 
-			{userIsFavorite(props.id) && (
-				<View>
-					{/* Invitaciones a equipos */}
-					{/* {myTeams?.length! > 0 && (
-						<View style={styles.buttonsContainer}>
-							<SelectDropdown
-								defaultValue={(myTeams ?? [])[0] || ""}
-								onSelect={(itemValue, index) => setSelectedTeam(itemValue)}
-								data={myTeams?.map((team) => team.name) || []}
-								dropdownStyle={{ backgroundColor: "white", gap: 5, borderRadius: 8 }}
-								renderButton={(selectedItem) => {
-									return (
-										<View style={[styles.button, styles.friendRequestButton]}>
-											<Icon name="share" size={18} color="black" style={{ marginRight: 10 }} />
-											<Text style={styles.buttonText}>
-												{selectedItem
-													? "Invitar a mi Equipo: " + selectedItem
-													: "Invitar a mis equipos"}
-											</Text>
-										</View>
-									);
-								}}
-								renderItem={(item, isSelected) => {
-									return (
-										<View
-											style={{
-												...styles.dropdownItemStyle,
-												...(isSelected && { backgroundColor: "#D2D9DF" }),
-											}}
-										>
-											<Text style={styles.dropdownItemTxtStyle}>{item}</Text>
-										</View>
-									);
-								}}
-							/>
-						</View>
-					)}
-
-					{selectedTeam && (
-						<View style={styles.buttonsContainer}>
-							<TouchableOpacity style={styles.button} onPress={() => handleDeleteFriend(props.id)}>
-								<Icon name="user-xmark" size={18} color="black" style={{ marginRight: 10 }} />
-								<Text style={styles.buttonText}>Confirmar invitación</Text>
-							</TouchableOpacity>
-						</View>
-					)} */}
-
+			<View>
+				{/* Invitaciones a equipos */}
+				{myTeams?.length! > 0 && (
 					<View style={styles.buttonsContainer}>
-						<TouchableOpacity style={styles.button} onPress={() => handleDeleteFavorite(props.id)}>
-							<Icon name="user-xmark" size={18} color="black" style={{ marginRight: 10 }} />
-							<Text style={styles.buttonText}>Eliminar de favoritos</Text>
+						<SelectDropdown
+							defaultValue={(myTeams ?? [])[0] || ""}
+							onSelect={(itemValue, index) => setSelectedTeam(itemValue)}
+							data={myTeams?.map((team) => team.name) || []}
+							dropdownStyle={{ backgroundColor: "white", gap: 5, borderRadius: 8 }}
+							renderButton={(selectedItem) => {
+								return (
+									<View style={[styles.button, styles.friendRequestButton]}>
+										<Icon name="share" size={18} color="black" style={{ marginRight: 10 }} />
+										<Text style={styles.buttonText}>
+											{selectedItem
+												? "Invitar a mi Equipo: " + selectedItem
+												: "Invitar a mis equipos"}
+										</Text>
+									</View>
+								);
+							}}
+							renderItem={(item, isSelected) => {
+								return (
+									<View
+										style={{
+											...styles.dropdownItemStyle,
+											...(isSelected && { backgroundColor: "#D2D9DF" }),
+										}}
+									>
+										<Text style={styles.dropdownItemTxtStyle}>{item}</Text>
+									</View>
+								);
+							}}
+						/>
+					</View>
+				)}
+
+				{selectedTeam && (
+					<View style={styles.buttonsContainer}>
+						<TouchableOpacity
+							style={[styles.button, styles.friendRequestButton]}
+							onPress={() => handleInviteToTeam(props.id, selectedTeam)}
+						>
+							<Icon name="check" size={18} color="black" style={{ marginRight: 10 }} />
+							<Text style={styles.buttonText}>Confirmar invitación</Text>
 						</TouchableOpacity>
 					</View>
+				)}
+
+				<View style={styles.buttonsContainer}>
+					<TouchableOpacity style={styles.button} onPress={() => handleDeleteFavorite(props.id)}>
+						<Icon name="user-xmark" size={18} color="black" style={{ marginRight: 10 }} />
+						<Text style={styles.buttonText}>Eliminar de favoritos</Text>
+					</TouchableOpacity>
 				</View>
-			)}
+			</View>
+
 			<View style={{ marginBottom: 10 }} />
 		</View>
 	);
