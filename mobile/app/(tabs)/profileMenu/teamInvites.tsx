@@ -1,30 +1,25 @@
 import { supabase } from "@/lib/supabase";
-import { Image } from "@rneui/themed";
 import { StyleSheet, Text, TouchableOpacity, View, FlatList, Modal } from "react-native";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { router } from "expo-router";
 import Icon from "react-native-vector-icons/FontAwesome6";
-import PopUpFriend from "@/components/PopUpFriend";
 import {
 	getUserAuthSession,
 	getUserPreferencesByUserId,
-	getAllUsers,
 	useUpdateUserPreferences,
 	useUpdateTeam,
 	getAllTeams,
 } from "@/lib/autogen/queries";
 import PopUpTeam from "@components/PopUpTeam";
 
-function myFriends() {
+function myTeamInvites() {
 	const { data: session } = getUserAuthSession(supabase);
 	const user = session?.user;
 	const { data: userPreferences } = getUserPreferencesByUserId(supabase, user?.id!);
 	const updateUserPreferences = useUpdateUserPreferences(supabase);
-	const updateTeam = useUpdateTeam(supabase);
 	const { data: teams } = getAllTeams(supabase);
 
-	const [selectedTeam, setSelectedTeam] = useState<string>("");
-	const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
+	const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
 
 	const handleDeleteTeamInvite = async (teamId: string) => {
 		const updatedInvitations = userPreferences?.team_invites.filter((team) => team !== teamId);
@@ -75,41 +70,15 @@ function myFriends() {
 
 											{/* Íconos alineados horizontalmente */}
 											<View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-												{/* Botón de eliminar */}
-												<TouchableOpacity
-													onPress={() => {
-														handleDeleteTeamInvite(team.team_id); // Usamos directamente el id del equipo
-													}}
-												>
+												<TouchableOpacity onPress={() => handleDeleteTeamInvite(team.team_id)}>
 													<Icon name="square-xmark" size={22} color="#223332" />
 												</TouchableOpacity>
 
-												{/* Botón de info */}
-												<TouchableOpacity
-													onPress={() => {
-														setSelectedTeam(team.team_id);
-														setIsModalVisible(true);
-													}}
-												>
+												<TouchableOpacity onPress={() => setSelectedTeamId(team.team_id)}>
 													<Icon name="circle-info" size={22} color="#223332" />
 												</TouchableOpacity>
 											</View>
 										</View>
-
-										{/* Modal */}
-										<Modal
-											style={styles.modal}
-											visible={isModalVisible}
-											transparent={true}
-											onRequestClose={() => setIsModalVisible(false)}
-										>
-											<View style={styles.centeredView}>
-												<PopUpTeam
-													onClose={() => setIsModalVisible(false)}
-													team_id={selectedTeam}
-												/>
-											</View>
-										</Modal>
 									</View>
 								);
 							}}
@@ -121,6 +90,17 @@ function myFriends() {
 					</Text>
 				)}
 			</View>
+
+			<Modal
+				style={styles.modal}
+				visible={selectedTeamId !== null}
+				transparent={true}
+				onRequestClose={() => setSelectedTeamId(null)}
+			>
+				<View style={styles.centeredView}>
+					{selectedTeamId && <PopUpTeam onClose={() => setSelectedTeamId(null)} team_id={selectedTeamId} />}
+				</View>
+			</Modal>
 		</View>
 	);
 }
@@ -189,4 +169,4 @@ const styles = StyleSheet.create({
 	},
 });
 
-export default myFriends;
+export default myTeamInvites;
