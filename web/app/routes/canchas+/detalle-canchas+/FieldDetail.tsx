@@ -68,6 +68,17 @@ export const UserEmailFromId = (props: { supabase: SupabaseClient<Database>; id:
 	return isLoading ? <p>Cargando...</p> : <p>{user?.email!}</p>;
 };
 
+export const UserNameFromId = (props: { supabase: SupabaseClient<Database>; id: string }) => {
+	const {
+		data: user,
+		error,
+		isLoading,
+	} = useQuery(props.supabase.from("users").select("full_name").eq("id", props.id).single(), {
+		enabled: !!props.id,
+	});
+	return isLoading ? <p>Cargando...</p> : <p>{user?.full_name!}</p>;
+}
+
 export function FieldDetail(props: FieldProps) {
 	const {
 		id,
@@ -135,19 +146,41 @@ export function FieldDetail(props: FieldProps) {
 						<>
 							<CardHeader className="space-y-5">
 								<div className="flex flex-row items-center justify-between">
-									<CardTitle className="text-5xl font-bold text-[#f2f4f3]">{name}</CardTitle>
+									{loading ? (
+										<div className="h-12 w-64 animate-pulse rounded bg-gray-600"></div>
+									) : (
+										<CardTitle className="text-5xl font-bold text-[#f2f4f3]">{name}</CardTitle>
+									)}
 								</div>
 								<div className="flex flex-row">
 									<MapPin className="my-auto h-6 w-6 text-gray-400" />
-									<CardDescription className="text-2xl text-gray-400">{location}</CardDescription>
+									{loading ? (
+										<div className="h-8 w-48 animate-pulse rounded bg-gray-600"></div>
+									) : (
+										<CardDescription className="text-2xl text-gray-400">{location}</CardDescription>
+									)}
 								</div>
 								<div className="flex flex-row">
 									<DollarSign className="my-auto h-6 w-6 text-gray-400" />
-									<CardDescription className="text-2xl text-gray-400">{price}</CardDescription>
+									{loading ? (
+										<div className="h-8 w-24 animate-pulse rounded bg-gray-600"></div>
+									) : (
+										<CardDescription className="text-2xl text-gray-400">{price}</CardDescription>
+									)}
 								</div>
 							</CardHeader>
 							<CardContent className="grid gap-4">
-								<div className="grid gap-4 py-4 text-[#f2f4f3]">{description}</div>
+								<div className="grid gap-4 py-4 text-[#f2f4f3]">
+									{loading ? (
+										<div className="space-y-2">
+											<div className="h-4 w-full animate-pulse rounded bg-gray-600"></div>
+											<div className="h-4 w-3/4 animate-pulse rounded bg-gray-600"></div>
+											<div className="h-4 w-5/6 animate-pulse rounded bg-gray-600"></div>
+										</div>
+									) : (
+										description
+									)}
+								</div>
 								<div className="w-full overflow-x-auto">
 									<h2 className="mb-4 border-gray-500 text-left text-xl font-semibold text-[#f2f4f3]">
 										Reservas:
@@ -156,7 +189,7 @@ export function FieldDetail(props: FieldProps) {
 										<div className="grid grid-cols-5 gap-4 border-b border-gray-400 pb-3 text-center text-sm font-semibold text-white">
 											<span>Fecha</span>
 											<span>Horario</span>
-											<span>Nombre Equipo</span>
+											<span>Hecha por</span>
 											<span>Pago</span>
 											<span>Info</span>
 										</div>
@@ -189,9 +222,9 @@ export function FieldDetail(props: FieldProps) {
 																	})
 																	.replace(/^\b\w/g, (char) => char.toUpperCase())}
 															</div>
-															<div>{team?.name || "Desconocido"}</div>
+															<div>{team?.name || <UserNameFromId supabase={supabase} id={reservation.owner_id} /> || "Desconocido"}</div>
 															<div className="flex justify-center">
-																{reservation.paid ? (
+																{reservation.confirmed ? (
 																	<Check className="h-5 w-5 text-green-400" />
 																) : (
 																	<OctagonAlert className="h-5 w-5 text-yellow-400" />
@@ -422,7 +455,11 @@ export function FieldDetail(props: FieldProps) {
 					</Suspense>
 				</Card>
 				<div className="flex h-screen max-h-fit w-[400px] flex-col items-center justify-center space-y-5">
-					<MyCarousel imgSrc={imgSrc} />
+					{loading ? (
+						<div className="h-64 w-full animate-pulse rounded bg-gray-600"></div>
+					) : (
+						<MyCarousel imgSrc={imgSrc} />
+					)}
 					<MySheet
 						name={name}
 						description={description}
