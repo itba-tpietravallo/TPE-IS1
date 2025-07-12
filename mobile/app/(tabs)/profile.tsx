@@ -1,6 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { Image } from "@rneui/themed";
-import { StyleSheet, Text, TouchableOpacity, View, FlatList } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View, FlatList, ScrollView } from "react-native";
 import { useEffect, useState } from "react";
 import { Session } from "@supabase/supabase-js";
 import { router } from "expo-router";
@@ -116,15 +116,20 @@ const menuItems = [
 	// { label: "Mis torneos", icon: "medal", action: () => router.push("/(tabs)/profileMenu/teams") },
 	{ label: "Pendientes", icon: "spinner", action: () => router.push("/(tabs)/profileMenu/pendings") },
 	{ label: "Chats", icon: "comments", action: () => router.push("/(tabs)/profileMenu/chats") },
-	{ label: "Usuarios favoritos", icon: "user-group", action: () => router.push("/(tabs)/profileMenu/favUsers") },
+	{ label: "Usuarios Favoritos", icon: "user-group", action: () => router.push("/(tabs)/profileMenu/favUsers") },
+	{
+		label: "Invitaciones a Equipos",
+		icon: "list-check",
+		action: () => router.push("/(tabs)/profileMenu/teamInvites"),
+	},
 ];
 
 export function ProfileMenuList() {
 	return (
-		<View style={{ borderWidth: 1, borderColor: "#ccc", borderRadius: 10, overflow: "hidden" }}>
+		<View style={{ borderWidth: 1, borderColor: "#ccc", borderRadius: 10, overflow: "hidden", maxHeight: 350 }}>
 			<FlatList
 				data={menuItems}
-				scrollEnabled={false}
+				scrollEnabled={true}
 				keyExtractor={(item) => item.label}
 				renderItem={({ item }) => (
 					<TouchableOpacity style={itemStyles.item} onPress={item.action}>

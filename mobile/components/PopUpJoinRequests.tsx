@@ -10,9 +10,6 @@ import { router } from "expo-router";
 type PropsPopUpJoinRequests = {
 	onClose: () => void;
 	team_id: string;
-	name: string;
-	players: string[];
-	playerRequests: string[];
 };
 
 function PopUpJoinRequests(props: PropsPopUpJoinRequests) {
@@ -75,7 +72,7 @@ function PopUpJoinRequests(props: PropsPopUpJoinRequests) {
 				</View>
 
 				{/* Miembros del Equipo */}
-				{props.playerRequests?.length != 0 && (
+				{team?.playerRequests?.length != 0 && (
 					<ScrollView style={styles.scrollArea}>
 						<View style={{ width: "100%" }}>
 							{team?.playerRequests?.map((member, index) => (
@@ -112,7 +109,7 @@ function PopUpJoinRequests(props: PropsPopUpJoinRequests) {
 						</View>
 					</ScrollView>
 				)}
-				{props.playerRequests?.length == 0 && (
+				{team?.playerRequests?.length == 0 && (
 					<View style={styles.topInfo}>
 						<Text style={{ fontSize: 16, color: "gray" }}>No hay solicitudes para unirse al equipo.</Text>
 						<Text />

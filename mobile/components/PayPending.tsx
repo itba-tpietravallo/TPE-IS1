@@ -35,10 +35,11 @@ const ButtonStyles = {
 };
 
 function uuidv4() {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-        var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
-        return v.toString(16);
-    });
+	return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+		var r = (Math.random() * 16) | 0,
+			v = c == "x" ? r : (r & 0x3) | 0x8;
+		return v.toString(16);
+	});
 }
 
 export default function PayPending({
@@ -51,7 +52,7 @@ export default function PayPending({
 	fieldId: string;
 	date_time: string;
 	price: number;
-	}) {
+}) {
 	const [uuid, _] = useState(() => uuidv4());
 	const [pending, setPending] = useState(false);
 	const [status, setStatus] = useState<"error" | "failure" | "pending" | "success" | "default">("default");
@@ -150,8 +151,25 @@ export default function PayPending({
 			}}
 			onPress={() => handlePress()}
 		>
-			<View style={{ flexDirection: "row", justifyContent: "center", alignItems: "center", alignContent: "center", alignSelf: "center" }}>
-				<Text style={{ fontWeight: "600", fontSize: 16, color: "white", textAlign: "center", verticalAlign: "middle", height: "100%" }}>
+			<View
+				style={{
+					flexDirection: "row",
+					justifyContent: "center",
+					alignItems: "center",
+					alignContent: "center",
+					alignSelf: "center",
+				}}
+			>
+				<Text
+					style={{
+						fontWeight: "600",
+						fontSize: 16,
+						color: "white",
+						textAlign: "center",
+						verticalAlign: "middle",
+						height: "100%",
+					}}
+				>
 					{status === "error"
 						? `Error: ${error}`
 						: pending && status === "default"

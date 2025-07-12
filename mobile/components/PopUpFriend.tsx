@@ -50,14 +50,14 @@ function PopUpFriend(props: PropsPopUpFriend) {
 	};
 
 	const handleInviteToTeam = async (userId: string, teamId: string) => {
-		const updatedInvitations = [...(userPreferences?.team_invites || []), teamId];
+		const updatedInvitations = [...(friendUserPreferences?.team_invites || []), teamId];
 
 		try {
 			await upsertUserPreferences.mutateAsync([
 				{
 					user_id: props.id,
-					fav_fields: userPreferences?.fav_fields || [],
-					fav_users: userPreferences?.fav_users || [],
+					fav_fields: friendUserPreferences?.fav_fields || [],
+					fav_users: friendUserPreferences?.fav_users || [],
 					team_invites: updatedInvitations,
 				},
 			]);
