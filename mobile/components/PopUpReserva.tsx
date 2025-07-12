@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { View, Text, StyleSheet, Image, TouchableOpacity, Modal, Platform, ScrollView } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { ScreenHeight, ScreenWidth } from "@rneui/themed/dist/config";
@@ -49,8 +49,8 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 	const { data: reservations } = getAllReservationTimeSlots(supabase, fieldId);
 	const [isModalVisible, setIsModalVisible] = useState(false);
 	const [currentImageIndex, setCurrentImageIndex] = useState(0);
-	const [selectedDateTime, setSelectedDateTime] = useState<Date>(new Date());
-	const [selectedShiftedDateTime, setSelectedShiftedDateTime] = useState<Date>(new Date());
+	const [selectedDateTime, setSelectedDateTime] = useState<Date>(() => new Date());
+	const [selectedShiftedDateTime, setSelectedShiftedDateTime] = useState<Date>(() => new Date());
 	const [unavailable, setUnavailability] = useState<boolean | null>(null);
 	const [selectedRenter, setSelectedRenter] = useState<Renter | null>(null);
 	const normalizedTeams = teamData ? teamData.filter((team) => team.team_id && team.name !== null) : [];
@@ -75,11 +75,11 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 		...teams,
 	];
 
-	const minimumDate = new Date(Date.now());
-	minimumDate.setHours(Number((fieldData?.opening_hour ?? "09:00").split(":")[0]) || 9, 0, 0, 0);
+	const minimumDate = new Date(selectedDateTime.getTime());
+	minimumDate.setHours(Number((selectedDateTime.getDate() == new Date().getDate() ? new Date(Date.now()).getHours() + 1 : (fieldData?.opening_hour ?? "09:00").split(":")[0])) || 9, 0, 0, 0);
 
-	const maximumDate = new Date(Date.now());
-	maximumDate.setHours(Number((fieldData?.closing_hour ?? "20:00").split(":")[0]) || 20, 0, 0, 0);
+	const maximumDate = new Date(selectedDateTime.getTime());
+	maximumDate.setHours(Number(((fieldData?.closing_hour ?? "22:00").split(":")[0])) || 22, 0, 0, 0);
 
 	// const handleDateTimeChange = async (event: any, date?: Date) => {
 	// 	if (event.type === "dismissed" || event.type === "set") {
@@ -96,7 +96,7 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 	// 	}
 	// };
 
-	const handleDateTimeChange = async (event: any, date?: Date) => {
+	const handleDateTimeChange = useMemo(() => async (event: any, date?: Date) => {
 		if (!date) return;
 
 		date.getHours() < minimumDate.getHours() && date.setHours(minimumDate.getHours(), 0, 0, 0);
@@ -109,7 +109,7 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 		const taken = isSlotUnavailable(selectedShiftedDateTime, reservations ?? undefined);
 
 		setUnavailability(taken);
-	};
+	}, []);
 
 	function getOffsetHours(date: Date, timeZone: string) {
 		const dtf = new Intl.DateTimeFormat("en-US", {
@@ -401,7 +401,7 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 						<View style={styles.selection}>
 							<View>
 								<Text style={styles.label}>Seleccionar fecha</Text>
-								<DateTimePicker value={selectedDateTime} mode="date" onChange={handleDateTimeChange} />
+								<DateTimePicker maximumDate={new Date(Date.now() + 1000 * 60 * 60 * 24 * 60)} minimumDate={new Date(Date.now())} value={(selectedDateTime)} mode="date" onChange={handleDateTimeChange} />
 							</View>
 
 							<View>
