@@ -3,7 +3,7 @@ import { View, Text, Button, StyleSheet, Image, TouchableOpacity, Modal, Alert, 
 import { ScreenWidth } from "@rneui/themed/dist/config";
 import { supabase } from "@/lib/supabase";
 import Icon from "react-native-vector-icons/FontAwesome6";
-import { getAllUsers, getUserAuthSession, useUpdateTeam } from "@lib/autogen/queries";
+import { getAllUsers, getUserAuthSession, useUpdateTeam, getTeamById } from "@lib/autogen/queries";
 import { getUserSession } from "@/lib/autogen/queries";
 import { router } from "expo-router";
 
@@ -21,21 +21,18 @@ function PopUpJoinRequests(props: PropsPopUpJoinRequests) {
 	const usersData = getAllUsers(supabase);
 	const updateTeamMutation = useUpdateTeam(supabase);
 
-	const [players, setPlayers] = useState<string[]>(props.players);
-	const [requests, setRequests] = useState<string[]>(props.playerRequests);
+	const { data: team } = getTeamById(supabase, props.team_id);
 
 	const handleAcceptPlayer = async (player: string) => {
-		const updatedMembers = [...(players || []), player];
+		const updatedMembers = [...(team!.players || []), player];
+		const updatedRequests = team!.playerRequests.filter((member) => member !== player);
 
 		try {
 			await updateTeamMutation.mutateAsync({
 				team_id: props.team_id,
 				players: updatedMembers,
+				playerRequests: updatedRequests,
 			});
-
-			setPlayers(updatedMembers);
-
-			handleDeleteRequest(player);
 		} catch (error) {
 			console.error("Error accepting player:", error);
 			Alert.alert("Error", "No se pudo aceptar al jugador");
@@ -43,15 +40,13 @@ function PopUpJoinRequests(props: PropsPopUpJoinRequests) {
 	};
 
 	const handleDeleteRequest = async (player: string) => {
-		const updatedRequests = requests.filter((member) => member !== player);
+		const updatedRequests = team!.playerRequests.filter((member) => member !== player);
 
 		try {
 			await updateTeamMutation.mutateAsync({
 				team_id: props.team_id,
 				playerRequests: updatedRequests,
 			});
-
-			setRequests(updatedRequests);
 			console.log("deleted");
 			console.log(updatedRequests);
 		} catch (error) {
@@ -76,16 +71,18 @@ function PopUpJoinRequests(props: PropsPopUpJoinRequests) {
 				{/* Nombre del equipo */}
 				<View style={styles.topInfo}>
 					{/* <Text style={styles.teamName}>{props.name}</Text> */}
-					<Text style={{ fontSize: 16, color: "gray", marginBottom: 10 }}>Join Requests</Text>
+					<Text style={{ fontSize: 18, marginBottom: 10, fontWeight: "bold" }}>Solicitudes para unirse</Text>
 				</View>
 
 				{/* Miembros del Equipo */}
 				{props.playerRequests?.length != 0 && (
 					<ScrollView style={styles.scrollArea}>
 						<View style={{ width: "100%" }}>
-							{props.playerRequests?.map((member) => (
-								<View key={member} style={styles.row}>
-									<View style={{ height: 60, width: 30 }}></View>
+							{team?.playerRequests?.map((member, index) => (
+								<View
+									key={member}
+									style={[styles.row, index < team.playerRequests.length - 1 && styles.separator]}
+								>
 									<Icon name="user" size={24} color="black">
 										{" "}
 									</Icon>
@@ -117,7 +114,8 @@ function PopUpJoinRequests(props: PropsPopUpJoinRequests) {
 				)}
 				{props.playerRequests?.length == 0 && (
 					<View style={styles.topInfo}>
-						<Text style={styles.name}>No hay solicitdes para unirse al equipo!</Text>
+						<Text style={{ fontSize: 16, color: "gray" }}>No hay solicitudes para unirse al equipo.</Text>
+						<Text />
 					</View>
 				)}
 			</View>
@@ -187,10 +185,13 @@ const styles = StyleSheet.create({
 	row: {
 		flexDirection: "row",
 		alignItems: "center",
-		borderBottomWidth: 1,
-		borderColor: "#ccc",
 		backgroundColor: "white",
 		width: "100%",
+		padding: 8,
+	},
+	separator: {
+		borderBottomWidth: 1,
+		borderBottomColor: "#f0f0f0",
 	},
 	avatar: {
 		width: 48,
@@ -203,7 +204,6 @@ const styles = StyleSheet.create({
 	},
 	name: {
 		fontSize: 16,
-		fontWeight: "bold",
 	},
 	number: {
 		fontSize: 18,

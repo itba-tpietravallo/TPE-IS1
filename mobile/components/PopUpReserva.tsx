@@ -47,6 +47,7 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 	const { data: userName } = getUsername(supabase, user?.id!, { enabled: !!user?.id });
 	const { data: reservations } = getAllReservationTimeSlots(supabase, fieldId);
 	const [isModalVisible, setIsModalVisible] = useState(false);
+	const [currentImageIndex, setCurrentImageIndex] = useState(0);
 	const [selectedDateTime, setSelectedDateTime] = useState<Date>(new Date());
 	const [selectedShiftedDateTime, setSelectedShiftedDateTime] = useState<Date>(new Date());
 	const [unavailable, setUnavailability] = useState<boolean | null>(null);
@@ -253,7 +254,12 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 							<Text style={{ fontSize: 16, color: "gray", margin: 10 }}>{sport.join(", ")} </Text>
 						</View>
 						{images && images.length > 0 && (
-							<TouchableOpacity onPress={() => setIsModalVisible(true)}>
+							<TouchableOpacity
+								onPress={() => {
+									setCurrentImageIndex(0);
+									setIsModalVisible(true);
+								}}
+							>
 								<Image
 									style={{
 										width: 120,
@@ -297,26 +303,54 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 											padding: 20,
 										}}
 									>
-										<View>
+										<View style={{ alignItems: "center" }}>
 											<TouchableOpacity
-												style={{ alignItems: "flex-start" }}
+												style={{ alignSelf: "flex-start", marginBottom: 10 }}
 												onPress={() => setIsModalVisible(false)}
 											>
-												<Icon name="xmark" size={20} color="white" />
+												<Icon name="xmark" size={30} color="white" />
 											</TouchableOpacity>
-											{images.map((uri, index) => (
+											<View style={{ flexDirection: "row", alignItems: "center" }}>
+												<TouchableOpacity
+													onPress={() =>
+														setCurrentImageIndex((prev) => Math.max(0, prev - 1))
+													}
+													disabled={currentImageIndex === 0}
+												>
+													<Icon
+														name="chevron-left"
+														size={30}
+														color={currentImageIndex === 0 ? "grey" : "white"}
+														style={{ marginRight: 5 }}
+													/>
+												</TouchableOpacity>
 												<Image
-													key={index}
 													style={{
-														width: ScreenWidth * 0.8,
-														height: ScreenWidth * 0.8,
+														width: ScreenWidth * 0.7,
+														height: ScreenWidth * 0.7,
 														borderRadius: 10,
-														marginBottom: 20,
 													}}
-													source={{ uri: uri }}
+													source={{ uri: images[currentImageIndex] }}
 													resizeMode="contain"
 												/>
-											))}
+												<TouchableOpacity
+													onPress={() =>
+														setCurrentImageIndex((prev) =>
+															Math.min(images.length - 1, prev + 1),
+														)
+													}
+													disabled={currentImageIndex === images.length - 1}
+												>
+													<Icon
+														name="chevron-right"
+														size={30}
+														color={
+															currentImageIndex === images.length - 1 ? "grey" : "white"
+														}
+														style={{ marginLeft: 5 }}
+													/>
+												</TouchableOpacity>
+											</View>
 										</View>
 									</View>
 								</Modal>
