@@ -34,6 +34,14 @@ const ButtonStyles = {
 	},
 };
 
+function uuidv4() {
+	return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+		var r = (Math.random() * 16) | 0,
+			v = c == "x" ? r : (r & 0x3) | 0x8;
+		return v.toString(16);
+	});
+}
+
 export default function PayPending({
 	reservationId,
 	fieldId,
@@ -45,6 +53,7 @@ export default function PayPending({
 	date_time: string;
 	price: number;
 }) {
+	const [uuid, _] = useState(() => uuidv4());
 	const [pending, setPending] = useState(false);
 	const [status, setStatus] = useState<"error" | "failure" | "pending" | "success" | "default">("default");
 	const [error, setError] = useState<string | null>(null);
@@ -52,6 +61,7 @@ export default function PayPending({
 
 	async function handlePress() {
 		setPending(true);
+		setStatus("default");
 
 		await supabase.auth.getSession().then(async (res) => {
 			if (res.error || res.data == null) {
@@ -65,9 +75,9 @@ export default function PayPending({
 					fieldId,
 					reservationId,
 					processor: "mercado-pago-redirect",
-					pending_url: Linking.createURL(`${path}?pending`),
-					success_url: Linking.createURL(`${path}?success`),
-					failure_url: Linking.createURL(`${path}?failure`),
+					pending_url: Linking.createURL(`${path}?pending&id=${uuid}`),
+					success_url: Linking.createURL(`${path}?success&id=${uuid}`),
+					failure_url: Linking.createURL(`${path}?failure&id=${uuid}`),
 					date_time,
 					price,
 					// Failure redirect example:
@@ -83,7 +93,7 @@ export default function PayPending({
 			}).then(async (res) => {
 				if (res.status >= 200 && res.status < 300) {
 					const data = await res.text();
-					await openBrowserAsync(data);
+					const ret = await openBrowserAsync(data);
 				} else {
 					setError(await res.text());
 					setStatus("error");
@@ -97,6 +107,10 @@ export default function PayPending({
 			const { url } = event;
 
 			const queryParams = Linking.parse(url).queryParams || {};
+			if (queryParams.id !== uuid) {
+				return;
+			}
+
 			if (queryParams.hasOwnProperty("failure")) {
 				setStatus("failure");
 			} else if (queryParams.hasOwnProperty("success")) {
@@ -128,7 +142,6 @@ export default function PayPending({
 
 	return (
 		<TouchableOpacity
-			disabled={pending}
 			style={{
 				width: 130,
 				padding: "5%",
@@ -138,8 +151,25 @@ export default function PayPending({
 			}}
 			onPress={() => handlePress()}
 		>
-			<View style={{ flexDirection: "row", justifyContent: "center", alignItems: "center" }}>
-				<Text style={{ fontWeight: "600", fontSize: 16, color: "white", textAlign: "center" }}>
+			<View
+				style={{
+					flexDirection: "row",
+					justifyContent: "center",
+					alignItems: "center",
+					alignContent: "center",
+					alignSelf: "center",
+				}}
+			>
+				<Text
+					style={{
+						fontWeight: "600",
+						fontSize: 16,
+						color: "white",
+						textAlign: "center",
+						verticalAlign: "middle",
+						height: "100%",
+					}}
+				>
 					{status === "error"
 						? `Error: ${error}`
 						: pending && status === "default"

@@ -9,9 +9,10 @@ import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
 import { authenticateUser } from "~/lib/auth.server";
 import { CreditCard, Mail, Phone, User, CalendarDays } from "lucide-react";
-import { getUserLinkedToPaymentMethod } from "@lib/autogen/queries";
+import { getUserLinkedToPaymentMethod, useDeleteOAuthAuthorization } from "@lib/autogen/queries";
 import { createBrowserClient } from "@supabase/ssr";
 import { Database } from "@lib/autogen/database.types";
+import { SupabaseClient } from "@supabase/supabase-js";
 
 type Field = {
 	avatar_url: string;
@@ -37,6 +38,8 @@ type ProfileInfoProps = {
 	phone?: string;
 	url_origin?: string;
 	isLinked?: boolean;
+	userId?: string;
+	supabase?: SupabaseClient<Database>;
 };
 
 type ReservsProps = {
@@ -106,6 +109,8 @@ export default function Index() {
 				phone={phone ?? undefined}
 				url_origin={URL_ORIGIN ?? undefined}
 				isLinked={!!data.data?.user_id}
+				userId={data.data?.user_id}
+				supabase={supabase}
 			/>
 
 			{/* RIP imprimir Reservas */}
@@ -154,9 +159,24 @@ export function ReservsList({ reservs }: ReservsListProps) {
 	);
 }
 
-export function ProfileInfo({ email, userName, phone, url_origin, isLinked }: ProfileInfoProps) {
+export function ProfileInfo({ email, userName, phone, url_origin, isLinked, userId, supabase }: ProfileInfoProps) {
 	const [phoneSaved, setPhoneSaved] = useState(phone ?? "");
 	const [phoneInput, setPhoneInput] = useState("");
+	const unlinkPaymentMutation = useDeleteOAuthAuthorization(supabase);
+
+	const handleUnlinkPayment = async () => {
+		if (!supabase || !userId) return;
+
+		await unlinkPaymentMutation
+			.mutateAsync({
+				user_id: userId,
+			})
+			.then(console.log)
+			.catch((error) => {
+				console.error("Error unlinking payment method:", error);
+				return;
+			});
+	};
 
 	const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		setPhoneInput(e.target.value);
@@ -199,7 +219,7 @@ export function ProfileInfo({ email, userName, phone, url_origin, isLinked }: Pr
 					</div>
 
 					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-						<div className="space-y-2">
+						{/* <div className="space-y-2">
 							<div className="flex items-center gap-2">
 								<Phone className="h-4 w-4 text-muted-foreground" />
 								<Label htmlFor="phone">Teléfono</Label>
@@ -213,7 +233,7 @@ export function ProfileInfo({ email, userName, phone, url_origin, isLinked }: Pr
 							{!phoneSaved && phoneInput === "" && (
 								<p className="text-sm text-muted-foreground">(no vinculado)</p>
 							)}
-						</div>
+						</div> */}
 
 						<div className="space-y-2">
 							<div className="flex items-center gap-2">
@@ -232,7 +252,10 @@ export function ProfileInfo({ email, userName, phone, url_origin, isLinked }: Pr
 											/>
 										</svg>
 										<span className="text-sm font-medium">Mercado Pago vinculado</span>
-										<button className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-green-600 hover:bg-green-100 hover:text-red-600">
+										<button
+											className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-green-600 hover:bg-green-100 hover:text-red-600"
+											onClick={handleUnlinkPayment}
+										>
 											<svg
 												className="h-3 w-3"
 												fill="none"

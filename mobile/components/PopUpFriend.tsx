@@ -121,13 +121,13 @@ function PopUpFriend(props: PropsPopUpFriend) {
 						renderButton={(selectedItem) => {
 							const noTeams = myTeams?.length === 0;
 							return (
-								<View style={[styles.button, styles.friendRequestButton, noTeams && { opacity: 0.6 }]}>
+								<View style={[styles.button, noTeams && { opacity: 0.6 }]}>
 									<Icon name="share" size={18} color="black" style={{ marginRight: 10 }} />
 									<Text style={styles.buttonText}>
 										{noTeams
 											? "No puedes invitar sin equipos"
 											: selectedItem
-												? "Invitar a mi Equipo: " + selectedItem.name
+												? "Invitar a mi equipo: " + selectedItem.name
 												: "Invitar a mis equipos"}
 									</Text>
 								</View>
@@ -160,7 +160,7 @@ function PopUpFriend(props: PropsPopUpFriend) {
 				{selectedTeam && !userAlreadyInvited(selectedTeam) && (
 					<View style={styles.buttonsContainer}>
 						<TouchableOpacity
-							style={[styles.button, styles.friendRequestButton]}
+							style={styles.button}
 							onPress={() => handleInviteToTeam(props.id, selectedTeam)}
 						>
 							<Icon name="check" size={18} color="black" style={{ marginRight: 10 }} />
@@ -171,7 +171,7 @@ function PopUpFriend(props: PropsPopUpFriend) {
 
 				{selectedTeam && userAlreadyInvited(selectedTeam) && (
 					<View style={styles.buttonsContainer}>
-						<View style={[styles.button, styles.friendRequestButton]}>
+						<View style={styles.button}>
 							<Icon name="check" size={18} color="black" style={{ marginRight: 10 }} />
 							<Text style={styles.buttonText}>El usuario fue invitado al equipo!</Text>
 						</View>
@@ -193,7 +193,7 @@ function PopUpFriend(props: PropsPopUpFriend) {
 
 const styles = StyleSheet.create({
 	name: {
-		fontSize: 22,
+		fontSize: 20,
 		fontWeight: "bold",
 		justifyContent: "center",
 		color: "#f18f01",
@@ -216,8 +216,8 @@ const styles = StyleSheet.create({
 		alignItems: "center",
 	},
 	avatar: {
-		width: 100,
-		height: 100,
+		width: 90,
+		height: 90,
 		borderRadius: 100,
 		marginBottom: 20,
 	},
@@ -228,22 +228,26 @@ const styles = StyleSheet.create({
 		marginBottom: 10,
 	},
 	buttonText: {
-		color: "#000",
+		color: "#333",
 		fontSize: 16,
-		fontWeight: "bold",
 		textAlign: "center",
 	},
 	button: {
 		flexDirection: "row",
-		width: "80%",
-		padding: 17,
+		width: "85%",
+		paddingVertical: 14,
+		paddingHorizontal: 20,
 		justifyContent: "center",
 		alignItems: "center",
 		borderWidth: 1,
 		borderColor: "#ccc",
-	},
-	friendRequestButton: {
-		backgroundColor: "#f18f01",
+		borderRadius: 12,
+		backgroundColor: "#fff",
+		shadowColor: "#000",
+		shadowOffset: { width: 0, height: 1 },
+		shadowOpacity: 0.1,
+		shadowRadius: 2,
+		elevation: 2,
 	},
 	friendsButtonText: {
 		color: "#fff",

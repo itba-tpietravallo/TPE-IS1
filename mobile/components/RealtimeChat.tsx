@@ -18,13 +18,15 @@ import Icon from "react-native-vector-icons/FontAwesome6";
 import { useRouter } from "expo-router";
 import { useChatScroll } from "@/hooks/UseChatScroll";
 
+type MessageWithDate = Message | { type: "date"; date: string; id: string };
+
 export function RealtimeChat({ roomId, roomName, userId }: { roomId: string; roomName: string; userId: string }) {
 	const router = useRouter();
 	const { data: messages, isLoading, error } = useChatMessages(supabase, roomId);
 	const insertMessageMutation = useInsertMessage(supabase);
 
 	const [newMessage, setNewMessage] = useState("");
-	const flatListRef = useRef<FlatList<Message>>(null);
+	const flatListRef = useRef<FlatList<MessageWithDate>>(null);
 	const [localMessages, setLocalMessages] = useState<Message[]>([]);
 	const [messageCount, setMessageCount] = useState(0);
 
@@ -55,6 +57,24 @@ export function RealtimeChat({ roomId, roomName, userId }: { roomId: string; roo
 			);
 		});
 	}, [messages]);
+
+	const getFormattedDate = (date: Date) => {
+		const today = new Date();
+		const yesterday = new Date(today);
+		yesterday.setDate(yesterday.getDate() - 1);
+
+		if (date.toDateString() === today.toDateString()) {
+			return "Hoy";
+		}
+		if (date.toDateString() === yesterday.toDateString()) {
+			return "Ayer";
+		}
+		return date.toLocaleDateString("es-ES", {
+			year: "numeric",
+			month: "long",
+			day: "numeric",
+		});
+	};
 
 	const handleSendMessage = async () => {
 		if (newMessage.trim() === "" || !userId || !supabase) return;
@@ -111,6 +131,27 @@ export function RealtimeChat({ roomId, roomName, userId }: { roomId: string; roo
 		);
 	}
 
+	const messagesWithDates: MessageWithDate[] = [];
+	if (localMessages.length > 0) {
+		let lastDate: string | null = null;
+		[...localMessages]
+			.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+			.forEach((message) => {
+				const messageDate = new Date(message.created_at);
+				const formattedDate = getFormattedDate(messageDate);
+				if (formattedDate !== lastDate) {
+					messagesWithDates.push({
+						type: "date",
+						date: formattedDate,
+						id: formattedDate,
+					});
+					lastDate = formattedDate;
+				}
+				messagesWithDates.push(message);
+			});
+		messagesWithDates.reverse();
+	}
+
 	return (
 		<SafeAreaView style={styles.container}>
 			<KeyboardAvoidingView
@@ -161,8 +202,17 @@ export function RealtimeChat({ roomId, roomName, userId }: { roomId: string; roo
 						inverted
 						ref={flatListRef}
 						onScroll={handleScroll}
-						data={localMessages}
-						renderItem={({ item }) => <ChatMessage message={item} currentUserId={userId} />}
+						data={messagesWithDates}
+						renderItem={({ item }) => {
+							if ("type" in item && item.type === "date") {
+								return (
+									<View style={styles.dateSeparatorContainer}>
+										<Text style={styles.dateSeparatorText}>{item.date}</Text>
+									</View>
+								);
+							}
+							return <ChatMessage message={item as Message} currentUserId={userId} />;
+						}}
 						keyExtractor={(item) => item.id.toString()}
 						style={styles.messageList}
 						scrollEventThrottle={16}
@@ -228,6 +278,18 @@ const styles = StyleSheet.create({
 	emptyChatMessage: {
 		fontSize: 16,
 		color: "#666",
+	},
+	dateSeparatorContainer: {
+		alignSelf: "center",
+		borderRadius: 12,
+		paddingVertical: 4,
+		paddingHorizontal: 12,
+		marginVertical: 10,
+	},
+	dateSeparatorText: {
+		fontSize: 12,
+		color: "#444",
+		fontWeight: "bold",
 	},
 	messageList: {
 		flex: 1,

@@ -20,14 +20,14 @@ function PopUpJoinRequests(props: PropsPopUpJoinRequests) {
 
 	const handleAcceptPlayer = async (player: string) => {
 		const updatedMembers = [...(team!.players || []), player];
+		const updatedRequests = team!.playerRequests.filter((member) => member !== player);
 
 		try {
 			await updateTeamMutation.mutateAsync({
 				team_id: props.team_id,
 				players: updatedMembers,
+				playerRequests: updatedRequests,
 			});
-
-			handleDeleteRequest(player);
 		} catch (error) {
 			console.error("Error accepting player:", error);
 			Alert.alert("Error", "No se pudo aceptar al jugador");
@@ -67,16 +67,18 @@ function PopUpJoinRequests(props: PropsPopUpJoinRequests) {
 				{/* Nombre del equipo */}
 				<View style={styles.topInfo}>
 					{/* <Text style={styles.teamName}>{props.name}</Text> */}
-					<Text style={{ fontSize: 16, color: "gray", marginBottom: 10 }}>Join Requests</Text>
+					<Text style={{ fontSize: 18, marginBottom: 10, fontWeight: "bold" }}>Solicitudes para unirse</Text>
 				</View>
 
 				{/* Solicitudes de Union al Equipo */}
 				{team?.playerRequests?.length != 0 && (
 					<ScrollView style={styles.scrollArea}>
 						<View style={{ width: "100%" }}>
-							{team?.playerRequests?.map((member) => (
-								<View key={member} style={styles.row}>
-									<View style={{ height: 60, width: 30 }}></View>
+							{team?.playerRequests?.map((member, index) => (
+								<View
+									key={member}
+									style={[styles.row, index < team.playerRequests.length - 1 && styles.separator]}
+								>
 									<Icon name="user" size={24} color="black">
 										{" "}
 									</Icon>
@@ -104,7 +106,7 @@ function PopUpJoinRequests(props: PropsPopUpJoinRequests) {
 				)}
 				{team?.playerRequests?.length == 0 && (
 					<View style={styles.topInfo}>
-						<Text style={styles.name}>No hay solicitdes para unirse al equipo!</Text>
+						<Text style={{ fontSize: 16, color: "gray" }}>No hay solicitudes para unirse al equipo.</Text>
 						<Text />
 					</View>
 				)}
@@ -145,10 +147,13 @@ const styles = StyleSheet.create({
 	row: {
 		flexDirection: "row",
 		alignItems: "center",
-		borderBottomWidth: 1,
-		borderColor: "#ccc",
 		backgroundColor: "white",
 		width: "100%",
+		padding: 8,
+	},
+	separator: {
+		borderBottomWidth: 1,
+		borderBottomColor: "#f0f0f0",
 	},
 	info: {
 		flex: 1,
@@ -156,7 +161,6 @@ const styles = StyleSheet.create({
 	},
 	name: {
 		fontSize: 16,
-		fontWeight: "bold",
 	},
 	modal: {
 		justifyContent: "center",

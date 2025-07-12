@@ -17,13 +17,35 @@ function myFriends() {
 
 	return (
 		<View style={styles.background}>
-			{/* Boton Atras */}
-			<TouchableOpacity style={styles.goBackButton} onPress={() => router.push("/(tabs)/profile")}>
-				<Icon name="arrow-left" size={14} color="#262626" style={{ marginRight: 8 }} />
-				<Text style={{ fontSize: 14, color: "#262626" }}>Atrás</Text>
-			</TouchableOpacity>
+			<View
+				style={{
+					flexDirection: "row",
+					alignItems: "center",
+					justifyContent: "center",
+					paddingVertical: 15,
+					paddingHorizontal: 10,
+					position: "relative",
+				}}
+			>
+				<TouchableOpacity
+					onPress={() => router.push("/(tabs)/profile")}
+					style={{ position: "absolute", left: 10 }}
+				>
+					<Icon name="arrow-left" size={18} color="#262626" />
+				</TouchableOpacity>
 
-			<Text style={styles.title}>Usuarios Favoritos</Text>
+				<View style={{ flex: 1, alignItems: "center" }}>
+					<Text
+						style={{
+							fontSize: 26,
+							fontWeight: "bold",
+							color: "#f18f01",
+						}}
+					>
+						Usuarios favoritos
+					</Text>
+				</View>
+			</View>
 
 			{/* Amigos */}
 			<View style={styles.dataContainer}>
@@ -38,40 +60,32 @@ function myFriends() {
 								if (!member) return null;
 								return (
 									<View style={styles.card}>
-										<TouchableOpacity
-											onPress={() => {
-												setSelectedMember(member.id);
+										<View
+											style={{
+												flexDirection: "row",
+												justifyContent: "space-between",
+												alignItems: "center",
 											}}
 										>
-											<View
-												style={{
-													flexDirection: "row",
-													justifyContent: "space-between",
-													alignItems: "flex-start",
+											<View style={{ flexDirection: "row", gap: 10, alignItems: "center" }}>
+												{member.avatar_url ? (
+													<Image
+														source={{ uri: member.avatar_url || "undefined_image" }}
+														style={styles.avatar}
+													/>
+												) : (
+													<Icon name="user" size={35} style={{ padding: 20 }} color="black" />
+												)}
+												<Text style={styles.teamName}>{member.full_name}</Text>
+											</View>
+											<TouchableOpacity
+												onPress={() => {
+													setSelectedMember(member.id);
 												}}
 											>
-												<View style={{ flexDirection: "row", gap: 10, alignItems: "center" }}>
-													{member.avatar_url ? (
-														<Image
-															source={{ uri: member.avatar_url || "undefined_image" }}
-															style={styles.avatar}
-														/>
-													) : (
-														<Icon
-															name="user"
-															size={35}
-															style={{ padding: 20 }}
-															color="black"
-														/>
-													)}
-													<Text style={styles.teamName}>{member.full_name}</Text>
-												</View>
-												<Image
-													style={{ width: 20, height: 20 }}
-													source={require("@/assets/images/info.png")}
-												/>
-											</View>
-										</TouchableOpacity>
+												<Icon name="ellipsis-vertical" size={20} color="#262626" />
+											</TouchableOpacity>
+										</View>
 									</View>
 								);
 							}}
@@ -102,7 +116,7 @@ function myFriends() {
 					</View>
 				) : (
 					<Text style={{ textAlign: "center", marginTop: 40, fontSize: 18, color: "#555" }}>
-						No tienes usuarios favoritos
+						No tienes usuarios favoritos.
 					</Text>
 				)}
 			</View>
@@ -133,7 +147,7 @@ const styles = StyleSheet.create({
 		elevation: 3,
 	},
 	teamName: {
-		fontSize: 18,
+		fontSize: 16,
 		fontWeight: "600",
 		color: "#262626",
 		textAlign: "left",
