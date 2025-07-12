@@ -21,7 +21,7 @@ export const action = async ({ request }: { request: Request }) => {
 					reservation_date: new Date(body.reservation_date),
 				}),
 			});
-		} else if (body.type === "payment_confirmation") {
+		} else if (body.type === "confirm_payment") {
 			data = await resend.emails.send({
 				from: "MatchPoint <no-reply@payments.matchpointapp.com.ar>",
 				to: body.player_email,
