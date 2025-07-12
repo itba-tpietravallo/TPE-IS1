@@ -55,7 +55,7 @@ function myTeams() {
 				<View style={{ flex: 1, alignItems: "center" }}>
 					<Text
 						style={{
-							fontSize: 30,
+							fontSize: 26,
 							fontWeight: "bold",
 							color: "#f18f01",
 						}}
