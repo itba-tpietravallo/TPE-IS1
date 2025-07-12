@@ -147,6 +147,34 @@ function PopUpTeam(props: PropsPopUpTeam) {
 			}
 		};
 
+		const handleAcceptPlayer = async () => {
+			const updatedMembers = [...(team?.players || []), user?.id!];
+			const updatedRequests = team?.playerRequests.filter((member) => member !== user?.id);
+
+			try {
+				await updateTeamMutation.mutateAsync({
+					team_id: props.team_id,
+					players: updatedMembers,
+					playerRequests: updatedRequests,
+				});
+			} catch (error) {
+				console.error("Error accepting player:", error);
+				Alert.alert("Error", "No se pudo aceptar al jugador");
+			}
+		};
+
+		const addInvitedPlayerToTeamIfRequestedJoin = async () => {
+			if (
+				team?.playerRequests.some((p) => p === user?.id) &&
+				userPreferences?.team_invites.some((p) => p === props.team_id)
+			) {
+				handleDeleteTeamInvite();
+				handleAcceptPlayer();
+			}
+		};
+
+		addInvitedPlayerToTeamIfRequestedJoin();
+
 		if (team?.players.some((p) => p === null)) {
 			cleanPlayersArray();
 		}
