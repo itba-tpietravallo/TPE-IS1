@@ -36,18 +36,20 @@ export default function PostTeam() {
 
 	const handlePostTeam = async () => {
 		try {
-			await insertTeamMutation.mutateAsync([{
-				name: teamName,
-				sport: sport,
-				description: description,
-				images: null,
-				players: [user?.id!], // Cuando crea el equipo automaticamente se une el creador
-				playerRequests: [],
-				admins: [user?.id!],
-				isPublic: isPublic,
-				contactPhone: "",
-				contactEmail: "",
-			}]);
+			await insertTeamMutation.mutateAsync([
+				{
+					name: teamName,
+					sport: sport,
+					description: description,
+					images: null,
+					players: [user?.id!], // Cuando crea el equipo automaticamente se une el creador
+					playerRequests: [],
+					admins: [user?.id!],
+					isPublic: isPublic,
+					contactPhone: "",
+					contactEmail: "",
+				},
+			]);
 
 			console.log("Team created successfully");
 			router.push("/(tabs)/teams");
@@ -102,34 +104,23 @@ export default function PostTeam() {
 					defaultValue={(sports ?? [])[0] || ""}
 					onSelect={(itemValue, index) => setSport(itemValue)}
 					data={sports?.map((sport) => sport.name) || []}
-					dropdownStyle={{ backgroundColor: "white", gap: 5, borderRadius: 8 }}
-					renderButton={(selectedItem, isOpened) => {
-						return (
-							<View style={styles.dropdownButtonStyle}>
-								{/* {selectedItem && (
-							//   <Icon name={selectedItem.icon} style={styles.dropdownButtonIconStyle} />
-							)} */}
-								<Text style={styles.dropdownButtonTxtStyle}>
-									{selectedItem || "Selecciona un deporte"}
-								</Text>
-								{/* <Icon name={isOpened ? 'chevron-up' : 'chevron-down'} style={styles.dropdownButtonArrowStyle} /> */}
-							</View>
-						);
-					}}
-					renderItem={(item, index, isSelected) => {
-						return (
-							<View
-								style={{
-									...styles.dropdownItemStyle,
-									...(isSelected && { backgroundColor: "#D2D9DF" }),
-								}}
-							>
-								{/* <Icon name={item.icon} style={styles.dropdownItemIconStyle} /> */}
-								<Text style={styles.dropdownItemTxtStyle}>{item}</Text>
-							</View>
-						);
-					}}
-					// renderItem={}
+					dropdownStyle={styles.dropdownMenuStyle}
+					renderButton={(selectedItem, isOpened) => (
+						<View style={styles.dropdownButtonStyle}>
+							<Text style={styles.dropdownButtonTxtStyle}>{selectedItem || "Selecciona un deporte"}</Text>
+						</View>
+					)}
+					renderItem={(item, index, isSelected) => (
+						<View
+							style={[
+								styles.dropdownItemStyle,
+								isSelected && styles.dropdownItemSelected,
+								index !== (sports?.length ?? 0) - 1 && styles.dropdownItemBorder,
+							]}
+						>
+							<Text style={styles.dropdownItemTxtStyle}>{item}</Text>
+						</View>
+					)}
 				/>
 
 				{/* Miembros del Equipo */}
@@ -209,18 +200,17 @@ export default function PostTeam() {
 							</View>
 						);
 					}}
-					renderItem={(item, index, isSelected) => {
-						return (
-							<View
-								style={{
-									...styles.dropdownItemStyle,
-									...(isSelected && { backgroundColor: "#D2D9DF" }),
-								}}
-							>
-								<Text style={styles.dropdownItemTxtStyle}>{item}</Text>
-							</View>
-						);
-					}}
+					renderItem={(item, index, isSelected) => (
+						<View
+							style={[
+								styles.dropdownItemStyle,
+								isSelected && styles.dropdownItemSelected,
+								index !== (sports?.length ?? 0) - 1 && styles.dropdownItemBorder,
+							]}
+						>
+							<Text style={styles.dropdownItemTxtStyle}>{item}</Text>
+						</View>
+					)}
 				/>
 
 				<Text style={{ color: "#464545" }}>* Indica que el campo es obligatorio.</Text>
@@ -363,27 +353,41 @@ const styles = StyleSheet.create({
 		margin: 0,
 		padding: 0,
 	},
+	sportDropdownButton: {
+		width: "100%",
+		padding: 10,
+		borderWidth: 1,
+		borderColor: "#ccc",
+		borderRadius: 5,
+		marginBottom: 15,
+		backgroundColor: "#fff",
+		justifyContent: "flex-start",
+	},
+	sportDropdownButtonTxt: {
+		color: "#223332",
+		fontSize: 14,
+	},
 	// HOTFIX:
-	dropdownButtonStyle: {
-		width: 200,
-		height: 40,
-		backgroundColor: "#223332",
-		borderRadius: 12,
-		flexDirection: "row",
-		justifyContent: "center",
-		textAlignVertical: "center",
-		verticalAlign: "middle",
-		alignItems: "center",
-		paddingHorizontal: 12,
-		marginTop: 8,
-		marginBottom: 16,
-	},
-	dropdownButtonTxtStyle: {
-		flex: 1,
-		fontSize: 16,
-		fontWeight: "500",
-		color: "#FFFFFF",
-	},
+	// dropdownButtonStyle: {
+	// 	width: 200,
+	// 	height: 40,
+	// 	backgroundColor: "#223332",
+	// 	borderRadius: 12,
+	// 	flexDirection: "row",
+	// 	justifyContent: "center",
+	// 	textAlignVertical: "center",
+	// 	verticalAlign: "middle",
+	// 	alignItems: "center",
+	// 	paddingHorizontal: 12,
+	// 	marginTop: 8,
+	// 	marginBottom: 16,
+	// },
+	// dropdownButtonTxtStyle: {
+	// 	flex: 1,
+	// 	fontSize: 16,
+	// 	fontWeight: "500",
+	// 	color: "#FFFFFF",
+	// },
 	dropdownButtonArrowStyle: {
 		fontSize: 28,
 	},
@@ -391,30 +395,71 @@ const styles = StyleSheet.create({
 		fontSize: 28,
 		marginRight: 8,
 	},
-	dropdownMenuStyle: {
-		backgroundColor: "#E9ECEF",
-		borderRadius: 8,
-	},
-	dropdownItemStyle: {
-		width: "100%",
-		backgroundColor: "#F9FCFF",
-		flexDirection: "row",
-		paddingHorizontal: 12,
-		justifyContent: "center",
-		alignItems: "center",
-		paddingVertical: 8,
-		borderRadius: 8,
-		borderBottomWidth: 1,
-		borderColor: "#000000",
-	},
-	dropdownItemTxtStyle: {
-		flex: 1,
-		fontSize: 18,
-		fontWeight: "500",
-		color: "#151E26",
-	},
+	// dropdownMenuStyle: {
+	// 	backgroundColor: "#E9ECEF",
+	// 	borderRadius: 8,
+	// },
+	// dropdownItemStyle: {
+	// 	width: "100%",
+	// 	backgroundColor: "#fff",
+	// 	flexDirection: "row",
+	// 	paddingHorizontal: 12,
+	// 	justifyContent: "flex-start",
+	// 	alignItems: "center",
+	// 	paddingVertical: 12,
+	// },
+	// dropdownItemTxtStyle: {
+	// 	flex: 1,
+	// 	fontSize: 16,
+	// 	fontWeight: "500",
+	// 	color: "#151E26",
+	// },
 	dropdownItemIconStyle: {
 		fontSize: 28,
-		marginRight: 8,
+	},
+	dropdownButtonStyle: {
+		width: "100%",
+		padding: 12,
+		borderWidth: 1,
+		borderColor: "#ccc",
+		borderRadius: 8,
+		backgroundColor: "#fff",
+		justifyContent: "center",
+		alignItems: "flex-start",
+		marginBottom: 15,
+	},
+	dropdownButtonTxtStyle: {
+		fontSize: 16,
+		color: "#223332",
+	},
+	dropdownMenuStyle: {
+		backgroundColor: "#fff",
+		borderRadius: 8,
+		paddingVertical: 4,
+	},
+	// dropdownItemStyle: {
+	// 	paddingVertical: 10,
+	// 	paddingHorizontal: 16,
+	// 	borderBottomWidth: 1,
+	// 	borderBottomColor: "#eee",
+	// },
+	// dropdownItemSelected: {
+	// 	backgroundColor: "#f0f0f0",
+	// },
+	dropdownItemTxtStyle: {
+		fontSize: 16,
+		color: "#223332",
+	},
+	dropdownItemStyle: {
+		paddingVertical: 10,
+		paddingHorizontal: 16,
+		backgroundColor: "#fff",
+	},
+	dropdownItemSelected: {
+		backgroundColor: "#f0f0f0",
+	},
+	dropdownItemBorder: {
+		borderBottomWidth: 1,
+		borderBottomColor: "#eee",
 	},
 });
