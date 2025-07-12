@@ -37,13 +37,35 @@ function myTeamInvites() {
 
 	return (
 		<View style={styles.background}>
-			{/* Boton Atras */}
-			<TouchableOpacity style={styles.goBackButton} onPress={() => router.push("/(tabs)/profile")}>
-				<Icon name="arrow-left" size={14} color="#262626" style={{ marginRight: 8 }} />
-				<Text style={{ fontSize: 14, color: "#262626" }}>Atrás</Text>
-			</TouchableOpacity>
+			<View
+				style={{
+					flexDirection: "row",
+					alignItems: "center",
+					justifyContent: "center",
+					paddingVertical: 15,
+					paddingHorizontal: 10,
+					position: "relative",
+				}}
+			>
+				<TouchableOpacity
+					onPress={() => router.push("/(tabs)/profile")}
+					style={{ position: "absolute", left: 10 }}
+				>
+					<Icon name="arrow-left" size={18} color="#262626" />
+				</TouchableOpacity>
 
-			<Text style={styles.title}>Invitaciones a Equipos</Text>
+				<View style={{ flex: 1, alignItems: "center" }}>
+					<Text
+						style={{
+							fontSize: 26,
+							fontWeight: "bold",
+							color: "#f18f01",
+						}}
+					>
+						Invitaciones a equipos
+					</Text>
+				</View>
+			</View>
 
 			{/* Invitaciones a Equipos */}
 			<View style={styles.dataContainer}>
@@ -53,6 +75,7 @@ function myTeamInvites() {
 							data={userPreferences?.team_invites}
 							keyExtractor={(item) => item}
 							scrollEnabled={true}
+							contentContainerStyle={{ paddingBottom: 80 }}
 							renderItem={({ item }) => {
 								const team = teams?.find((team) => team.team_id === item);
 								if (!team) return null;
@@ -86,7 +109,7 @@ function myTeamInvites() {
 					</View>
 				) : (
 					<Text style={{ textAlign: "center", marginTop: 40, fontSize: 18, color: "#555" }}>
-						No tienes invitaciones a equipos
+						No tienes invitaciones a equipos.
 					</Text>
 				)}
 			</View>

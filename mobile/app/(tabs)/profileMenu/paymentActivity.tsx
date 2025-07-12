@@ -5,7 +5,7 @@ import Icon from "react-native-vector-icons/FontAwesome6";
 import { useEffect, useState } from "react";
 import { Session } from "@supabase/supabase-js";
 import { router } from "expo-router";
-import { getLastUserPayments, getUserSession } from "@lib/autogen/queries";
+import { getLastUserPayments, getUserSession, getUserAuthSession } from "@lib/autogen/queries";
 
 // const hardcodedPayments = [
 // 	{ payment_id: "1", last_updated: "17/04/2025 18:21", status: "Pendiente", transaction_amount: "$9500" },
@@ -17,7 +17,8 @@ import { getLastUserPayments, getUserSession } from "@lib/autogen/queries";
 // ];
 
 export default function CardList() {
-	const { data: user } = getUserSession(supabase);
+	const { data: session } = getUserAuthSession(supabase);
+	const user = session?.user;
 	const { data: payments } = getLastUserPayments(supabase, user?.id!, { enabled: !!user?.id });
 	let date: Date | undefined = undefined;
 	let day: number | undefined = undefined;
@@ -123,14 +124,13 @@ export default function CardList() {
 const styles = StyleSheet.create({
 	container: {
 		padding: 16,
-		paddingBottom: 90,
+		paddingBottom: 100,
 	},
 	card: {
 		backgroundColor: "#fff",
 		borderRadius: 12,
 		padding: 24,
 		marginBottom: 12,
-		marginHorizontal: 6,
 		shadowColor: "#000",
 		shadowOffset: { width: 0, height: 2 },
 		shadowOpacity: 0.1,

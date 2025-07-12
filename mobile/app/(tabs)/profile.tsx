@@ -33,12 +33,19 @@ export default function Index() {
 	const avatarUrl = typeof avatarData === "string" ? avatarData : (avatarData?.avatar_url ?? "undefined_image");
 
 	return (
-		<View style={buttonStyles.containter}>
-			<View style={{ alignItems: "center", padding: 30 }}>
+		<ScrollView style={buttonStyles.containter} contentContainerStyle={{ paddingBottom: 100 }}>
+			<View style={{ alignItems: "center", paddingVertical: 25 }}>
 				{/* @todo undefined_image is a stub that'll hopefully get logged in RN Dev Tools */}
-				<Image source={{ uri: avatarUrl }} style={{ width: 100, height: 100 }} borderRadius={100} />
+				<Image source={{ uri: avatarUrl }} style={{ width: 110, height: 110 }} borderRadius={100} />
 				<Text
-					style={{ fontSize: 16, fontWeight: "bold", paddingTop: 20, textAlign: "center", color: "#223332" }}
+					style={{
+						fontSize: 16,
+						fontWeight: "bold",
+						paddingTop: 20,
+						paddingBottom: 10,
+						textAlign: "center",
+						color: "#223332",
+					}}
 				>
 					{String(username)}
 				</Text>
@@ -46,7 +53,6 @@ export default function Index() {
 
 			<ProfileMenuList />
 
-			<View style={{ flex: 1 }} />
 			<TouchableOpacity
 				style={{ alignItems: "center", padding: 30 }}
 				onPress={async () => {
@@ -59,7 +65,7 @@ export default function Index() {
 			>
 				<Text style={{ color: "red", fontSize: 16 }}>Cerrar sesión</Text>
 			</TouchableOpacity>
-		</View>
+		</ScrollView>
 	);
 }
 
@@ -68,13 +74,11 @@ const buttonStyles = StyleSheet.create({
 		marginTop: 50,
 		padding: 7,
 		borderRadius: 15,
-		//		backgroundColor: "#CC0000",
 		backgroundColor: "#223332",
 		justifyContent: "center",
 		alignSelf: "center",
 	},
 	containter: {
-		justifyContent: "space-between",
 		backgroundColor: "#f2f4f3",
 		padding: 20,
 	},
@@ -116,9 +120,9 @@ const menuItems = [
 	// { label: "Mis torneos", icon: "medal", action: () => router.push("/(tabs)/profileMenu/teams") },
 	{ label: "Pendientes", icon: "spinner", action: () => router.push("/(tabs)/profileMenu/pendings") },
 	{ label: "Chats", icon: "comments", action: () => router.push("/(tabs)/profileMenu/chats") },
-	{ label: "Usuarios Favoritos", icon: "user-group", action: () => router.push("/(tabs)/profileMenu/favUsers") },
+	{ label: "Usuarios favoritos", icon: "user-group", action: () => router.push("/(tabs)/profileMenu/favUsers") },
 	{
-		label: "Invitaciones a Equipos",
+		label: "Invitaciones a equipos",
 		icon: "list-check",
 		action: () => router.push("/(tabs)/profileMenu/teamInvites"),
 	},
@@ -126,10 +130,10 @@ const menuItems = [
 
 export function ProfileMenuList() {
 	return (
-		<View style={{ borderWidth: 1, borderColor: "#ccc", borderRadius: 10, overflow: "hidden", maxHeight: 350 }}>
+		<View style={{ borderWidth: 1, borderColor: "#ccc", borderRadius: 10, overflow: "hidden" }}>
 			<FlatList
 				data={menuItems}
-				scrollEnabled={true}
+				scrollEnabled={false}
 				keyExtractor={(item) => item.label}
 				renderItem={({ item }) => (
 					<TouchableOpacity style={itemStyles.item} onPress={item.action}>

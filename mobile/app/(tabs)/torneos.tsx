@@ -1,6 +1,16 @@
 import { supabase } from "@lib/supabase";
 import React, { useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View, Modal, ScrollView, Image, ImageBackground } from "react-native";
+import {
+	StyleSheet,
+	Text,
+	TouchableOpacity,
+	View,
+	Modal,
+	ScrollView,
+	Image,
+	ImageBackground,
+	ActivityIndicator,
+} from "react-native";
 import { ScreenHeight, ScreenWidth } from "@rneui/themed/dist/config";
 import { getAllTournaments, getFieldById, getAllSports } from "@lib/autogen/queries"; // Database Queries
 import TournamentPost from "@components/tournamentPost";
@@ -19,7 +29,7 @@ function TorneosFeed() {
 	const [selectedSport, setSelectedSport] = useState<string>("");
 
 	const { data: sports } = getAllSports(supabase);
-	const { data: torneos } = getAllTournaments(supabase);
+	const { data: torneos, isLoading: isLoadingTournaments } = getAllTournaments(supabase);
 
 	const handleSportPress = (sportName: string) => {
 		if (selectedSport === sportName) {
@@ -28,6 +38,28 @@ function TorneosFeed() {
 		}
 		setSelectedSport(sportName);
 	};
+
+	const filteredTorneos = torneos?.filter((torneo) => {
+		// Check if torneo is active and deadline is valid
+		const isActive = torneo.active;
+		const deadlineDate = new Date(torneo.deadline);
+		const now = new Date();
+		const isDeadlineValid = deadlineDate > now;
+
+		// Check if torneo matches the selected sport
+		if (selectedSport === "") return isActive && isDeadlineValid;
+		const normalizedSelectedSport = normalizeString(selectedSport);
+		const normalizedTorneoSport = normalizeString(torneo.sport);
+		return isActive && isDeadlineValid && normalizedTorneoSport.includes(normalizedSelectedSport);
+	});
+
+	if (isLoadingTournaments) {
+		return (
+			<View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#f2f4f3" }}>
+				<ActivityIndicator size="large" color="#555" />
+			</View>
+		);
+	}
 
 	return (
 		<View
@@ -77,21 +109,8 @@ function TorneosFeed() {
 				showsHorizontalScrollIndicator={false}
 				showsVerticalScrollIndicator={false}
 			>
-				{torneos
-					?.filter((torneo) => {
-						// Check if torneo is active and deadline is valid
-						const isActive = torneo.active;
-						const deadlineDate = new Date(torneo.deadline);
-						const now = new Date();
-						const isDeadlineValid = deadlineDate > now;
-
-						// Check if torneo matches the selected sport
-						if (selectedSport === "") return isActive && isDeadlineValid;
-						const normalizedSelectedSport = normalizeString(selectedSport);
-						const normalizedTorneoSport = normalizeString(torneo.sport);
-						return isActive && isDeadlineValid && normalizedTorneoSport.includes(normalizedSelectedSport);
-					})
-					.map((torneo, index) => (
+				{filteredTorneos && filteredTorneos.length > 0 ? (
+					filteredTorneos.map((torneo, index) => (
 						<TournamentPost
 							tournamentId={torneo.id}
 							key={index}
@@ -104,7 +123,12 @@ function TorneosFeed() {
 							deadline={new Date(torneo.deadline)}
 							cantPlayers={torneo.cantPlayers}
 						/>
-					))}
+					))
+				) : (
+					<View style={{ flex: 1, justifyContent: "center", alignItems: "center", paddingTop: 50 }}>
+						<Text style={{ fontSize: 16, color: "#555" }}>No hay torneos disponibles por el momento.</Text>
+					</View>
+				)}
 			</ScrollView>
 		</View>
 	);

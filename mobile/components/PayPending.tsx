@@ -17,7 +17,7 @@ const ButtonStyles = {
 		backgroundColor: "#DC6464",
 	},
 	success: {
-		backgroundColor: "#67FF67",
+		backgroundColor: "#5fd700",
 		text: "Pago exitoso",
 	},
 	pending: {
@@ -29,7 +29,7 @@ const ButtonStyles = {
 		text: "Pago rechazado",
 	},
 	default: {
-		backgroundColor: "#f18f04",
+		backgroundColor: "#223332",
 		text: "Pagar",
 	},
 };
@@ -148,6 +148,7 @@ export default function PayPending({
 				backgroundColor: ButtonStyles[status].backgroundColor,
 				borderRadius: 12,
 				opacity: 1,
+				justifyContent: "center",
 			}}
 			onPress={() => handlePress()}
 		>

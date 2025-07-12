@@ -20,9 +20,12 @@
 				"foregroundImage": "./assets/images/adaptive-icon.png",
 				"backgroundColor": "#ffffff"
 			},
-			"package": "ar.com.matchpointapp.mobile",
+			"permissions": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"],
+			"package": "com.anonymous.mobile",
 			"config": {
-				"googleMapsApiKey": "AIzaSyA1BW0dtUbR2WWrwksMXnZ8dUnwzFvdXug"
+				"googleMaps": {
+					"apiKey": "AIzaSyBw6wwGh_tfBhOikkUtc8uibxX1GPbr1ew"
+				}
 			}
 		},
 		"plugins": [

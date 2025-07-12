@@ -274,7 +274,7 @@ function PopUpTeam(props: PropsPopUpTeam) {
 									{/* PopUpTeamMemberInfo */}
 									{user?.id != member && (
 										<TouchableOpacity onPress={() => setSelectedMember(member)}>
-											<Icon name="circle-info" size={24} color="black" />
+											<Icon name="circle-info" size={24} color="#223332" />
 										</TouchableOpacity>
 									)}
 

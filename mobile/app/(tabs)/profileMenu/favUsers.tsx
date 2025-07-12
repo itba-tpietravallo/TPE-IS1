@@ -50,11 +50,12 @@ function myFriends() {
 			{/* Amigos */}
 			<View style={styles.dataContainer}>
 				{userPreferences?.fav_users.length! > 0 ? (
-					<View style={styles.row}>
+					<>
 						<FlatList
 							data={userPreferences?.fav_users}
 							keyExtractor={(item) => item}
 							scrollEnabled={true}
+							contentContainerStyle={styles.container}
 							renderItem={({ item }) => {
 								const member = usersData.data?.find((user) => user.id === item);
 								if (!member) return null;
@@ -79,11 +80,12 @@ function myFriends() {
 												<Text style={styles.teamName}>{member.full_name}</Text>
 											</View>
 											<TouchableOpacity
+												style={{ padding: 10 }}
 												onPress={() => {
 													setSelectedMember(member.id);
 												}}
 											>
-												<Icon name="ellipsis-vertical" size={20} color="#262626" />
+												<Icon name="ellipsis-vertical" size={20} color="#223332" />
 											</TouchableOpacity>
 										</View>
 									</View>
@@ -113,7 +115,7 @@ function myFriends() {
 									})()}
 							</View>
 						</Modal>
-					</View>
+					</>
 				) : (
 					<Text style={{ textAlign: "center", marginTop: 40, fontSize: 18, color: "#555" }}>
 						No tienes usuarios favoritos.
@@ -132,14 +134,13 @@ const styles = StyleSheet.create({
 	},
 	container: {
 		padding: 16,
-		paddingBottom: 90,
+		paddingBottom: 100,
 	},
 	card: {
 		backgroundColor: "#fff",
 		borderRadius: 12,
 		padding: 24,
 		marginBottom: 12,
-		marginHorizontal: 6,
 		shadowColor: "#000",
 		shadowOffset: { width: 0, height: 2 },
 		shadowOpacity: 0.1,
@@ -182,7 +183,7 @@ const styles = StyleSheet.create({
 		padding: 10,
 	},
 	dataContainer: {
-		marginBottom: 200,
+		flex: 1,
 	},
 	row: {
 		flexDirection: "row",
