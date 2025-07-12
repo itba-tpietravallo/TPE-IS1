@@ -3,7 +3,15 @@ import { View, Text, StyleSheet, TouchableOpacity, Modal, Alert, ScrollView } fr
 import { ScreenWidth } from "@rneui/themed/dist/config";
 import { supabase } from "@/lib/supabase";
 import Icon from "react-native-vector-icons/FontAwesome6";
-import { getAllUsers, useUpdateTeam, useDeleteTeam, getUserAuthSession, getTeamById } from "@lib/autogen/queries.ts";
+import {
+	getAllUsers,
+	useUpdateTeam,
+	useDeleteTeam,
+	getUserAuthSession,
+	getTeamById,
+	getUserPreferencesByUserId,
+	useUpdateUserPreferences,
+} from "@lib/autogen/queries.ts";
 import { router } from "expo-router";
 import PopUpJoinRequests from "./PopUpJoinRequests.tsx";
 import { Image } from "@rneui/themed";
@@ -22,6 +30,9 @@ function PopUpTeam(props: PropsPopUpTeam) {
 	const deleteTeamMutation = useDeleteTeam(supabase);
 
 	const { data: team } = getTeamById(supabase, props.team_id);
+	const { data: userPreferences } = getUserPreferencesByUserId(supabase, user?.id!);
+
+	const updateUserPreferencesMutation = useUpdateUserPreferences(supabase);
 
 	const [isModalVisibleJoinRequests, setIsModalVisibleJoinRequests] = useState(false); //PopUpJoinRequests
 	const [selectedMember, setSelectedMember] = useState<string | null>(null);
@@ -29,6 +40,13 @@ function PopUpTeam(props: PropsPopUpTeam) {
 	const handleCloseModalJoinRequest = () => {
 		setIsModalVisibleJoinRequests(false);
 	};
+
+	function userInvitedToTeam() {
+		if (userPreferences?.team_invites.includes(props.team_id)) {
+			return true;
+		}
+		return false;
+	}
 
 	function userAlreadyOnTeam(userId: string) {
 		if (team?.players?.includes(userId)) {
@@ -45,7 +63,7 @@ function PopUpTeam(props: PropsPopUpTeam) {
 	}
 
 	const handleJoinTeam = async () => {
-		if (team?.isPublic) {
+		if (team?.isPublic || userInvitedToTeam()) {
 			const updatedMembers = [...(team?.players || []), user?.id!];
 
 			try {
@@ -115,9 +133,28 @@ function PopUpTeam(props: PropsPopUpTeam) {
 			}
 		};
 
+		const handleDeleteTeamInvite = async () => {
+			const updatedInvitations = userPreferences?.team_invites.filter((team) => team !== props.team_id);
+			try {
+				await updateUserPreferencesMutation.mutateAsync({
+					user_id: user?.id!,
+					team_invites: updatedInvitations,
+				});
+
+				console.log("invitation deleted");
+			} catch (error) {
+				console.error("Error updating user preferences:", error);
+			}
+		};
+
 		if (team?.players.some((p) => p === null)) {
 			cleanPlayersArray();
 		}
+
+		if (team?.players.some((p) => p === user?.id)) {
+			handleDeleteTeamInvite();
+		}
+
 		deleteTeamIfEmpty();
 	}, [team?.players]);
 
@@ -267,7 +304,7 @@ function PopUpTeam(props: PropsPopUpTeam) {
 						}
 					>
 						<Text style={styles.buttonText}>
-							{team?.isPublic ? "Unirme al equipo" : "Solicitar unión al equipo"}
+							{team?.isPublic || userInvitedToTeam() ? "Unirme al equipo" : "Solicitar unión al equipo"}
 						</Text>
 					</TouchableOpacity>
 				)}
