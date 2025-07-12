@@ -8,7 +8,7 @@ import { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "./database.types";
 
 import { useEffect } from "react";
-import { useQuery,  useQueryClient } from "@tanstack/react-query";
+import { useQuery, UseQueryOptions, useQueryClient } from "@tanstack/react-query";
 
 import {
 	useQuery as useQuerySupabase,
@@ -108,14 +108,14 @@ export const queries = {
 	getInscriptionsByTournament: (supabase: SupabaseClient<Database>, tournamentId: string) =>
 		supabase.from("inscriptions").select("*").eq("tournamentId", tournamentId),
 
+	getUserPreferencesByUserId: (supabase: SupabaseClient<Database>, userId: string) =>
+		supabase.from("user_preferences").select("*").eq("user_id", userId).single(),
+
 	getFieldReviewsAvg: (supabase: SupabaseClient<Database>, fieldId: string) =>
 		supabase.from("field_reviews").select("rating").eq("field_id", fieldId),
 
 	getCurrentUserFieldReview: (supabase: SupabaseClient<Database>, fieldId: string, userId: string) =>
 		supabase.from("field_reviews").select("rating").eq("field_id", fieldId).eq("user_id", userId).single(),
-
-	getUserPreferencesByUserId: (supabase: SupabaseClient<Database>, userId: string) =>
-		supabase.from("user_preferences").select("*").eq("user_id", userId).single(),
 };
 
 export const mutations = {

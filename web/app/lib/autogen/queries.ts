@@ -110,6 +110,12 @@ export const queries = {
 
 	getUserPreferencesByUserId: (supabase: SupabaseClient<Database>, userId: string) =>
 		supabase.from("user_preferences").select("*").eq("user_id", userId).single(),
+
+	getFieldReviewsAvg: (supabase: SupabaseClient<Database>, fieldId: string) =>
+		supabase.from("field_reviews").select("rating").eq("field_id", fieldId),
+
+	getCurrentUserFieldReview: (supabase: SupabaseClient<Database>, fieldId: string, userId: string) =>
+		supabase.from("field_reviews").select("rating").eq("field_id", fieldId).eq("user_id", userId).single(),
 };
 
 export const mutations = {
@@ -156,6 +162,10 @@ export const mutations = {
 	updateReservation: (supabase: SupabaseClient<Database>) =>
 		useUpdateMutation(supabase.from("reservations"), ["id"], "*", {
 			onError: (error) => console.error("Error updating reservation:", error),
+		}),
+	insertFieldReview: (supabase: SupabaseClient<Database>) =>
+		useUpsertMutation(supabase.from("field_reviews"), ["field_id", "user_id"], "*", {
+			onError: (error) => console.error("Error inserting review:", error),
 		}),
 };
 
@@ -745,4 +755,26 @@ export function useUpsertUserPreferences(supabase: SupabaseClient<Database>) {
 			},
 		},
 	);
+}
+
+export function getFieldReviewsAvg(supabase: SupabaseClient<Database>, fieldId: string, opts: any = undefined) {
+	return useQuerySupabase(queries.getFieldReviewsAvg(supabase, fieldId), opts);
+}
+
+export function getCurrentUserFieldReview(
+	supabase: SupabaseClient<Database>,
+	fieldId: string,
+	userId: string,
+	opts: any = undefined,
+) {
+	return useQuerySupabase(queries.getCurrentUserFieldReview(supabase, fieldId, userId), opts);
+}
+
+export function useInsertFieldReview(supabase: SupabaseClient<Database>) {
+	return useUpsertMutation(supabase.from("field_reviews"), ["field_id", "user_id"], "*", {
+		onConflict: "field_id,user_id",
+		onError: (error) => {
+			console.error("Error inserting or updating review:", error);
+		},
+	});
 }
