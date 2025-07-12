@@ -17,7 +17,7 @@ const ButtonStyles = {
 		backgroundColor: "#DC6464",
 	},
 	success: {
-		backgroundColor: "#67FF67",
+		backgroundColor: "#5fd700",
 		text: "Pago exitoso",
 	},
 	pending: {

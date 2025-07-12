@@ -219,25 +219,29 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 
 	return (
 		<View style={styles.modalView}>
-			<View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+			<View
+				style={{
+					flexDirection: "row",
+					justifyContent: "space-between",
+					alignItems: "center",
+					marginTop: 10,
+					marginLeft: 10,
+					marginRight: 10,
+				}}
+			>
 				{/* Boton cerrar PopUp */}
-				<TouchableOpacity style={{ padding: 10, alignItems: "flex-start", marginLeft: 10 }} onPress={onClose}>
-					<Icon name="xmark" size={24} color="black" style={{ marginTop: 10 }} />
+				<TouchableOpacity style={{ padding: 10, alignItems: "flex-start" }} onPress={onClose}>
+					<Icon name="xmark" size={24} color="black" />
 				</TouchableOpacity>
 
 				{/* Boton agregar a favoritos */}
 				<TouchableOpacity
-					style={{ padding: 10, alignItems: "flex-start", marginLeft: 10 }}
+					style={{ padding: 10, alignItems: "flex-start" }}
 					onPress={() => {
 						handleManageFavorites(fieldId);
 					}}
 				>
-					<Icon
-						name={fieldIsFavorite(fieldId) ? "heart-circle-check" : "heart"}
-						size={24}
-						color="black"
-						style={{ marginTop: 10 }}
-					/>
+					<Icon name={fieldIsFavorite(fieldId) ? "heart-circle-check" : "heart"} size={24} color="black" />
 				</TouchableOpacity>
 			</View>
 			<View style={{ flex: 1, justifyContent: "space-between" }}>
