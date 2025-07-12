@@ -7,11 +7,14 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "./database.types";
 
+
 import { useEffect } from "react";
 import {
+
   useQuery,
   UseQueryOptions,
   useQueryClient,
+
 } from "@tanstack/react-query";
 
 import {
@@ -22,6 +25,7 @@ import {
 } from "@supabase-cache-helpers/postgrest-react-query";
 
 export const queries = {
+
   getAllFields: (supabase: SupabaseClient<Database>) =>
     supabase.from("fields").select("*"),
 
@@ -106,12 +110,14 @@ export const queries = {
   getUserAuthSession: (supabase: SupabaseClient<Database>) =>
     supabase.auth.getSession().then((res) => res.data.session),
 
+
   getIsLinkedToPaymentMethod: (supabase: SupabaseClient<Database>, user_id: string) =>
     supabase
       .from("mp_oauth_authorization")
       .select("user_id")
       .eq("user_id", user_id)
       .single(),
+
 
   getLastUserPayments: (supabase: SupabaseClient<Database>, userId: string) =>
     supabase
@@ -131,7 +137,9 @@ export const queries = {
   getAllTeamsByUser: (supabase: SupabaseClient<Database>, userId: string) =>
     supabase
       .from("teams")
+
       .select("team_id, name, images")
+
       .contains("players", [userId]),
 
   getAllTeamsByAdminUser: (
@@ -165,6 +173,28 @@ export const queries = {
     tournamentId: string
   ) =>
     supabase.from("inscriptions").select("*").eq("tournamentId", tournamentId),
+
+
+  getTeamsByUser: (supabase: SupabaseClient<Database>, userId: string) =>
+    supabase.from("teams").select("*").eq("owner", userId),
+
+  getInscriptionsByTeam: (
+    supabase: SupabaseClient<Database>,
+    teamIds: string[]
+  ) => supabase.from("inscriptions").select("*").in("team_id", teamIds),
+
+  getTournamentsByInscriptions: (
+    supabase: SupabaseClient<Database>,
+    tournamentIds: string[]
+  ) => supabase.from("tournaments").select("*").in("id", tournamentIds),
+
+  getUserTournaments: (supabase: SupabaseClient<Database>, userId: string) =>
+    supabase
+      .from("inscriptions")
+      .select("tournament: tournaments(*), team: teams(*)")
+      .contains("team.players", [userId]),
+
+
 };
 
 export const mutations = {
@@ -215,17 +245,22 @@ export const mutations = {
 };
 
 export function getAllFields(
-  supabase: SupabaseClient<Database>,
-  opts: any = undefined
+
+
+	supabase: SupabaseClient<Database>,
+	opts: any = undefined
+
 ) {
   return useQuerySupabase(queries.getAllFields(supabase), opts);
 }
 
 export function getIsFieldOwner(
+
   supabase: SupabaseClient<Database>,
   fieldId: string,
   userId: string,
   opts: any = undefined
+
 ) {
   return useQuerySupabase(queries.getIsFieldOwner(supabase, fieldId, userId), {
     enabled: !!(fieldId && userId),
@@ -234,6 +269,7 @@ export function getIsFieldOwner(
 }
 
 export function getNearbyFields(
+
   supabase: SupabaseClient<Database>,
   lat: number,
   long: number,
@@ -346,6 +382,7 @@ export function getUserSession(
     enabled: !!userId,
     ...opts,
   });
+
 }
 
 export function getUserLinkedToPaymentMethod(
@@ -360,6 +397,7 @@ export function getUserLinkedToPaymentMethod(
       ...opts,
     }
   );
+
 }
 
 export function getUsername(
@@ -367,9 +405,11 @@ export function getUsername(
   userId: string,
   opts: any = undefined
 ) {
+
   return useQuery<{ username: string, full_name: string }>({
     queryKey: [userId, "username"],
     queryFn: async (): Promise<{ username: string, full_name: string }> => {
+
       let username: string;
       const { data, error } = await queries.getUsername(supabase, userId);
 
@@ -395,7 +435,9 @@ export function getUsername(
         username = data.username;
       }
 
+
       return { username, full_name: data?.full_name! };
+
     },
     enabled: !!userId,
     ...opts,
@@ -499,6 +541,7 @@ export function getUserReservations(
 export function getUserEmailById(
   supabase: SupabaseClient<Database>,
   id: string
+
 ) {
   return useQuerySupabase(
     supabase.from("users").select("email").eq("id", id).single(),
@@ -506,6 +549,54 @@ export function getUserEmailById(
       enabled: !!id,
     }
   );
+}
+
+export function getTeamsByUser(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  opts: any = undefined
+) {
+  return useQuerySupabase(queries.getTeamsByUser(supabase, userId), {
+    enabled: !!userId,
+    ...opts,
+  });
+}
+
+export function getInscriptionsByTeam(
+  supabase: SupabaseClient<Database>,
+  teamIds: string[],
+  opts: any = undefined
+) {
+  return useQuerySupabase(queries.getInscriptionsByTeam(supabase, teamIds), {
+    enabled: teamIds.length > 0,
+    ...opts,
+  });
+}
+
+export function getTournamentsByInscriptions(
+  supabase: SupabaseClient<Database>,
+  tournamentIds: string[],
+  opts: any = undefined
+) {
+  return useQuerySupabase(
+    queries.getTournamentsByInscriptions(supabase, tournamentIds),
+    {
+      enabled: tournamentIds.length > 0,
+      ...opts,
+    }
+  );
+}
+
+export function getUserTournaments(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  opts: any = undefined
+) {
+  return useQuerySupabase(queries.getUserTournaments(supabase, userId), {
+    enabled: !!userId,
+    ...opts,
+  });
+
 }
 
 export function useUpdateField(supabase: SupabaseClient<Database>) {
@@ -656,6 +747,7 @@ export function useDeleteTournament(supabase: SupabaseClient<Database>) {
 
   // Return the mutation with the correct interface
   return deleteHook;
+
 }
 
 // lo copié y pegué del updateTeam
@@ -671,6 +763,7 @@ export function useUpdateTournament(supabase: SupabaseClient<Database>) {
       },
     }
   );
+
 }
 export function useInsertReservation(supabase: SupabaseClient<Database>) {
   // Using the built-in useInsertMutation from supabase-cache-helpers
@@ -843,6 +936,7 @@ export function useDeleteReservation(supabase: SupabaseClient<Database>) {
       },
     }
   );
+
 }
 
 export const messagesQueryKey = (roomId: string) => [
@@ -853,6 +947,7 @@ export const messagesQueryKey = (roomId: string) => [
   "room_id",
   roomId,
 ];
+
 
 export function useChatMessages(
   supabase: SupabaseClient<Database> | null,

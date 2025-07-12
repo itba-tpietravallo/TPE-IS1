@@ -110,10 +110,12 @@ const itemStyles = StyleSheet.create({
 });
 
 const menuItems = [
-	{ label: "Actividad", icon: "money-check", action: () => router.push("/(tabs)/profileMenu/paymentActivity") },
-	{ label: "Reservas", icon: "calendar-check", action: () => router.push("/(tabs)/profileMenu/reservations") },
-	{ label: "Equipos", icon: "user-group", action: () => router.push("/(tabs)/profileMenu/teams") },
-	// { label: "Mis torneos", icon: "medal", action: () => router.push("/(tabs)/profileMenu/teams") },
+
+	{ label: "Mi actividad", icon: "money-check", action: () => router.push("/(tabs)/profileMenu/paymentActivity") },
+	{ label: "Mis reservas", icon: "calendar-check", action: () => router.push("/(tabs)/profileMenu/reservations") },
+	{ label: "Mis equipos", icon: "user-group", action: () => router.push("/(tabs)/profileMenu/teams") },
+	{ label: "Mis torneos", icon: "medal", action: () => router.push("/(tabs)/profileMenu/tournaments") },
+
 	{ label: "Pendientes", icon: "spinner", action: () => router.push("/(tabs)/profileMenu/pendings") },
 	{ label: "Chats", icon: "comments", action: () => router.push("/(tabs)/profileMenu/chats") },
 ];

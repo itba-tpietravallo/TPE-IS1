@@ -33,6 +33,7 @@ interface PopUpReservaProps {
 	deadline: Date;
 	cantPlayers: number;
 	tournamentId: string;
+	alreadyJoined?: boolean;
 }
 
 function getPlayerListItem(player: NonNullable<ReturnType<typeof getAllUsers>["data"]>[number] & { id: string }) {
@@ -60,6 +61,7 @@ function PopUpTorneo({
 	price,
 	deadline,
 	cantPlayers,
+	alreadyJoined,
 }: PopUpReservaProps) {
 	const [isModalVisible, setIsModalVisible] = useState(false);
 	const usersData = getAllUsers(supabase);
@@ -171,9 +173,15 @@ function PopUpTorneo({
 						<Text style={styles.value}>{deadline.toLocaleDateString()}</Text>
 					</View>
 				</View>
-				<TouchableOpacity style={styles.button} onPress={() => setIsModalVisible(true)}>
-					<Text style={styles.buttonText}>Inscribirse</Text>
-				</TouchableOpacity>
+				{alreadyJoined ? (
+					<View style={[styles.button, { backgroundColor: "#ccc" }]}>
+						<Text style={styles.buttonText}>Ya estás inscripto</Text>
+					</View>
+				) : (
+					<TouchableOpacity style={styles.button} onPress={() => setIsModalVisible(true)}>
+						<Text style={styles.buttonText}>Inscribirse</Text>
+					</TouchableOpacity>
+				)}
 
 				<Modal visible={isModalVisible} transparent={true} onRequestClose={() => setIsModalVisible(false)}>
 					<AutocompleteDropdownContextProvider>
