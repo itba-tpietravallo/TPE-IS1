@@ -7,10 +7,9 @@ import {
 	getUserAuthSession,
 	useUpdateTeam,
 	getTeamById,
-	getFavoriteUsersByUserId,
-	useUpdateUserPreferences,
+	useUpsertUserPreferences,
+	getUserPreferencesByUserId,
 } from "@/lib/autogen/queries";
-import { useState } from "react";
 
 type PropsPopUpTeamMemberInfo = {
 	onClose: () => void;
@@ -28,8 +27,8 @@ function PopUpTeamMemberInfo(props: PropsPopUpTeamMemberInfo) {
 
 	const { data: team } = getTeamById(supabase, props.team_id);
 
-	const { data: favUsers } = getFavoriteUsersByUserId(supabase, user?.id!);
-	const updateUserPreferences = useUpdateUserPreferences(supabase);
+	const { data: userPreferences } = getUserPreferencesByUserId(supabase, user?.id!);
+	const upsertUserPreferences = useUpsertUserPreferences(supabase);
 
 	const handleDeletePlayer = async (player: string) => {
 		const updatedPlayers = team!.players.filter((member) => member !== player);
@@ -81,16 +80,20 @@ function PopUpTeamMemberInfo(props: PropsPopUpTeamMemberInfo) {
 	const handleManageFavorites = async (player: string) => {
 		var updatedFavorites;
 		if (!userIsFavorite(player)) {
-			updatedFavorites = [...(favUsers?.fav_users || []), player];
+			updatedFavorites = [...(userPreferences?.fav_users || []), player];
 		} else {
-			updatedFavorites = favUsers?.fav_users.filter((member) => member !== player);
+			updatedFavorites = userPreferences?.fav_users.filter((member) => member !== player);
 		}
 
 		try {
-			await updateUserPreferences.mutateAsync({
-				user_id: user?.id,
-				fav_users: updatedFavorites,
-			});
+			await upsertUserPreferences.mutateAsync([
+				{
+					user_id: user?.id!,
+					fav_fields: userPreferences?.fav_fields || [],
+					fav_users: updatedFavorites!,
+					team_invites: userPreferences?.team_invites || [],
+				},
+			]);
 
 			console.log("added to favorites");
 		} catch (error) {
@@ -99,7 +102,7 @@ function PopUpTeamMemberInfo(props: PropsPopUpTeamMemberInfo) {
 	};
 
 	function userIsFavorite(userId: string) {
-		if (favUsers?.fav_users.includes(userId)) {
+		if (userPreferences?.fav_users.includes(userId)) {
 			return true;
 		}
 		return false;

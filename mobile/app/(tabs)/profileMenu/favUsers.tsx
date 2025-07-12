@@ -5,13 +5,13 @@ import { useState } from "react";
 import { router } from "expo-router";
 import Icon from "react-native-vector-icons/FontAwesome6";
 import PopUpFriend from "@/components/PopUpFriend";
-import { getUserAuthSession, getFavoriteUsersByUserId, getAllUsers } from "@/lib/autogen/queries";
+import { getUserAuthSession, getUserPreferencesByUserId, getAllUsers } from "@/lib/autogen/queries";
 
 function myFriends() {
 	const { data: session } = getUserAuthSession(supabase);
 	const user = session?.user;
 	const usersData = getAllUsers(supabase);
-	const { data: favUsers } = getFavoriteUsersByUserId(supabase, user?.id!);
+	const { data: userPreferences } = getUserPreferencesByUserId(supabase, user?.id!);
 
 	const [selectedMember, setSelectedMember] = useState<string | null>(null);
 
@@ -27,10 +27,10 @@ function myFriends() {
 
 			{/* Amigos */}
 			<View style={styles.dataContainer}>
-				{favUsers?.fav_users.length! > 0 ? (
+				{userPreferences?.fav_users.length! > 0 ? (
 					<View style={styles.row}>
 						<FlatList
-							data={favUsers?.fav_users}
+							data={userPreferences?.fav_users}
 							keyExtractor={(item) => item}
 							scrollEnabled={true}
 							renderItem={({ item }) => {

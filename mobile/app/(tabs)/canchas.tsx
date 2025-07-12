@@ -2,7 +2,7 @@ import FieldPost from "@components/fieldPost";
 import { ScrollView, Text, View, SafeAreaView, StyleSheet, TouchableOpacity, Button } from "react-native";
 import { supabase } from "@lib/supabase";
 import React, { useEffect, useState } from "react";
-import { getAllFields, getAllSports, getFavoriteFieldsByUserId, getUserAuthSession } from "@lib/autogen/queries"; // Database Queries
+import { getAllFields, getAllSports, getUserAuthSession, getUserPreferencesByUserId } from "@lib/autogen/queries"; // Database Queries
 import Icon from "react-native-vector-icons/FontAwesome6";
 
 type Field = {
@@ -44,7 +44,7 @@ function CanchasFeed() {
 
 	const { data: fields } = getAllFields(supabase);
 	const { data: sports } = getAllSports(supabase);
-	const { data: favFields } = getFavoriteFieldsByUserId(supabase, user?.id!);
+	const { data: userPreferences } = getUserPreferencesByUserId(supabase, user?.id!);
 
 	const handleSportPress = (sportName: string) => {
 		if (selectedSport === sportName) {
@@ -119,7 +119,7 @@ function CanchasFeed() {
 					?.filter((field) => {
 						if (selectedSport === "") return true;
 						if (selectedSport === favFieldsStr) {
-							return favFields?.fav_fields.includes(field.id);
+							return userPreferences?.fav_fields.includes(field.id);
 						}
 						const normalizedSelectedSport = normalizeString(selectedSport);
 

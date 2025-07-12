@@ -12,9 +12,9 @@ import {
 	getAllTeamsByAdminUser,
 	getUsername,
 	getUserAuthSession,
-	getFavoriteFieldsByUserId,
-	useUpdateUserPreferences,
+	getUserPreferencesByUserId,
 	getFieldById,
+	useUpsertUserPreferences,
 } from "@/lib/autogen/queries";
 import Selector from "./Selector";
 
@@ -51,8 +51,8 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 
 	const timezone = "America/Argentina/Buenos_Aires";
 
-	const { data: favFields } = getFavoriteFieldsByUserId(supabase, user?.id!);
-	const updateUserPreferences = useUpdateUserPreferences(supabase);
+	const { data: userPreferences } = getUserPreferencesByUserId(supabase, user?.id!);
+	const upsertUserPreferences = useUpsertUserPreferences(supabase);
 
 	const teams: Renter[] = normalizedTeams.map((team) => ({
 		id: team.team_id,
@@ -135,16 +135,20 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 	const handleManageFavorites = async (field: string) => {
 		var updatedFavorites;
 		if (!fieldIsFavorite(field)) {
-			updatedFavorites = [...(favFields?.fav_fields || []), field];
+			updatedFavorites = [...(userPreferences?.fav_fields || []), field];
 		} else {
-			updatedFavorites = favFields?.fav_fields.filter((item) => item !== field);
+			updatedFavorites = userPreferences?.fav_fields.filter((item) => item !== field);
 		}
 
 		try {
-			await updateUserPreferences.mutateAsync({
-				user_id: user?.id,
-				fav_fields: updatedFavorites,
-			});
+			await upsertUserPreferences.mutateAsync([
+				{
+					user_id: user?.id!,
+					fav_fields: updatedFavorites!,
+					fav_users: userPreferences?.fav_users || [],
+					team_invites: userPreferences?.team_invites || [],
+				},
+			]);
 
 			console.log("managed favorites");
 		} catch (error) {
@@ -153,7 +157,7 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 	};
 
 	function fieldIsFavorite(fieldId: string) {
-		if (favFields?.fav_fields.includes(fieldId)) {
+		if (userPreferences?.fav_fields.includes(fieldId)) {
 			return true;
 		}
 		return false;

@@ -5,10 +5,9 @@ import { Image } from "@rneui/themed";
 import { supabase } from "@lib/supabase";
 import {
 	getUserAuthSession,
-	getFavoriteUsersByUserId,
 	useUpdateUserPreferences,
 	getAllTeamsByAdminUser,
-	getTeamInvitesByUserId,
+	getUserPreferencesByUserId,
 	useUpsertUserPreferences,
 } from "@/lib/autogen/queries";
 import { useState } from "react";
@@ -28,14 +27,14 @@ function PopUpFriend(props: PropsPopUpFriend) {
 
 	const [selectedTeam, setSelectedTeam] = useState<string>();
 	const { data: myTeams } = getAllTeamsByAdminUser(supabase, user?.id!);
-	const { data: favUsers } = getFavoriteUsersByUserId(supabase, user?.id!);
-	const { data: userTeamInvites } = getTeamInvitesByUserId(supabase, props.id);
+	const { data: userPreferences } = getUserPreferencesByUserId(supabase, user?.id!);
+	const { data: friendUserPreferences } = getUserPreferencesByUserId(supabase, props.id);
 
 	const updateUserPreferences = useUpdateUserPreferences(supabase);
 	const upsertUserPreferences = useUpsertUserPreferences(supabase);
 
 	const handleDeleteFavorite = async (player: string) => {
-		const updatedFavorites = favUsers?.fav_users.filter((member) => member !== player);
+		const updatedFavorites = userPreferences?.fav_users.filter((member) => member !== player);
 
 		try {
 			await updateUserPreferences.mutateAsync({
@@ -51,14 +50,14 @@ function PopUpFriend(props: PropsPopUpFriend) {
 	};
 
 	const handleInviteToTeam = async (userId: string, teamId: string) => {
-		const updatedInvitations = [...(userTeamInvites?.team_invites || []), teamId];
+		const updatedInvitations = [...(userPreferences?.team_invites || []), teamId];
 
 		try {
 			await upsertUserPreferences.mutateAsync([
 				{
 					user_id: props.id,
-					fav_fields: [],
-					fav_users: [],
+					fav_fields: userPreferences?.fav_fields || [],
+					fav_users: userPreferences?.fav_users || [],
 					team_invites: updatedInvitations,
 				},
 			]);
@@ -67,18 +66,14 @@ function PopUpFriend(props: PropsPopUpFriend) {
 		} catch (error) {
 			console.error("Error upserting user preferences:", error);
 		}
-
-		// try {
-		// 	await updateUserPreferences.mutateAsync({
-		// 		user_id: userId,
-		// 		team_invites: updatedInvitations,
-		// 	});
-
-		// 	console.log("invited");
-		// } catch (error) {
-		// 	console.error("Error inviting user to team:", error);
-		// }
 	};
+
+	function userAlreadyInvited(teamId: string) {
+		if (friendUserPreferences?.team_invites.some((invite) => invite === teamId)) {
+			return true;
+		}
+		return false;
+	}
 
 	return (
 		<View style={styles.modalView}>
@@ -110,42 +105,60 @@ function PopUpFriend(props: PropsPopUpFriend) {
 
 			<View>
 				{/* Invitaciones a equipos */}
-				{myTeams?.length! > 0 && (
-					<View style={styles.buttonsContainer}>
-						<SelectDropdown
-							defaultValue={(myTeams ?? [])[0] || ""}
-							onSelect={(itemValue, index) => setSelectedTeam(itemValue)}
-							data={myTeams?.map((team) => team.name) || []}
-							dropdownStyle={{ backgroundColor: "white", gap: 5, borderRadius: 8 }}
-							renderButton={(selectedItem) => {
-								return (
-									<View style={[styles.button, styles.friendRequestButton]}>
-										<Icon name="share" size={18} color="black" style={{ marginRight: 10 }} />
-										<Text style={styles.buttonText}>
-											{selectedItem
+
+				<View style={styles.buttonsContainer}>
+					<SelectDropdown
+						defaultValue={myTeams?.length ? myTeams[0].name : null}
+						data={myTeams?.length! > 0 ? myTeams?.map((team) => team.name) || [] : ["No tienes equipos"]}
+						onSelect={(itemValue, index) => {
+							if (itemValue === "No tienes equipos") return;
+							setSelectedTeam(itemValue);
+						}}
+						dropdownStyle={{
+							backgroundColor: "white",
+							gap: 5,
+							borderRadius: 8,
+						}}
+						renderButton={(selectedItem) => {
+							const noTeams = myTeams?.length === 0;
+							return (
+								<View style={[styles.button, styles.friendRequestButton, noTeams && { opacity: 0.6 }]}>
+									<Icon name="share" size={18} color="black" style={{ marginRight: 10 }} />
+									<Text style={styles.buttonText}>
+										{noTeams
+											? "No puedes invitar sin equipos"
+											: selectedItem
 												? "Invitar a mi Equipo: " + selectedItem
 												: "Invitar a mis equipos"}
-										</Text>
-									</View>
-								);
-							}}
-							renderItem={(item, isSelected) => {
-								return (
-									<View
+									</Text>
+								</View>
+							);
+						}}
+						renderItem={(item, isSelected) => {
+							const isMessage = item === "No tienes equipos";
+							return (
+								<View
+									style={{
+										...styles.dropdownItemStyle,
+										backgroundColor: isMessage ? "#f0f0f0" : isSelected ? "#D2D9DF" : "white",
+									}}
+								>
+									<Text
 										style={{
-											...styles.dropdownItemStyle,
-											...(isSelected && { backgroundColor: "#D2D9DF" }),
+											...styles.dropdownItemTxtStyle,
+											color: isMessage ? "gray" : "black",
+											fontStyle: isMessage ? "italic" : "normal",
 										}}
 									>
-										<Text style={styles.dropdownItemTxtStyle}>{item}</Text>
-									</View>
-								);
-							}}
-						/>
-					</View>
-				)}
+										{item}
+									</Text>
+								</View>
+							);
+						}}
+					/>
+				</View>
 
-				{selectedTeam && (
+				{selectedTeam && !userAlreadyInvited(selectedTeam) && (
 					<View style={styles.buttonsContainer}>
 						<TouchableOpacity
 							style={[styles.button, styles.friendRequestButton]}
@@ -154,6 +167,15 @@ function PopUpFriend(props: PropsPopUpFriend) {
 							<Icon name="check" size={18} color="black" style={{ marginRight: 10 }} />
 							<Text style={styles.buttonText}>Confirmar invitación</Text>
 						</TouchableOpacity>
+					</View>
+				)}
+
+				{selectedTeam && userAlreadyInvited(selectedTeam) && (
+					<View style={styles.buttonsContainer}>
+						<View style={[styles.button, styles.friendRequestButton]}>
+							<Icon name="check" size={18} color="black" style={{ marginRight: 10 }} />
+							<Text style={styles.buttonText}>El usuario fue invitado al equipo!</Text>
+						</View>
 					</View>
 				)}
 
