@@ -199,7 +199,7 @@ export function ProfileInfo({ email, userName, phone, url_origin, isLinked }: Pr
 					</div>
 
 					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-						<div className="space-y-2">
+						{/* <div className="space-y-2">
 							<div className="flex items-center gap-2">
 								<Phone className="h-4 w-4 text-muted-foreground" />
 								<Label htmlFor="phone">Teléfono</Label>
@@ -211,9 +211,9 @@ export function ProfileInfo({ email, userName, phone, url_origin, isLinked }: Pr
 								onChange={handlePhoneChange}
 							/>
 							{!phoneSaved && phoneInput === "" && (
-								<p className="text-sm text-muted-foreground">(no vinculado)</p>
+								<p className="text-sm text-muted-foreground">(no vinculado)</p> 
 							)}
-						</div>
+						</div> */}
 
 						<div className="space-y-2">
 							<div className="flex items-center gap-2">
