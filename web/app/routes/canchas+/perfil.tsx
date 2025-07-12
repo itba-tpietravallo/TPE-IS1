@@ -166,13 +166,16 @@ export function ProfileInfo({ email, userName, phone, url_origin, isLinked, user
 
 	const handleUnlinkPayment = async () => {
 		if (!supabase || !userId) return;
-		
-		await unlinkPaymentMutation.mutateAsync({
-			user_id: userId,
-		}).then(console.log).catch((error) => {
-			console.error("Error unlinking payment method:", error);
-			return;
-		});
+
+		await unlinkPaymentMutation
+			.mutateAsync({
+				user_id: userId,
+			})
+			.then(console.log)
+			.catch((error) => {
+				console.error("Error unlinking payment method:", error);
+				return;
+			});
 	};
 
 	const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -249,7 +252,7 @@ export function ProfileInfo({ email, userName, phone, url_origin, isLinked, user
 											/>
 										</svg>
 										<span className="text-sm font-medium">Mercado Pago vinculado</span>
-										<button 
+										<button
 											className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-green-600 hover:bg-green-100 hover:text-red-600"
 											onClick={handleUnlinkPayment}
 										>
