@@ -118,17 +118,12 @@ function PopUpTeamMemberInfo(props: PropsPopUpTeamMemberInfo) {
 
 				{/* Boton agregar a favoritos */}
 				<TouchableOpacity
-					style={{ padding: 10, alignItems: "flex-start", marginLeft: 10 }}
+					style={{ alignItems: "flex-start" }}
 					onPress={() => {
 						handleManageFavorites(props.id);
 					}}
 				>
-					<Icon
-						name={userIsFavorite(props.id) ? "heart-circle-check" : "heart"}
-						size={24}
-						color="black"
-						style={{ marginTop: 10 }}
-					/>
+					<Icon name={userIsFavorite(props.id) ? "heart-circle-check" : "heart"} size={24} color="black" />
 				</TouchableOpacity>
 			</View>
 
@@ -213,7 +208,7 @@ const styles = StyleSheet.create({
 		marginBottom: 10,
 	},
 	name: {
-		fontSize: 24,
+		fontSize: 20,
 		fontWeight: "bold",
 		color: "#f18f01",
 		marginBottom: 6,
@@ -255,7 +250,6 @@ const styles = StyleSheet.create({
 	buttonText: {
 		color: "#333",
 		fontSize: 16,
-		fontWeight: "600",
 		textAlign: "center",
 	},
 	friendRequestButton: {
