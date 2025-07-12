@@ -73,23 +73,24 @@ function CanchasFeed() {
 						justifyContent: "center",
 						alignItems: "center",
 						paddingRight: 10,
+						paddingLeft: 10,
+						overflowY: "hidden",
 					}}
 				>
-					{(sports || [])?.length > 0 && (
-						<View style={{ padding: 10 }}>
-							<TouchableOpacity
-								style={[
-									styles.sportButton,
-									selectedSport === favFieldsStr ? styles.selectedSportButton : {},
-								]}
-								onPress={() => handleSportPress(favFieldsStr)}
-							>
-								<Icon name={"heart"} color="black" />
-							</TouchableOpacity>
-						</View>
-					)}
+					<View style={{ padding: 5 }}>
+						<TouchableOpacity
+							style={[
+								styles.sportButton,
+								selectedSport === favFieldsStr ? styles.selectedSportButton : {},
+							]}
+							onPress={() => handleSportPress(favFieldsStr)}
+						>
+							<Icon name={"heart"} color="black" />
+						</TouchableOpacity>
+					</View>
+
 					{sports?.map((sport) => (
-						<View key={sport.name} style={{ padding: 10 }}>
+						<View key={sport.name} style={{ padding: 5 }}>
 							<TouchableOpacity
 								key={sport.name}
 								style={[
@@ -109,6 +110,7 @@ function CanchasFeed() {
 					)}
 				</ScrollView>
 			</View>
+
 			<ScrollView
 				horizontal={false}
 				contentContainerStyle={{ flexDirection: "column", paddingBottom: 100 }}
@@ -161,7 +163,6 @@ const styles = StyleSheet.create({
 		backgroundColor: "#CC0000",
 	},
 	sportsContainer: {
-		// Puedes ajustar esta altura según lo que necesites
 		height: 40,
 		marginTop: 0,
 		flexDirection: "row",
