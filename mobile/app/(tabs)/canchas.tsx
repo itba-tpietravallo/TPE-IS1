@@ -1,5 +1,14 @@
 import FieldPost from "@components/fieldPost";
-import { ScrollView, Text, View, SafeAreaView, StyleSheet, TouchableOpacity, Button } from "react-native";
+import {
+	ScrollView,
+	Text,
+	View,
+	SafeAreaView,
+	StyleSheet,
+	TouchableOpacity,
+	Button,
+	ActivityIndicator,
+} from "react-native";
 import { supabase } from "@lib/supabase";
 import React, { useEffect, useState } from "react";
 import { getAllFields, getAllSports, getUserAuthSession, getUserPreferencesByUserId } from "@lib/autogen/queries"; // Database Queries
@@ -42,7 +51,7 @@ function CanchasFeed() {
 	const { data: session } = getUserAuthSession(supabase);
 	const user = session?.user;
 
-	const { data: fields } = getAllFields(supabase);
+	const { data: fields, isLoading: isLoadingFields } = getAllFields(supabase);
 	const { data: sports } = getAllSports(supabase);
 	const { data: userPreferences } = getUserPreferencesByUserId(supabase, user?.id!);
 
@@ -53,6 +62,27 @@ function CanchasFeed() {
 		}
 		setSelectedSport(sportName);
 	};
+
+	const filteredFields = fields?.filter((field) => {
+		if (selectedSport === "") return true;
+		if (selectedSport === favFieldsStr) {
+			return userPreferences?.fav_fields.includes(field.id);
+		}
+		const normalizedSelectedSport = normalizeString(selectedSport);
+
+		return field.sports.some((fieldSport) => {
+			const normalizedFieldSport = normalizeString(fieldSport);
+			return normalizedFieldSport.includes(normalizedSelectedSport);
+		});
+	});
+
+	if (isLoadingFields) {
+		return (
+			<View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#f2f4f3" }}>
+				<ActivityIndicator size="large" color="#555" />
+			</View>
+		);
+	}
 
 	return (
 		<View
@@ -117,20 +147,8 @@ function CanchasFeed() {
 				showsHorizontalScrollIndicator={false}
 				showsVerticalScrollIndicator={false}
 			>
-				{fields
-					?.filter((field) => {
-						if (selectedSport === "") return true;
-						if (selectedSport === favFieldsStr) {
-							return userPreferences?.fav_fields.includes(field.id);
-						}
-						const normalizedSelectedSport = normalizeString(selectedSport);
-
-						return field.sports.some((fieldSport) => {
-							const normalizedFieldSport = normalizeString(fieldSport);
-							return normalizedFieldSport.includes(normalizedSelectedSport);
-						});
-					})
-					.map((field) => (
+				{filteredFields && filteredFields.length > 0 ? (
+					filteredFields.map((field) => (
 						<FieldPost
 							name={field.name}
 							fieldId={field.id}
@@ -141,7 +159,12 @@ function CanchasFeed() {
 							description={field.description || ""}
 							price={field.price}
 						/>
-					))}
+					))
+				) : (
+					<View style={{ flex: 1, justifyContent: "center", alignItems: "center", paddingTop: 50 }}>
+						<Text style={{ fontSize: 16, color: "#555" }}>No hay canchas disponibles por el momento.</Text>
+					</View>
+				)}
 			</ScrollView>
 		</View>
 	);

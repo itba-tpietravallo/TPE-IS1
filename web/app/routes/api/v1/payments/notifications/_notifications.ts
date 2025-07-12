@@ -120,6 +120,10 @@ async function processMercadoPagoNotification(
 			id,
 			fields (
 				name,
+				street,
+				street_number,
+				neighborhood,
+				city,
 				users!owner (
 					full_name,
 					mp_oauth_authorization (
@@ -225,6 +229,7 @@ async function processMercadoPagoNotification(
 				await fetch(new URL("/api/v1/send-email", __GET_PUBLIC_ENV().URL_ORIGIN).toString(), {
 					method: "POST",
 					body: JSON.stringify({
+						type: "confirm_payment",
 						player_email: player_info.email,
 						player_name: player_info.full_name,
 						amount: amount,
@@ -233,6 +238,20 @@ async function processMercadoPagoNotification(
 						reservation_date: res.data.date_time,
 					}),
 				});
+
+				if (updatePayload.confirmed) {
+					await fetch(new URL("/api/v1/send-email", __GET_PUBLIC_ENV().URL_ORIGIN).toString(), {
+						method: "POST",
+						body: JSON.stringify({
+							type: "confirm_reservation",
+							player_email: player_info.email,
+							player_name: player_info.full_name,
+							address: `${res.data.fields.street} ${res.data.fields.street_number}, ${res.data.fields.neighborhood}, ${res.data.fields.city}`,
+							field_name: res.data.fields.name,
+							reservation_date: res.data.date_time,
+						}),
+					});
+				}
 			} catch (error: any) {
 				console.error(error.message);
 			}
