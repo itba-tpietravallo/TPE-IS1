@@ -108,7 +108,6 @@ function PopUpFriend(props: PropsPopUpFriend) {
 
 				<View style={styles.buttonsContainer}>
 					<SelectDropdown
-						defaultValue={myTeams?.length ? myTeams[0].name : null}
 						data={myTeams?.length! > 0 ? myTeams?.map((team) => team.name) || [] : ["No tienes equipos"]}
 						onSelect={(itemValue, index) => {
 							if (itemValue === "No tienes equipos") return;
