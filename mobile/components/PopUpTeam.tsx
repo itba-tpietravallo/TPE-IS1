@@ -152,6 +152,18 @@ function PopUpTeam(props: PropsPopUpTeam) {
 						</TouchableOpacity>
 					)}
 
+					{/* PopUpJoinRequests */}
+					<Modal
+						style={styles.modal}
+						visible={isModalVisibleJoinRequests}
+						transparent={true}
+						onRequestClose={() => setIsModalVisibleJoinRequests(false)}
+					>
+						<View style={styles.centeredView}>
+							<PopUpJoinRequests onClose={handleCloseModalJoinRequest} team_id={props.team_id} />
+						</View>
+					</Modal>
+
 					{/* Ícono de equipo público */}
 					{team?.isPublic && (
 						<View>

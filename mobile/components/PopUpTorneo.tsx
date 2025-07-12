@@ -76,6 +76,7 @@ function PopUpTorneo({
 	const [contactEmail, setContactEmail] = useState<string>("");
 
 	const [canJoin, setCanJoin] = useState<boolean>(false);
+	const [submitted, setSubmitted] = useState(false);
 	const [selectedPlayers, setSelectedPlayers] = useState<
 		NonNullable<ReturnType<typeof getAllUsers>["data"]>[number] & { id: string }[]
 	>();
@@ -97,7 +98,8 @@ function PopUpTorneo({
 				},
 			]);
 			console.log("Team successfully registered for tournament");
-			onClose();
+			setSubmitted(true);
+			setIsModalVisible(false);
 		} catch (error) {
 			console.error("Error registering for tournament:", error);
 			alert("Error al inscribir el equipo al torneo. Por favor, intenta de nuevo.");
@@ -129,6 +131,12 @@ function PopUpTorneo({
 
 		fetchTeam();
 	}, [selectedTeam]);
+
+	useEffect(() => {
+		if (!isModalVisible && submitted) {
+			onClose();
+		}
+	}, [isModalVisible, submitted]);
 
 	const getUserById = async (userId: string) => {
 		return getUsername(supabase, userId);
