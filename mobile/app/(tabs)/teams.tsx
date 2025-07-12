@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ScrollView, Text, View, StyleSheet, TouchableOpacity, ImageBackground } from "react-native";
+import { ScrollView, Text, View, StyleSheet, TouchableOpacity, ImageBackground, ActivityIndicator } from "react-native";
 import TeamPost from "../../components/teamPost";
 import { ScreenHeight } from "@rneui/themed/dist/config";
 import { router } from "expo-router";
@@ -7,7 +7,7 @@ import { supabase } from "@/lib/supabase";
 import { getAllTeams, getAllSports, getUserAuthSession } from "@/lib/autogen/queries";
 
 function TeamsFeed() {
-	const { data: teams } = getAllTeams(supabase);
+	const { data: teams, isLoading: isLoadingTeams } = getAllTeams(supabase);
 	const { data: sports } = getAllSports(supabase);
 
 	const { data: session } = getUserAuthSession(supabase);
@@ -42,6 +42,14 @@ function TeamsFeed() {
 			}
 			return true;
 		});
+
+	if (isLoadingTeams) {
+		return (
+			<View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#f2f4f3" }}>
+				<ActivityIndicator size="large" color="#555" />
+			</View>
+		);
+	}
 
 	return (
 		<View
@@ -114,7 +122,13 @@ function TeamsFeed() {
 				showsHorizontalScrollIndicator={false}
 				showsVerticalScrollIndicator={false}
 			>
-				{filteredTeams?.map((team) => <TeamPost key={team.team_id} team_id={team.team_id} />)}
+				{filteredTeams && filteredTeams.length > 0 ? (
+					filteredTeams.map((team) => <TeamPost key={team.team_id} team_id={team.team_id} />)
+				) : (
+					<View style={{ flex: 1, justifyContent: "center", alignItems: "center", paddingTop: 50 }}>
+						<Text style={{ fontSize: 16, color: "#555" }}>No hay equipos disponibles por el momento.</Text>
+					</View>
+				)}
 
 				{/* Boton para agregar un equipo */}
 				<TouchableOpacity onPress={() => handleAddNewTeam()}>
