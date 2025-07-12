@@ -11,7 +11,7 @@ export function useChatScroll(ref: React.RefObject<FlatList<any>>, dep: any) {
 	};
 
 	useEffect(() => {
-		if (ref.current) {
+		if (ref.current && dep > 0) {
 			ref.current.scrollToIndex({ index: 0, animated: true });
 		}
 	}, [dep, ref]);
