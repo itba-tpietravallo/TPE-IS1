@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, Image, TouchableOpacity, Modal, Platform, ScrollView } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { ScreenHeight, ScreenWidth } from "@rneui/themed/dist/config";
@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase";
 import CheckoutButton from "./CheckoutButton";
 import PreReserveButton from "./PreReserveButton";
 import Icon from "react-native-vector-icons/FontAwesome6";
+import { Star } from "lucide-react-native";
 
 import {
 	getAllReservationTimeSlots,
@@ -13,8 +14,12 @@ import {
 	getUsername,
 	getUserAuthSession,
 	getFieldById,
+	getCurrentUserFieldReview,
+	getFieldReviewsAvg,
+	useInsertFieldReview,
 } from "@/lib/autogen/queries";
 import Selector from "./Selector";
+import StarRating from "./StarRating";
 
 export type Renter = {
 	id: string;
@@ -46,6 +51,8 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 	const [selectedRenter, setSelectedRenter] = useState<Renter | null>(null);
 	const normalizedTeams = teamData ? teamData.filter((team) => team.team_id && team.name !== null) : [];
 	const { data: fieldData } = getFieldById(supabase, fieldId, { enabled: !!fieldId });
+	const [rating, setRating] = useState<number>(0);
+	const [showReviewModal, setShowReviewModal] = useState(false);
 
 	const timezone = "America/Argentina/Buenos_Aires";
 
@@ -129,6 +136,47 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 
 	const [showDatePicker, setShowDatePicker] = useState(false);
 	const [showTimePicker, setShowTimePicker] = useState(false);
+
+	const { data: currentReview } = getCurrentUserFieldReview(supabase, fieldId, user?.id!, { enabled: !!user?.id });
+	const currentRating = currentReview?.rating ?? 0;
+
+	useEffect(() => {
+		if (currentReview) {
+			setRating(currentRating);
+		}
+	}, [currentReview]);
+
+	const { data } = getFieldReviewsAvg(supabase, fieldId);
+	type Review = { rating: number };
+	let average = 0;
+	let count = 0;
+
+	if (Array.isArray(data) && data.length > 0) {
+		for (const review of data as Review[]) {
+			count++;
+			average = (average * (count - 1) + review.rating) / count;
+		}
+	}
+	const formattedAverage = average.toFixed(1);
+
+	const insertReviewMutation = useInsertFieldReview(supabase);
+	const handleReview = async () => {
+		if (rating == currentRating) {
+			console.log("No changes in rating, skipping review insertion.");
+			return;
+		}
+		try {
+			await insertReviewMutation.mutateAsync([
+				{
+					field_id: fieldId,
+					user_id: user?.id!,
+					rating: rating,
+				},
+			]);
+		} catch (error) {
+			console.error("Error inserting review", error);
+		}
+	};
 
 	return (
 		<View style={styles.modalView}>
@@ -224,7 +272,17 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 						<Image style={{ width: 25, height: 25 }} source={require("@/assets/images/cancha.png")} />
 						<Text style={{ fontSize: 16, fontStyle: "italic" }}>{location}</Text>
 					</View>
-					<View style={{ alignSelf: "flex-start", marginTop: 20 }}>
+					<View style={{ flexDirection: "row", alignItems: "center" }}>
+						<Star size={25} />
+						{average > 0 ? (
+							<Text style={{ fontSize: 16, fontStyle: "italic" }}>{formattedAverage}</Text>
+						) : (
+							<Text style={{ fontSize: 16, fontStyle: "italic", color: "#777" }}>
+								Esta cancha no tiene reseñas todavía
+							</Text>
+						)}
+					</View>
+					<View style={{ alignSelf: "flex-start", marginTop: 20, paddingBottom: 10 }}>
 						<Text style={styles.label}>Descripción</Text>
 						<Text numberOfLines={2} ellipsizeMode="tail" style={styles.descriptionText}>
 							{description}
@@ -232,6 +290,9 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 						<Text style={styles.label}>Precio</Text>
 						<Text style={styles.priceText}>${price}</Text>
 					</View>
+					<TouchableOpacity onPress={() => setShowReviewModal(true)} style={styles.reviewButton}>
+						<Text style={styles.reviewButtonText}>Agregar reseña</Text>
+					</TouchableOpacity>
 					{/*Funciona en IOS ......................................................................................*/}
 					{Platform.OS === "ios" && (
 						<View style={styles.selection}>
@@ -372,6 +433,56 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 					/>
 				)}
 			</View>
+			<Modal
+				visible={showReviewModal}
+				transparent
+				animationType="slide"
+				onRequestClose={() => setShowReviewModal(false)}
+			>
+				<View
+					style={{
+						flex: 1,
+						justifyContent: "center",
+						alignItems: "center",
+						backgroundColor: "rgba(0,0,0,0.6)",
+						padding: 20,
+					}}
+				>
+					<View
+						style={{
+							width: "90%",
+							backgroundColor: "white",
+							borderRadius: 10,
+							padding: 20,
+							alignItems: "center",
+						}}
+					>
+						<Text style={{ fontSize: 18, fontWeight: "bold", marginBottom: 20 }}>Calificá esta cancha</Text>
+
+						<StarRating value={rating} onRate={(r) => setRating(r)} />
+
+						<TouchableOpacity
+							onPress={async () => {
+								await handleReview();
+								setShowReviewModal(false);
+							}}
+							style={{
+								backgroundColor: "#FFA94D",
+								paddingVertical: 10,
+								paddingHorizontal: 20,
+								borderRadius: 8,
+								marginTop: 20,
+							}}
+						>
+							<Text style={{ color: "white", fontWeight: "bold" }}>Calificar</Text>
+						</TouchableOpacity>
+
+						<TouchableOpacity onPress={() => setShowReviewModal(false)} style={{ marginTop: 10 }}>
+							<Text style={{ color: "#999" }}>Cancelar</Text>
+						</TouchableOpacity>
+					</View>
+				</View>
+			</Modal>
 		</View>
 	);
 }
@@ -523,6 +634,20 @@ const styles = StyleSheet.create({
 		fontSize: 16,
 		marginRight: 5,
 		paddingBottom: 5,
+	},
+	reviewButton: {
+		backgroundColor: "transparent",
+		borderWidth: 1,
+		borderColor: "#888",
+		borderRadius: 12,
+		paddingHorizontal: 10,
+		paddingVertical: 4,
+		alignSelf: "flex-start",
+	},
+	reviewButtonText: {
+		color: "#555",
+		fontWeight: "500",
+		fontSize: 14,
 	},
 });
 

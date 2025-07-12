@@ -17,7 +17,7 @@ export default function StarRating({ onRate, value = 0 }: { onRate: (rating: num
 
 	return (
 		<View style={styles.container}>
-			<View style={[styles.row, { justifyContent: "center" }]}>
+			<View style={[styles.row]}>
 				<View style={styles.starRow}>
 					{[1, 2, 3, 4, 5].map((starIndex) => (
 						<TouchableOpacity
