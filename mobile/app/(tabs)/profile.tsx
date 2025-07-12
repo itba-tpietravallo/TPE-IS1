@@ -34,9 +34,9 @@ export default function Index() {
 
 	return (
 		<ScrollView style={buttonStyles.containter} contentContainerStyle={{ paddingBottom: 100 }}>
-			<View style={{ alignItems: "center", paddingBottom: 10 }}>
+			<View style={{ alignItems: "center", paddingVertical: 25 }}>
 				{/* @todo undefined_image is a stub that'll hopefully get logged in RN Dev Tools */}
-				<Image source={{ uri: avatarUrl }} style={{ width: 100, height: 100 }} borderRadius={100} />
+				<Image source={{ uri: avatarUrl }} style={{ width: 110, height: 110 }} borderRadius={100} />
 				<Text
 					style={{
 						fontSize: 16,
