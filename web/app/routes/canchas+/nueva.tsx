@@ -25,7 +25,7 @@ import { authenticateUser } from "~/lib/auth.server";
 import { User } from "@supabase/supabase-js";
 import { DollarSign } from "lucide-react";
 import { getAllSports, useInsertField } from "@/lib/autogen/queries";
-import { APIProvider, Map, AdvancedMarker, Pin, InfoWindow } from "@vis.gl/react-google-maps";
+import { APIProvider, Map, AdvancedMarker, Pin, InfoWindow, Marker } from "@vis.gl/react-google-maps";
 import debounce from "lodash.debounce";
 import { Database } from "@lib/autogen/database.types";
 import { __GET_PUBLIC_ENV } from "@lib/getenv.server";
@@ -200,20 +200,22 @@ export function NewField() {
 				uploadedImageUrls.push(downloadURL);
 			}
 
-			await insertFieldMutation.mutateAsync([{
-				owner: user.user.id,
-				name: data.name,
-				street: data.street,
-				street_number: data.street_number,
-				neighborhood: data.neighbourhood,
-				city: data.city,
-				sports: data.sports.map((s) => s.value),
-				images: uploadedImageUrls,
-				price: Number(data.price),
-				location: `POINT(${latitude || 0} ${longitude || 0})`,
-				description: data.description || "",
-				avatar_url: user.avatar_url,
-			}]);
+			await insertFieldMutation.mutateAsync([
+				{
+					owner: user.user.id,
+					name: data.name,
+					street: data.street,
+					street_number: data.street_number,
+					neighborhood: data.neighbourhood,
+					city: data.city,
+					sports: data.sports.map((s) => s.value),
+					images: uploadedImageUrls,
+					price: Number(data.price),
+					location: `POINT(${latitude || 0} ${longitude || 0})`,
+					description: data.description || "",
+					avatar_url: user.avatar_url,
+				},
+			]);
 
 			window.location.href = `${URL_ORIGIN}/canchas`;
 		} catch (err: any) {
@@ -256,6 +258,8 @@ export function NewField() {
 						form={form}
 						latitude={latitude}
 						longitude={longitude}
+						setLatitude={setLatitude}
+						setLongitude={setLongitude}
 						geocodingError={geocodingError}
 						mapCenter={mapView.center}
 						mapZoom={mapView.zoom}
@@ -338,6 +342,9 @@ type AddressSectionProps = {
 	form: ReturnType<typeof useForm<FieldFormData>>;
 	latitude: number | null;
 	longitude: number | null;
+	setLatitude: (lat: number) => void;
+	setLongitude: (lng: number) => void;
+
 	GOOGLE_MAPS_API_KEY: string;
 	geocodingError: string | null;
 	mapCenter: { lat: number; lng: number };
@@ -349,6 +356,8 @@ function AddressSection({
 	form,
 	latitude,
 	longitude,
+	setLatitude,
+	setLongitude,
 	GOOGLE_MAPS_API_KEY,
 	geocodingError,
 	mapCenter,
@@ -359,67 +368,111 @@ function AddressSection({
 	const showErrorPopup = geocodingError !== null;
 
 	return (
-		<div className="flex flex-col space-y-5">
+		<div className="flex flex-col gap-4">
 			<FormLabel className="font-sans text-base text-[#223332]">Dirección</FormLabel>
-			<div className="flex flex-row space-x-10">
-				<BasicBox
-					section="street"
-					label="Calle"
-					placeholder=""
-					description=""
-					box_specifications="w-400 h-10 text-lg px-4"
-					form={form}
-				/>
-				<BasicBox
-					section="street_number"
-					label="Número"
-					placeholder=""
-					description=""
-					box_specifications="w-400 h-10 text-lg px-4"
-					form={form}
-				/>
-				<BasicBox
-					section="neighbourhood"
-					label="Barrio"
-					placeholder=""
-					description=""
-					box_specifications="w-400 h-10 text-lg px-4"
-					form={form}
-				/>
-				<BasicBox
-					section="city"
-					label="Ciudad"
-					placeholder=""
-					description=""
-					box_specifications="w-400 h-10 text-lg px-4"
-					form={form}
-				/>
-			</div>
-			<APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
-				<div style={{ width: "100%", height: "400px" }}>
-					<Map
-						mapId={mapId}
-						zoom={mapZoom}
-						center={mapCenter}
-						key={`${mapCenter.lat}-${mapCenter.lng}-${mapZoom}`}
-						gestureHandling="greedy"
-						disableDefaultUI={true}
-					>
-						{latitude !== null && longitude !== null && (
-							<AdvancedMarker position={{ lat: latitude, lng: longitude }}>
-								<Pin />
-							</AdvancedMarker>
-						)}
-						{showErrorPopup && (
-							<InfoWindow position={mapCenter} onCloseClick={onCloseErrorPopup}>
-								<p>{geocodingError}</p>
-							</InfoWindow>
-						)}
-					</Map>
+			<div className="flex flex-row gap-6">
+				<div className="flex w-1/3 flex-col gap-4">
+					<BasicBox
+						section="street"
+						label="Calle"
+						placeholder=""
+						description=""
+						box_specifications="w-400 h-10 text-lg px-4"
+						form={form}
+					/>
+					<BasicBox
+						section="street_number"
+						label="Número"
+						placeholder=""
+						description=""
+						box_specifications="w-400 h-10 text-lg px-4"
+						form={form}
+					/>
+					<BasicBox
+						section="neighbourhood"
+						label="Barrio"
+						placeholder=""
+						description=""
+						box_specifications="w-400 h-10 text-lg px-4"
+						form={form}
+					/>
+					<BasicBox
+						section="city"
+						label="Ciudad"
+						placeholder=""
+						description=""
+						box_specifications="w-400 h-10 text-lg px-4"
+						form={form}
+					/>
 				</div>
-			</APIProvider>
+				<div className="h-[400px] w-2/3">
+					<APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
+						<Map
+							mapId={mapId}
+							zoom={mapZoom}
+							center={mapCenter}
+							key={`${mapCenter.lat}-${mapCenter.lng}-${mapZoom}`}
+							gestureHandling="greedy"
+							disableDefaultUI={false}
+							mapTypeId="roadmap"
+						>
+							{latitude !== null && longitude !== null && (
+								<Marker
+									position={{ lat: latitude, lng: longitude }}
+									draggable={true}
+									icon={{
+										url: "/matchpoint-marker.png",
+										//scaledSize: { width: 32, height: 32 }
+									}}
+									onDragEnd={(e) => handleMarkerDragEnd(e, setLatitude, setLongitude, form)}
+								/>
+							)}
+							{showErrorPopup && (
+								<InfoWindow position={mapCenter} onCloseClick={onCloseErrorPopup}>
+									<p>{geocodingError}</p>
+								</InfoWindow>
+							)}
+						</Map>
+					</APIProvider>
+				</div>
+			</div>
 		</div>
 	);
+}
+
+async function handleMarkerDragEnd(
+	e: google.maps.MapMouseEvent,
+	setLatitude: (lat: number) => void,
+	setLongitude: (lng: number) => void,
+	form: ReturnType<typeof useForm<FieldFormData>>,
+) {
+	const newLat = e.latLng?.lat();
+	const newLng = e.latLng?.lng();
+
+	if (newLat !== undefined && newLng !== undefined) {
+		setLatitude(newLat);
+		setLongitude(newLng);
+
+		try {
+			const res = await fetch("/api/v1/geocode", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({ lat: newLat, lng: newLng }),
+			});
+			const data = await res.json();
+
+			if (!data.error) {
+				form.setValue("street", data.street);
+				form.setValue("street_number", data.street_number);
+				form.setValue("neighbourhood", data.neighbourhood);
+				form.setValue("city", data.city);
+			}
+		} catch (error) {
+			console.error("Reverse geocoding failed", error);
+		}
+	}
 }
 
 function SelectFormSection({ form, options }: { form: ReturnType<typeof useForm<FieldFormData>>; options: Option[] }) {
