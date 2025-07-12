@@ -22,6 +22,7 @@ import {
 } from "@/lib/autogen/queries";
 import Selector from "./Selector";
 import StarRating from "./StarRating";
+import { ref } from "process";
 
 export type Renter = {
 	id: string;
@@ -183,7 +184,7 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 		}
 	}, [currentReview]);
 
-	const { data } = getFieldReviewsAvg(supabase, fieldId);
+	const { data, refetch } = getFieldReviewsAvg(supabase, fieldId);
 	type Review = { rating: number };
 	let average = 0;
 	let count = 0;
@@ -210,6 +211,7 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 					rating: rating,
 				},
 			]);
+			refetch();
 		} catch (error) {
 			console.error("Error inserting review", error);
 		}
@@ -361,31 +363,34 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 						<Image style={{ width: 25, height: 25 }} source={require("@/assets/images/cancha.png")} />
 						<Text style={{ fontSize: 16, fontStyle: "italic" }}>{location}</Text>
 					</View>
-					<View style={{ flexDirection: "row", alignItems: "center" }}>
-						<Star size={25} />
-						{average > 0 ? (
-							<Text style={{ fontSize: 16, fontStyle: "italic" }}>{formattedAverage}</Text>
-						) : (
-							<Text style={{ fontSize: 16, fontStyle: "italic", color: "#777" }}>
-								Esta cancha no tiene reseñas todavía
-							</Text>
-						)}
+					<View style={{ flexDirection: "row", alignItems: "center", marginTop: 20 }}>
+						<View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
+							<Star size={25} />
+							{average > 0 ? (
+								<Text style={{ fontSize: 16, fontStyle: "italic", marginLeft: 8 }}>
+									{formattedAverage}
+								</Text>
+							) : (
+								<Text style={{ fontSize: 16, fontStyle: "italic", color: "#777", marginLeft: 8 }}>
+									Sin reseñas
+								</Text>
+							)}
+						</View>
+
+						<TouchableOpacity
+							onPress={() => setShowReviewModal(true)}
+							style={[styles.reviewButton, { marginLeft: "auto" }]} // This pushes it to the right
+						>
+							<Text style={styles.reviewButtonText}>Agregar reseña</Text>
+						</TouchableOpacity>
 					</View>
 					<View style={{ alignSelf: "flex-start", marginTop: 20, paddingBottom: 10 }}>
 						<Text style={styles.label}>Descripción</Text>
 						<Text numberOfLines={2} ellipsizeMode="tail" style={styles.descriptionText}>
 							{description}
 						</Text>
-
-						<View style={{ flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
-							<View>
-								<Text style={styles.label}>Precio</Text>
-								<Text style={styles.priceText}>${price}</Text>
-							</View>
-							<TouchableOpacity onPress={() => setShowReviewModal(true)} style={styles.reviewButton}>
-								<Text style={styles.reviewButtonText}>Agregar reseña</Text>
-							</TouchableOpacity>
-						</View>
+						<Text style={styles.label}>Precio</Text>
+						<Text style={styles.priceText}>${price}</Text>
 					</View>
 					{/*Funciona en IOS ......................................................................................*/}
 					{Platform.OS === "ios" && (
@@ -735,13 +740,14 @@ const styles = StyleSheet.create({
 		borderWidth: 1,
 		borderColor: "#888",
 		borderRadius: 12,
-		paddingHorizontal: 10,
-		paddingVertical: 4,
+		alignSelf: "baseline",
 	},
 	reviewButtonText: {
 		color: "#555",
 		fontWeight: "500",
 		fontSize: 14,
+		paddingHorizontal: 8,
+		paddingVertical: 2,
 	},
 });
 
