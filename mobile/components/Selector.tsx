@@ -70,10 +70,10 @@ export default function Selector<T>({ title, options, onSelect, initialLabel, ge
 const styles = StyleSheet.create({
 	container: {
 		width: "100%",
-		padding: 20,
 	},
 	title: {
 		fontWeight: "bold",
+		color: "#555",
 		fontSize: 16,
 		marginBottom: 10,
 	},

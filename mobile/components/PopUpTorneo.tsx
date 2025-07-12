@@ -92,6 +92,8 @@ function PopUpTorneo({
 				{
 					tournamentId: tournamentId,
 					teamId: selectedTeam,
+					contactEmail: contactEmail,
+					contactPhone: contactPhone,
 				},
 			]);
 			console.log("Team successfully registered for tournament");
@@ -113,8 +115,8 @@ function PopUpTorneo({
 
 		if (teamData) {
 			setTeam(teamData.name);
-			setContactPhone(teamData.contactPhone);
-			setContactEmail(teamData.contactEmail);
+			setContactPhone(teamData.contactPhone ?? "");
+			setContactEmail(teamData.contactEmail ?? "");
 			setTeamMembers(teamData.players || []);
 
 			const players = teamData.players || [];
@@ -176,7 +178,7 @@ function PopUpTorneo({
 						<View style={styles.modalContainer}>
 							<View style={styles.modal}>
 								<TouchableOpacity style={styles.closeButton} onPress={() => setIsModalVisible(false)}>
-									<Image style={styles.closeIcon} source={require("@/assets/images/close.png")} />
+									<Icon name="xmark" size={22} color="#333" />
 								</TouchableOpacity>
 								<View style={styles.infoContainer}>
 									<Text style={styles.modalTitle}>Inscripción</Text>
@@ -299,11 +301,9 @@ const styles = StyleSheet.create({
 		overflow: "hidden",
 	},
 	closeButton: {
-		position: "absolute",
-		top: 10,
-		right: 10,
-		padding: 8,
-		zIndex: 100,
+		paddingTop: 20,
+		paddingLeft: 20,
+		alignItems: "flex-start",
 	},
 	closeIcon: {
 		width: 20,
@@ -322,7 +322,6 @@ const styles = StyleSheet.create({
 		textAlign: "center",
 		color: "#333",
 	},
-
 	label: {
 		fontWeight: "bold",
 		color: "#555",

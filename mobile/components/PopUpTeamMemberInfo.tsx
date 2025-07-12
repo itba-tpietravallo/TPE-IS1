@@ -112,11 +112,8 @@ function PopUpTeamMemberInfo(props: PropsPopUpTeamMemberInfo) {
 		<View style={styles.modalView}>
 			<View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
 				{/* Boton cerrar PopUp */}
-				<TouchableOpacity
-					style={{ padding: 10, alignItems: "flex-start", marginLeft: 10 }}
-					onPress={props.onClose}
-				>
-					<Icon name="xmark" size={24} color="black" style={{ marginTop: 10 }} />
+				<TouchableOpacity style={{ alignItems: "flex-start" }} onPress={props.onClose}>
+					<Icon name="xmark" size={24} color="black" />
 				</TouchableOpacity>
 
 				{/* Boton agregar a favoritos */}
@@ -186,55 +183,80 @@ function PopUpTeamMemberInfo(props: PropsPopUpTeamMemberInfo) {
 }
 
 const styles = StyleSheet.create({
-	name: {
-		fontSize: 22,
-		fontWeight: "bold",
-		justifyContent: "center",
-		color: "#f18f01",
-		marginBottom: 10,
-	},
 	modalView: {
 		backgroundColor: "white",
 		borderRadius: 20,
-		color: "#00ff00",
 		overflow: "hidden",
 		width: ScreenWidth * 0.9,
+		padding: 20,
+		// optional shadow (iOS)
+		shadowColor: "#000",
+		shadowOffset: { width: 0, height: 2 },
+		shadowOpacity: 0.15,
+		shadowRadius: 5,
+		// elevation (Android)
+		elevation: 5,
 	},
 	mainInfo: {
-		padding: 15,
-		alignItems: "center",
-	},
-	topInfo: {
-		flexDirection: "column",
-		justifyContent: "space-between",
-		alignItems: "center",
-	},
-	avatar: {
-		width: 100,
-		height: 100,
-		borderRadius: 100,
-		marginBottom: 20,
-	},
-	buttonsContainer: {
-		flexDirection: "column",
-		justifyContent: "space-between",
 		alignItems: "center",
 		marginBottom: 10,
 	},
-	buttonText: {
-		color: "#000",
-		fontSize: 16,
+	avatar: {
+		width: 90,
+		height: 90,
+		borderRadius: 100,
+		marginBottom: 20,
+	},
+	topInfo: {
+		flexDirection: "column",
+		alignItems: "center",
+		marginBottom: 10,
+	},
+	name: {
+		fontSize: 24,
 		fontWeight: "bold",
+		color: "#f18f01",
+		marginBottom: 6,
 		textAlign: "center",
+	},
+	username: {
+		fontSize: 16,
+		color: "gray",
+	},
+	adminBadge: {
+		fontSize: 16,
+		color: "#4caf50",
+		fontWeight: "600",
+		marginTop: 4,
+	},
+	buttonsContainer: {
+		flexDirection: "column",
+		justifyContent: "center",
+		alignItems: "center",
+		gap: 12, // works in React Native >=0.71; otherwise, use marginBottom on buttons
 	},
 	button: {
 		flexDirection: "row",
-		width: "80%",
-		padding: 17,
+		width: "85%",
+		paddingVertical: 14,
+		paddingHorizontal: 20,
 		justifyContent: "center",
 		alignItems: "center",
 		borderWidth: 1,
 		borderColor: "#ccc",
+		borderRadius: 12,
+		backgroundColor: "#fff",
+		shadowColor: "#000",
+		shadowOffset: { width: 0, height: 1 },
+		shadowOpacity: 0.1,
+		shadowRadius: 2,
+		elevation: 2,
+	},
+	buttonText: {
+		color: "#333",
+		fontSize: 16,
+		fontWeight: "600",
+		textAlign: "center",
 	},
 	friendRequestButton: {
 		backgroundColor: "#f18f01",
