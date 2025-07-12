@@ -19,6 +19,7 @@ import {
   useInsertMutation,
   useDeleteMutation,
   useUpdateMutation,
+  useUpsertMutation,
 } from "@supabase-cache-helpers/postgrest-react-query";
 
 export const queries = {
@@ -1004,3 +1005,18 @@ export function useUpdateUserPreferences(supabase: SupabaseClient<Database>) {
     }
   );
 }
+
+export function useUpsertUserPreferences(supabase: SupabaseClient<Database>) {
+  // Using the built-in useUpdateMutation from supabase-cache-helpers
+  return useUpsertMutation(
+    supabase.from("user_preferences"),
+    ["user_id"], // Primary key columns
+    "*", // Select all columns for the cache update
+    {
+      onError: (error) => {
+        console.error("Error updating user preferences:", error);
+      },
+    }
+  );
+}
+
