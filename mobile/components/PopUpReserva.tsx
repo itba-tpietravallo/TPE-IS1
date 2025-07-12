@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, Image, TouchableOpacity, Modal, Platform, ScrollView } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { ScreenHeight, ScreenWidth } from "@rneui/themed/dist/config";
@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase";
 import CheckoutButton from "./CheckoutButton";
 import PreReserveButton from "./PreReserveButton";
 import Icon from "react-native-vector-icons/FontAwesome6";
+import { Star } from "lucide-react-native";
 
 import {
 	getAllReservationTimeSlots,
@@ -14,9 +15,14 @@ import {
 	getUserAuthSession,
 	getUserPreferencesByUserId,
 	getFieldById,
+	getCurrentUserFieldReview,
+	getFieldReviewsAvg,
+	useInsertFieldReview,
 	useUpsertUserPreferences,
 } from "@/lib/autogen/queries";
 import Selector from "./Selector";
+import StarRating from "./StarRating";
+import { ref } from "process";
 
 export type Renter = {
 	id: string;
@@ -42,12 +48,15 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 	const { data: userName } = getUsername(supabase, user?.id!, { enabled: !!user?.id });
 	const { data: reservations } = getAllReservationTimeSlots(supabase, fieldId);
 	const [isModalVisible, setIsModalVisible] = useState(false);
+	const [currentImageIndex, setCurrentImageIndex] = useState(0);
 	const [selectedDateTime, setSelectedDateTime] = useState<Date>(new Date());
 	const [selectedShiftedDateTime, setSelectedShiftedDateTime] = useState<Date>(new Date());
 	const [unavailable, setUnavailability] = useState<boolean | null>(null);
 	const [selectedRenter, setSelectedRenter] = useState<Renter | null>(null);
 	const normalizedTeams = teamData ? teamData.filter((team) => team.team_id && team.name !== null) : [];
 	const { data: fieldData } = getFieldById(supabase, fieldId, { enabled: !!fieldId });
+	const [rating, setRating] = useState<number>(0);
+	const [showReviewModal, setShowReviewModal] = useState(false);
 
 	const timezone = "America/Argentina/Buenos_Aires";
 
@@ -166,27 +175,73 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 	const [showDatePicker, setShowDatePicker] = useState(false);
 	const [showTimePicker, setShowTimePicker] = useState(false);
 
+	const { data: currentReview } = getCurrentUserFieldReview(supabase, fieldId, user?.id!, { enabled: !!user?.id });
+	const currentRating = currentReview?.rating ?? 0;
+
+	useEffect(() => {
+		if (currentReview) {
+			setRating(currentRating);
+		}
+	}, [currentReview]);
+
+	const { data, refetch } = getFieldReviewsAvg(supabase, fieldId);
+	type Review = { rating: number };
+	let average = 0;
+	let count = 0;
+
+	if (Array.isArray(data) && data.length > 0) {
+		for (const review of data as Review[]) {
+			count++;
+			average = (average * (count - 1) + review.rating) / count;
+		}
+	}
+	const formattedAverage = average.toFixed(1);
+
+	const insertReviewMutation = useInsertFieldReview(supabase);
+	const handleReview = async () => {
+		if (rating == currentRating) {
+			console.log("No changes in rating, skipping review insertion.");
+			return;
+		}
+		try {
+			await insertReviewMutation.mutateAsync([
+				{
+					field_id: fieldId,
+					user_id: user?.id!,
+					rating: rating,
+				},
+			]);
+			refetch();
+		} catch (error) {
+			console.error("Error inserting review", error);
+		}
+	};
+
 	return (
 		<View style={styles.modalView}>
-			<View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+			<View
+				style={{
+					flexDirection: "row",
+					justifyContent: "space-between",
+					alignItems: "center",
+					marginTop: 10,
+					marginLeft: 10,
+					marginRight: 10,
+				}}
+			>
 				{/* Boton cerrar PopUp */}
-				<TouchableOpacity style={{ padding: 10, alignItems: "flex-start", marginLeft: 10 }} onPress={onClose}>
-					<Icon name="xmark" size={24} color="black" style={{ marginTop: 10 }} />
+				<TouchableOpacity style={{ padding: 10, alignItems: "flex-start" }} onPress={onClose}>
+					<Icon name="xmark" size={24} color="black" />
 				</TouchableOpacity>
 
 				{/* Boton agregar a favoritos */}
 				<TouchableOpacity
-					style={{ padding: 10, alignItems: "flex-start", marginLeft: 10 }}
+					style={{ padding: 10, alignItems: "flex-start" }}
 					onPress={() => {
 						handleManageFavorites(fieldId);
 					}}
 				>
-					<Icon
-						name={fieldIsFavorite(fieldId) ? "heart-circle-check" : "heart"}
-						size={24}
-						color="black"
-						style={{ marginTop: 10 }}
-					/>
+					<Icon name={fieldIsFavorite(fieldId) ? "heart-circle-check" : "heart"} size={24} color="black" />
 				</TouchableOpacity>
 			</View>
 			<View style={{ flex: 1, justifyContent: "space-between" }}>
@@ -205,7 +260,12 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 							<Text style={{ fontSize: 16, color: "gray", margin: 10 }}>{sport.join(", ")} </Text>
 						</View>
 						{images && images.length > 0 && (
-							<TouchableOpacity onPress={() => setIsModalVisible(true)}>
+							<TouchableOpacity
+								onPress={() => {
+									setCurrentImageIndex(0);
+									setIsModalVisible(true);
+								}}
+							>
 								<Image
 									style={{
 										width: 120,
@@ -249,26 +309,54 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 											padding: 20,
 										}}
 									>
-										<View>
+										<View style={{ alignItems: "center" }}>
 											<TouchableOpacity
-												style={{ alignItems: "flex-start" }}
+												style={{ alignSelf: "flex-start", marginBottom: 10 }}
 												onPress={() => setIsModalVisible(false)}
 											>
-												<Icon name="xmark" size={20} color="white" />
+												<Icon name="xmark" size={30} color="white" />
 											</TouchableOpacity>
-											{images.map((uri, index) => (
+											<View style={{ flexDirection: "row", alignItems: "center" }}>
+												<TouchableOpacity
+													onPress={() =>
+														setCurrentImageIndex((prev) => Math.max(0, prev - 1))
+													}
+													disabled={currentImageIndex === 0}
+												>
+													<Icon
+														name="chevron-left"
+														size={30}
+														color={currentImageIndex === 0 ? "grey" : "white"}
+														style={{ marginRight: 5 }}
+													/>
+												</TouchableOpacity>
 												<Image
-													key={index}
 													style={{
-														width: ScreenWidth * 0.8,
-														height: ScreenWidth * 0.8,
+														width: ScreenWidth * 0.7,
+														height: ScreenWidth * 0.7,
 														borderRadius: 10,
-														marginBottom: 20,
 													}}
-													source={{ uri: uri }}
+													source={{ uri: images[currentImageIndex] }}
 													resizeMode="contain"
 												/>
-											))}
+												<TouchableOpacity
+													onPress={() =>
+														setCurrentImageIndex((prev) =>
+															Math.min(images.length - 1, prev + 1),
+														)
+													}
+													disabled={currentImageIndex === images.length - 1}
+												>
+													<Icon
+														name="chevron-right"
+														size={30}
+														color={
+															currentImageIndex === images.length - 1 ? "grey" : "white"
+														}
+														style={{ marginLeft: 5 }}
+													/>
+												</TouchableOpacity>
+											</View>
 										</View>
 									</View>
 								</Modal>
@@ -279,7 +367,28 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 						<Image style={{ width: 25, height: 25 }} source={require("@/assets/images/cancha.png")} />
 						<Text style={{ fontSize: 16, fontStyle: "italic" }}>{location}</Text>
 					</View>
-					<View style={{ alignSelf: "flex-start", marginTop: 20 }}>
+					<View style={{ flexDirection: "row", alignItems: "center", marginTop: 20 }}>
+						<View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
+							<Star size={25} />
+							{average > 0 ? (
+								<Text style={{ fontSize: 16, fontStyle: "italic", marginLeft: 8 }}>
+									{formattedAverage}
+								</Text>
+							) : (
+								<Text style={{ fontSize: 16, fontStyle: "italic", color: "#777", marginLeft: 8 }}>
+									Sin reseñas
+								</Text>
+							)}
+						</View>
+
+						<TouchableOpacity
+							onPress={() => setShowReviewModal(true)}
+							style={[styles.reviewButton, { marginLeft: "auto" }]} // This pushes it to the right
+						>
+							<Text style={styles.reviewButtonText}>Agregar reseña</Text>
+						</TouchableOpacity>
+					</View>
+					<View style={{ alignSelf: "flex-start", marginTop: 20, paddingBottom: 10 }}>
 						<Text style={styles.label}>Descripción</Text>
 						<Text numberOfLines={2} ellipsizeMode="tail" style={styles.descriptionText}>
 							{description}
@@ -427,6 +536,56 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 					/>
 				)}
 			</View>
+			<Modal
+				visible={showReviewModal}
+				transparent
+				animationType="slide"
+				onRequestClose={() => setShowReviewModal(false)}
+			>
+				<View
+					style={{
+						flex: 1,
+						justifyContent: "center",
+						alignItems: "center",
+						backgroundColor: "rgba(0,0,0,0.6)",
+						padding: 20,
+					}}
+				>
+					<View
+						style={{
+							width: "90%",
+							backgroundColor: "white",
+							borderRadius: 10,
+							padding: 20,
+							alignItems: "center",
+						}}
+					>
+						<Text style={{ fontSize: 18, fontWeight: "bold", marginBottom: 20 }}>Calificá esta cancha</Text>
+
+						<StarRating value={rating} onRate={(r) => setRating(r)} />
+
+						<TouchableOpacity
+							onPress={async () => {
+								await handleReview();
+								setShowReviewModal(false);
+							}}
+							style={{
+								backgroundColor: "#FFA94D",
+								paddingVertical: 10,
+								paddingHorizontal: 20,
+								borderRadius: 8,
+								marginTop: 20,
+							}}
+						>
+							<Text style={{ color: "white", fontWeight: "bold" }}>Calificar</Text>
+						</TouchableOpacity>
+
+						<TouchableOpacity onPress={() => setShowReviewModal(false)} style={{ marginTop: 10 }}>
+							<Text style={{ color: "#999" }}>Cancelar</Text>
+						</TouchableOpacity>
+					</View>
+				</View>
+			</Modal>
 		</View>
 	);
 }
@@ -499,6 +658,7 @@ const styles = StyleSheet.create({
 	priceText: {
 		fontSize: 16,
 		color: "#555",
+		flexShrink: 1,
 	},
 
 	descriptionContainer: {
@@ -578,6 +738,20 @@ const styles = StyleSheet.create({
 		fontSize: 16,
 		marginRight: 5,
 		paddingBottom: 5,
+	},
+	reviewButton: {
+		backgroundColor: "transparent",
+		borderWidth: 1,
+		borderColor: "#888",
+		borderRadius: 12,
+		alignSelf: "baseline",
+	},
+	reviewButtonText: {
+		color: "#555",
+		fontWeight: "500",
+		fontSize: 14,
+		paddingHorizontal: 8,
+		paddingVertical: 2,
 	},
 });
 

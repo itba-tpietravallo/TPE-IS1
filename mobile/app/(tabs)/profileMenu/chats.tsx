@@ -74,7 +74,7 @@ export default function Chats() {
 				<FlatList
 					data={chats}
 					keyExtractor={(chat) => chat.room_id}
-					contentContainerStyle={{ paddingVertical: 8 }}
+					contentContainerStyle={{ paddingVertical: 8, paddingBottom: 100 }}
 					renderItem={({ item }) => (
 						<TouchableOpacity
 							onPress={() =>
