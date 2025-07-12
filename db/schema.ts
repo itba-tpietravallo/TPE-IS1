@@ -209,6 +209,12 @@ export const mpOAuthAuthorizationTable = pgTable(
 			to: authenticatedRole,
 			as: "permissive",
 		}),
+		pgPolicy("oauth_authorization - delete authenticated", {
+			for: "delete",
+			using: sql`(select auth.uid()) = user_id`,
+			to: authenticatedRole,
+			as: "permissive",
+		})
 		// Insert, update are checked by triggers on the table.
 	]
 ).enableRLS();
