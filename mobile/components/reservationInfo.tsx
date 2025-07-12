@@ -13,6 +13,7 @@ import { Alert, Text, View, TouchableOpacity, Image } from "react-native";
 import { Button } from "@rneui/themed";
 import { supabase } from "@/lib/supabase";
 import { useDeleteReservation } from "@/lib/autogen/queries";
+import Icon from "react-native-vector-icons/FontAwesome6";
 
 function ReservationInfo({ onClose, field_name, date, time, location, id }: infoProps) {
 	const deleteReservation = useDeleteReservation(supabase);
@@ -37,11 +38,11 @@ function ReservationInfo({ onClose, field_name, date, time, location, id }: info
 				margin: 20,
 				//color: "#00ff00",
 				overflow: "hidden",
-				padding: 10,
+				padding: 20,
 			}}
 		>
-			<TouchableOpacity style={{ alignItems: "flex-end" }} onPress={onClose}>
-				<Image style={{ width: 20, height: 20, marginTop: 10 }} source={require("@/assets/images/close.png")} />
+			<TouchableOpacity style={{ alignItems: "flex-start" }} onPress={onClose}>
+				<Icon name="xmark" size={22} color="#333" />
 			</TouchableOpacity>
 
 			<View style={{ padding: 20 }}>
@@ -87,12 +88,16 @@ function ReservationInfo({ onClose, field_name, date, time, location, id }: info
 
 			<Button
 				buttonStyle={{
-					marginTop: 10,
 					padding: 10,
 					borderRadius: 15,
-					//		backgroundColor: "#CC0000",
+					alignSelf: "center",
 					backgroundColor: "#223332",
 					justifyContent: "center",
+
+					marginBottom: 20,
+				}}
+				titleStyle={{
+					fontSize: 16,
 				}}
 				title="Cancelar reserva"
 				onPress={handleCancelation}

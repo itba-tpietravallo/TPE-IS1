@@ -114,6 +114,14 @@ export function NewField() {
 	const defaultMapCenter = useMemo(() => ({ lat: -34.37, lng: -58.25 }), []); // Buenos Aires (default)
 	const [mapView, setMapView] = useState({ center: defaultMapCenter, zoom: 9 });
 
+	const debouncedGeocodeError = useMemo(() =>
+		debounce((error: string | null) => {
+			setGeocodingError(error);
+			setLatitude(null);
+			setLongitude(null);
+		}, 500, { trailing: true, leading: false })
+	, []);
+
 	// Debounced geocoding function
 	const debouncedGeocode = useMemo(
 		() =>
@@ -128,17 +136,15 @@ export function NewField() {
 					const data = await response.json();
 
 					if (data.error) {
-						setGeocodingError("Ingrese una dirección válida");
-						setLatitude(null);
-						setLongitude(null);
+						debouncedGeocodeError("Ingrese una dirección válida");
 					} else {
 						setLatitude(data.lat);
 						setLongitude(data.lng);
 						setMapView({ center: { lat: data.lat, lng: data.lng }, zoom: 15 });
 					}
 				},
-				250,
-				{ leading: false },
+				100,
+				{ leading: false, trailing: true },
 			),
 		[],
 	);
@@ -150,6 +156,7 @@ export function NewField() {
 
 	useEffect(() => {
 		if (watchedStreet && watchedStreetNumber && watchedCity) {
+			setGeocodingError(null);
 			debouncedGeocode(watchedStreet, watchedStreetNumber, watchedCity);
 		} else {
 			setLatitude(null);
@@ -186,11 +193,11 @@ export function NewField() {
 							body: JSON.stringify({ fileName: file.name, type: "application/octet-stream" }),
 							headers,
 						})
-					).json();
+						).json();
 
 				headers = new Headers();
 				headers.set("Content-Type", "application/octet-stream");
-
+				
 				await fetch(signedPUTURL, {
 					method: "PUT",
 					headers,
@@ -411,7 +418,7 @@ function AddressSection({
 							</AdvancedMarker>
 						)}
 						{showErrorPopup && (
-							<InfoWindow position={mapCenter} onCloseClick={onCloseErrorPopup}>
+							<InfoWindow shouldFocus={false} position={mapCenter} onCloseClick={onCloseErrorPopup}>
 								<p>{geocodingError}</p>
 							</InfoWindow>
 						)}

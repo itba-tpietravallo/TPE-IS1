@@ -2,8 +2,8 @@ import FieldPost from "@components/fieldPost";
 import { ScrollView, Text, View, SafeAreaView, StyleSheet, TouchableOpacity, Button } from "react-native";
 import { supabase } from "@lib/supabase";
 import React, { useEffect, useState } from "react";
-
-import { getAllFields, getAllSports } from "@lib/autogen/queries"; // Database Queries
+import { getAllFields, getAllSports, getUserAuthSession, getUserPreferencesByUserId } from "@lib/autogen/queries"; // Database Queries
+import Icon from "react-native-vector-icons/FontAwesome6";
 
 type Field = {
 	// lat: number;
@@ -34,11 +34,17 @@ const normalizeString = (str: string) => {
 		.toLowerCase();
 };
 
+const favFieldsStr = "FavoriteFields";
+
 function CanchasFeed() {
 	const [selectedSport, setSelectedSport] = useState<string>("");
 
+	const { data: session } = getUserAuthSession(supabase);
+	const user = session?.user;
+
 	const { data: fields } = getAllFields(supabase);
 	const { data: sports } = getAllSports(supabase);
+	const { data: userPreferences } = getUserPreferencesByUserId(supabase, user?.id!);
 
 	const handleSportPress = (sportName: string) => {
 		if (selectedSport === sportName) {
@@ -67,10 +73,24 @@ function CanchasFeed() {
 						justifyContent: "center",
 						alignItems: "center",
 						paddingRight: 10,
+						paddingLeft: 10,
+						overflowY: "hidden",
 					}}
 				>
+					<View style={{ padding: 5 }}>
+						<TouchableOpacity
+							style={[
+								styles.sportButton,
+								selectedSport === favFieldsStr ? styles.selectedSportButton : {},
+							]}
+							onPress={() => handleSportPress(favFieldsStr)}
+						>
+							<Icon name={"heart"} color="black" />
+						</TouchableOpacity>
+					</View>
+
 					{sports?.map((sport) => (
-						<View key={sport.name} style={{ padding: 10 }}>
+						<View key={sport.name} style={{ padding: 5 }}>
 							<TouchableOpacity
 								key={sport.name}
 								style={[
@@ -90,6 +110,7 @@ function CanchasFeed() {
 					)}
 				</ScrollView>
 			</View>
+
 			<ScrollView
 				horizontal={false}
 				contentContainerStyle={{ flexDirection: "column", paddingBottom: 100 }}
@@ -99,6 +120,9 @@ function CanchasFeed() {
 				{fields
 					?.filter((field) => {
 						if (selectedSport === "") return true;
+						if (selectedSport === favFieldsStr) {
+							return userPreferences?.fav_fields.includes(field.id);
+						}
 						const normalizedSelectedSport = normalizeString(selectedSport);
 
 						return field.sports.some((fieldSport) => {
@@ -139,7 +163,6 @@ const styles = StyleSheet.create({
 		backgroundColor: "#CC0000",
 	},
 	sportsContainer: {
-		// Puedes ajustar esta altura según lo que necesites
 		height: 40,
 		marginTop: 0,
 		flexDirection: "row",

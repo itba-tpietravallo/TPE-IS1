@@ -87,7 +87,7 @@ export default function Index() {
 				<View style={{ flex: 1, alignItems: "center" }}>
 					<Text
 						style={{
-							fontSize: 30,
+							fontSize: 26,
 							fontWeight: "bold",
 							color: "#f18f01",
 						}}
@@ -98,41 +98,40 @@ export default function Index() {
 			</View>
 
 			{reservations.length > 0 ? (
-				<View style={{ padding: 5, borderWidth: 1, borderColor: "#ccc", borderRadius: 5, margin: 10 }}>
-					<FlatList
-						data={reservations}
-						scrollEnabled={true}
-						style={{ maxHeight: 500 }}
-						keyExtractor={(item) => item.id.toString()}
-						renderItem={({ item }) => (
+				<FlatList
+					data={reservations}
+					keyExtractor={(item) => item.id.toString()}
+					contentContainerStyle={styles.container}
+					scrollEnabled={true}
+					renderItem={({ item }) => (
+						<View style={styles.card}>
 							<View
 								style={{
 									flexDirection: "row",
 									justifyContent: "space-between",
-									padding: 20,
+									alignItems: "center",
 								}}
 							>
-								<Text>
-									{new Date(item.date_time).toLocaleDateString("es-ES", {
-										year: "numeric",
-										month: "2-digit",
-										day: "2-digit",
-									})}
-								</Text>
-								<Text style={{ fontWeight: "bold" }}>{item.field.name}</Text>
+								<Text style={styles.fieldName}>{item.field.name}</Text>
 								<TouchableOpacity onPress={() => handleOpenModal(item)}>
-									<Image
-										style={{ width: 20, height: 20 }}
-										source={require("@/assets/images/info.png")}
-									/>
+									<Icon name="circle-info" size={22} color="#223332" />
 								</TouchableOpacity>
 							</View>
-						)}
-						ItemSeparatorComponent={() => (
-							<View style={{ height: 1, backgroundColor: "#ccc", marginHorizontal: 10 }} />
-						)}
-					/>
-				</View>
+							<Text style={styles.date}>
+								{new Date(item.date_time).toLocaleDateString("es-ES", {
+									year: "numeric",
+									month: "short",
+									day: "numeric",
+								})}
+								{" • "}
+								{new Date(item.date_time).toLocaleTimeString("es-ES", {
+									hour: "2-digit",
+									minute: "2-digit",
+								})}
+							</Text>
+						</View>
+					)}
+				/>
 			) : (
 				<Text style={{ textAlign: "center", marginTop: 40, fontSize: 18, color: "#555" }}>
 					No tienes reservas.
@@ -176,5 +175,31 @@ const styles = StyleSheet.create({
 		overflow: "hidden",
 		width: "90%",
 		maxWidth: 400,
+	},
+	card: {
+		backgroundColor: "#fff",
+		borderRadius: 12,
+		padding: 24,
+		marginBottom: 12,
+		marginHorizontal: 6,
+		shadowColor: "#000",
+		shadowOffset: { width: 0, height: 2 },
+		shadowOpacity: 0.1,
+		shadowRadius: 4,
+		elevation: 3,
+	},
+	fieldName: {
+		fontSize: 18,
+		fontWeight: "600",
+		color: "#262626",
+	},
+	date: {
+		marginTop: 8,
+		fontSize: 14,
+		color: "#555",
+	},
+	container: {
+		padding: 16,
+		paddingBottom: 90,
 	},
 });

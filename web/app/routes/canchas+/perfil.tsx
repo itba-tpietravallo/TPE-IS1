@@ -1,6 +1,6 @@
 import { LoaderFunctionArgs } from "@remix-run/node";
 import { Link, useLoaderData } from "@remix-run/react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Card, CardTitle, CardContent, CardFooter, CardHeader } from "~/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "~/components/ui/avatar";
 import { Label } from "~/components/ui/label";
@@ -9,6 +9,10 @@ import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
 import { authenticateUser } from "~/lib/auth.server";
 import { CreditCard, Mail, Phone, User, CalendarDays } from "lucide-react";
+import { getUserLinkedToPaymentMethod, useDeleteOAuthAuthorization } from "@lib/autogen/queries";
+import { createBrowserClient } from "@supabase/ssr";
+import { Database } from "@lib/autogen/database.types";
+import { SupabaseClient } from "@supabase/supabase-js";
 
 type Field = {
 	avatar_url: string;
@@ -33,6 +37,9 @@ type ProfileInfoProps = {
 	userName?: string;
 	phone?: string;
 	url_origin?: string;
+	isLinked?: boolean;
+	userId?: string;
+	supabase?: SupabaseClient<Database>;
 };
 
 type ReservsProps = {
@@ -60,15 +67,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export default function Index() {
 	const { user, avatar_url, email, phone, full_name, env, URL_ORIGIN } = useLoaderData<typeof loader>();
-	//const supabase = createBrowserClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
-	//const { data } = getAllReservationsForOwner(supabase, user.id);
-	//console.log(data, user.id);
-
-	// const reservs = data?.map((reserv) => ({
-	// 	date: reserv.date_time,
-	// 	fieldName: reserv.fields?.name,
-	// 	reservator: reserv.users?.full_name,
-	// })) ?? [];
+	const supabase = createBrowserClient<Database>(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
+	const data = getUserLinkedToPaymentMethod(supabase, user.id!, { enabled: !!user.id });
 
 	return (
 		<>
@@ -90,7 +90,12 @@ export default function Index() {
 							<div className="text-muted-foreground">
 								<Badge variant="outline" className="mt-1">
 									<CalendarDays className="mr-1 h-3 w-3" />
-									Miembro desde {new Date(user?.created_at).toLocaleDateString()}
+									Miembro desde{" "}
+									{new Date(user?.created_at).toLocaleDateString("es-AR", {
+										day: "2-digit",
+										month: "2-digit",
+										year: "numeric",
+									})}
 								</Badge>
 							</div>
 						</div>
@@ -103,6 +108,9 @@ export default function Index() {
 				userName={full_name ?? undefined}
 				phone={phone ?? undefined}
 				url_origin={URL_ORIGIN ?? undefined}
+				isLinked={!!data.data?.user_id}
+				userId={data.data?.user_id}
+				supabase={supabase}
 			/>
 
 			{/* RIP imprimir Reservas */}
@@ -131,7 +139,12 @@ export function ReservsList({ reservs }: ReservsListProps) {
 				{reservs?.map((reservation, index) => (
 					<li key={index} className="rounded-lg border p-4 shadow-sm">
 						<p>
-							<strong>Date:</strong> {new Date(reservation.date).toLocaleString()}
+							<strong>Date:</strong>{" "}
+							{new Date(reservation.date).toLocaleString("es-AR", {
+								day: "2-digit",
+								month: "2-digit",
+								year: "numeric",
+							})}
 						</p>
 						<p>
 							<strong>Field:</strong> {reservation.fieldName}
@@ -146,9 +159,24 @@ export function ReservsList({ reservs }: ReservsListProps) {
 	);
 }
 
-export function ProfileInfo({ email, userName, phone, url_origin }: ProfileInfoProps) {
+export function ProfileInfo({ email, userName, phone, url_origin, isLinked, userId, supabase }: ProfileInfoProps) {
 	const [phoneSaved, setPhoneSaved] = useState(phone ?? "");
 	const [phoneInput, setPhoneInput] = useState("");
+	const unlinkPaymentMutation = useDeleteOAuthAuthorization(supabase);
+
+	const handleUnlinkPayment = async () => {
+		if (!supabase || !userId) return;
+
+		await unlinkPaymentMutation
+			.mutateAsync({
+				user_id: userId,
+			})
+			.then(console.log)
+			.catch((error) => {
+				console.error("Error unlinking payment method:", error);
+				return;
+			});
+	};
 
 	const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		setPhoneInput(e.target.value);
@@ -191,7 +219,7 @@ export function ProfileInfo({ email, userName, phone, url_origin }: ProfileInfoP
 					</div>
 
 					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-						<div className="space-y-2">
+						{/* <div className="space-y-2">
 							<div className="flex items-center gap-2">
 								<Phone className="h-4 w-4 text-muted-foreground" />
 								<Label htmlFor="phone">Teléfono</Label>
@@ -205,20 +233,58 @@ export function ProfileInfo({ email, userName, phone, url_origin }: ProfileInfoP
 							{!phoneSaved && phoneInput === "" && (
 								<p className="text-sm text-muted-foreground">(no vinculado)</p>
 							)}
-						</div>
+						</div> */}
 
 						<div className="space-y-2">
 							<div className="flex items-center gap-2">
 								<CreditCard className="h-4 w-4 text-muted-foreground" />
-								<Label htmlFor="payment">Método de pago</Label>
+								<Label htmlFor="payment">Método de cobro</Label>
 							</div>
 							<div className="flex gap-2">
-								<Link to={`${new URL("/api/v1/payments/oauth/mercadopago", url_origin)}`}>
-									<Button variant="outline" className="w-full">
-										<CreditCard className="mr-2 h-4 w-4" />
-										Vincular a Mercado Pago
-									</Button>
-								</Link>
+								{isLinked ? (
+									<div className="group relative flex w-full items-center justify-center gap-2 rounded-md border border-green-200 bg-green-50 p-2 text-green-700">
+										<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path
+												strokeLinecap="round"
+												strokeLinejoin="round"
+												strokeWidth={2}
+												d="M5 13l4 4L19 7"
+											/>
+										</svg>
+										<span className="text-sm font-medium">Mercado Pago vinculado</span>
+										<button
+											className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-green-600 hover:bg-green-100 hover:text-red-600"
+											onClick={handleUnlinkPayment}
+										>
+											<svg
+												className="h-3 w-3"
+												fill="none"
+												stroke="currentColor"
+												viewBox="0 0 24 24"
+											>
+												<path
+													strokeLinecap="round"
+													strokeLinejoin="round"
+													strokeWidth={2}
+													d="M6 18L18 6M6 6l12 12"
+												/>
+											</svg>
+											<span className="absolute right-full top-1/2 mr-2 -translate-y-1/2 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100">
+												Desvincular
+											</span>
+										</button>
+									</div>
+								) : (
+									<Link
+										className="w-full"
+										to={`${new URL("/api/v1/payments/oauth/mercadopago", url_origin)}`}
+									>
+										<Button variant="outline" className="w-full">
+											<CreditCard className="mr-2 h-4 w-full" />
+											Vincular a Mercado Pago
+										</Button>
+									</Link>
+								)}
 							</div>
 						</div>
 					</div>
