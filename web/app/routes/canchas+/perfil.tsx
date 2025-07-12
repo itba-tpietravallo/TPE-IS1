@@ -64,7 +64,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export default function Index() {
 	const { user, avatar_url, email, phone, full_name, env, URL_ORIGIN } = useLoaderData<typeof loader>();
-
 	const supabase = createBrowserClient<Database>(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
 	const data = getUserLinkedToPaymentMethod(supabase, user.id!, { enabled: !!user.id });
 
