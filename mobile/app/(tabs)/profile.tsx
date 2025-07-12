@@ -117,6 +117,11 @@ const menuItems = [
 	{ label: "Pendientes", icon: "spinner", action: () => router.push("/(tabs)/profileMenu/pendings") },
 	{ label: "Chats", icon: "comments", action: () => router.push("/(tabs)/profileMenu/chats") },
 	{ label: "Usuarios Favoritos", icon: "user-group", action: () => router.push("/(tabs)/profileMenu/favUsers") },
+	{
+		label: "Invitaciones a Equipos",
+		icon: "list-check",
+		action: () => router.push("/(tabs)/profileMenu/teamInvites"),
+	},
 ];
 
 export function ProfileMenuList() {
