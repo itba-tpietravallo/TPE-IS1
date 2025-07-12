@@ -170,10 +170,8 @@ export function ProfileInfo({ email, userName, phone, url_origin, isLinked, user
 		await unlinkPaymentMutation.mutateAsync({
 			user_id: userId,
 		}).then(console.log).catch((error) => {
-			if (error) {
-				console.error("Error unlinking payment method:", error);
-				return;
-			}
+			console.error("Error unlinking payment method:", error);
+			return;
 		});
 	};
 
