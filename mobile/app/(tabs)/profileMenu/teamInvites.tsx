@@ -75,6 +75,7 @@ function myTeamInvites() {
 							data={userPreferences?.team_invites}
 							keyExtractor={(item) => item}
 							scrollEnabled={true}
+							contentContainerStyle={{ paddingBottom: 80 }}
 							renderItem={({ item }) => {
 								const team = teams?.find((team) => team.team_id === item);
 								if (!team) return null;
