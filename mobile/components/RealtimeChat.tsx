@@ -168,10 +168,14 @@ export function RealtimeChat({ roomId, roomName, userId }: { roomId: string; roo
 						scrollEventThrottle={16}
 						contentContainerStyle={{
 							paddingBottom: 10,
-							...(localMessages.length === 0
-								? { flex: 1, justifyContent: "center", alignItems: "center", padding: 16 }
-								: {}),
+							flexGrow: 1,
+							justifyContent: "flex-end",
 						}}
+						ListEmptyComponent={
+							<View style={styles.emptyChatContainer}>
+								<Text style={styles.emptyChatMessage}>Comenzá la conversación, decí hola!</Text>
+							</View>
+						}
 					/>
 
 					<View style={styles.inputContainer}>
@@ -214,6 +218,16 @@ const styles = StyleSheet.create({
 		flex: 1,
 		justifyContent: "center",
 		alignItems: "center",
+	},
+	emptyChatContainer: {
+		flex: 1,
+		justifyContent: "center",
+		alignItems: "center",
+		transform: [{ scaleY: -1 }],
+	},
+	emptyChatMessage: {
+		fontSize: 16,
+		color: "#666",
 	},
 	messageList: {
 		flex: 1,

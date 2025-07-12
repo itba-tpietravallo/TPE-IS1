@@ -76,6 +76,7 @@ function PopUpTorneo({
 	const [contactEmail, setContactEmail] = useState<string>("");
 
 	const [canJoin, setCanJoin] = useState<boolean>(false);
+	const [submitted, setSubmitted] = useState(false);
 	const [selectedPlayers, setSelectedPlayers] = useState<
 		NonNullable<ReturnType<typeof getAllUsers>["data"]>[number] & { id: string }[]
 	>();
@@ -97,7 +98,8 @@ function PopUpTorneo({
 				},
 			]);
 			console.log("Team successfully registered for tournament");
-			onClose();
+			setSubmitted(true);
+			setIsModalVisible(false);
 		} catch (error) {
 			console.error("Error registering for tournament:", error);
 			alert("Error al inscribir el equipo al torneo. Por favor, intenta de nuevo.");
@@ -130,6 +132,12 @@ function PopUpTorneo({
 		fetchTeam();
 	}, [selectedTeam]);
 
+	useEffect(() => {
+		if (!isModalVisible && submitted) {
+			onClose();
+		}
+	}, [isModalVisible, submitted]);
+
 	const getUserById = async (userId: string) => {
 		return getUsername(supabase, userId);
 	};
@@ -137,9 +145,15 @@ function PopUpTorneo({
 	return (
 		<View style={styles.modalContainer}>
 			<View style={styles.modal}>
-				<TouchableOpacity style={styles.closeButton} onPress={() => onClose()}>
-					<Icon name="xmark" size={22} color="#333" />
-				</TouchableOpacity>
+				<View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+					{/* Boton cerrar PopUp */}
+					<TouchableOpacity
+						style={{ padding: 10, alignItems: "flex-start", marginLeft: 10 }}
+						onPress={onClose}
+					>
+						<Icon name="xmark" size={24} color="black" style={{ marginTop: 10 }} />
+					</TouchableOpacity>
+				</View>
 				<View style={styles.infoContainer}>
 					<Text style={styles.title}>{name}</Text>
 					<View style={{ flexDirection: "row" }}>
@@ -307,6 +321,7 @@ const styles = StyleSheet.create({
 	infoContainer: {
 		width: "100%",
 		padding: 20,
+		paddingTop: 0,
 	},
 	title: {
 		fontSize: 22,

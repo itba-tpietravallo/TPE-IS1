@@ -3,7 +3,13 @@ import { ScreenWidth } from "@rneui/themed/dist/config";
 import Icon from "react-native-vector-icons/FontAwesome6";
 import { Image } from "@rneui/themed";
 import { supabase } from "@lib/supabase";
-import { getUserAuthSession, useUpdateTeam, getTeamById } from "@/lib/autogen/queries";
+import {
+	getUserAuthSession,
+	useUpdateTeam,
+	getTeamById,
+	useUpsertUserPreferences,
+	getUserPreferencesByUserId,
+} from "@/lib/autogen/queries";
 
 type PropsPopUpTeamMemberInfo = {
 	onClose: () => void;
@@ -20,6 +26,9 @@ function PopUpTeamMemberInfo(props: PropsPopUpTeamMemberInfo) {
 	const updateTeamMutation = useUpdateTeam(supabase);
 
 	const { data: team } = getTeamById(supabase, props.team_id);
+
+	const { data: userPreferences } = getUserPreferencesByUserId(supabase, user?.id!);
+	const upsertUserPreferences = useUpsertUserPreferences(supabase);
 
 	const handleDeletePlayer = async (player: string) => {
 		const updatedPlayers = team!.players.filter((member) => member !== player);
@@ -68,6 +77,37 @@ function PopUpTeamMemberInfo(props: PropsPopUpTeamMemberInfo) {
 		return false;
 	}
 
+	const handleManageFavorites = async (player: string) => {
+		var updatedFavorites;
+		if (!userIsFavorite(player)) {
+			updatedFavorites = [...(userPreferences?.fav_users || []), player];
+		} else {
+			updatedFavorites = userPreferences?.fav_users.filter((member) => member !== player);
+		}
+
+		try {
+			await upsertUserPreferences.mutateAsync([
+				{
+					user_id: user?.id!,
+					fav_fields: userPreferences?.fav_fields || [],
+					fav_users: updatedFavorites!,
+					team_invites: userPreferences?.team_invites || [],
+				},
+			]);
+
+			console.log("added to favorites");
+		} catch (error) {
+			console.error("Error adding fav user:", error);
+		}
+	};
+
+	function userIsFavorite(userId: string) {
+		if (userPreferences?.fav_users.includes(userId)) {
+			return true;
+		}
+		return false;
+	}
+
 	return (
 		<View style={styles.modalView}>
 			<View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
@@ -75,13 +115,28 @@ function PopUpTeamMemberInfo(props: PropsPopUpTeamMemberInfo) {
 				<TouchableOpacity style={{ alignItems: "flex-start" }} onPress={props.onClose}>
 					<Icon name="xmark" size={24} color="black" />
 				</TouchableOpacity>
+
+				{/* Boton agregar a favoritos */}
+				<TouchableOpacity
+					style={{ padding: 10, alignItems: "flex-start", marginLeft: 10 }}
+					onPress={() => {
+						handleManageFavorites(props.id);
+					}}
+				>
+					<Icon
+						name={userIsFavorite(props.id) ? "heart-circle-check" : "heart"}
+						size={24}
+						color="black"
+						style={{ marginTop: 10 }}
+					/>
+				</TouchableOpacity>
 			</View>
 
 			<View style={styles.mainInfo}>
 				{props.avatar ? (
 					<Image source={{ uri: props.avatar || "undefined_image" }} style={styles.avatar} />
 				) : (
-					<Icon name="user" size={35} color="black" />
+					<Icon name="user" size={35} style={{ padding: 20 }} color="black" />
 				)}
 
 				{/* full_name y username */}
@@ -121,6 +176,8 @@ function PopUpTeamMemberInfo(props: PropsPopUpTeamMemberInfo) {
 					</TouchableOpacity>
 				</View>
 			)}
+
+			<View style={{ marginBottom: 10 }} />
 		</View>
 	);
 }
@@ -199,6 +256,15 @@ const styles = StyleSheet.create({
 		color: "#333",
 		fontSize: 16,
 		fontWeight: "600",
+		textAlign: "center",
+	},
+	friendRequestButton: {
+		backgroundColor: "#f18f01",
+	},
+	friendsButtonText: {
+		color: "#fff",
+		fontSize: 16,
+		fontWeight: "bold",
 		textAlign: "center",
 	},
 });

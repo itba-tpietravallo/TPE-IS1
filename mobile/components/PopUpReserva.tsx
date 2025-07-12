@@ -13,10 +13,12 @@ import {
 	getAllTeamsByAdminUser,
 	getUsername,
 	getUserAuthSession,
+	getUserPreferencesByUserId,
 	getFieldById,
 	getCurrentUserFieldReview,
 	getFieldReviewsAvg,
 	useInsertFieldReview,
+	useUpsertUserPreferences,
 } from "@/lib/autogen/queries";
 import Selector from "./Selector";
 import StarRating from "./StarRating";
@@ -55,6 +57,9 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 	const [showReviewModal, setShowReviewModal] = useState(false);
 
 	const timezone = "America/Argentina/Buenos_Aires";
+
+	const { data: userPreferences } = getUserPreferencesByUserId(supabase, user?.id!);
+	const upsertUserPreferences = useUpsertUserPreferences(supabase);
 
 	const teams: Renter[] = normalizedTeams.map((team) => ({
 		id: team.team_id,
@@ -134,6 +139,37 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 		return teams.some((team) => team.id === renter.id);
 	}
 
+	const handleManageFavorites = async (field: string) => {
+		var updatedFavorites;
+		if (!fieldIsFavorite(field)) {
+			updatedFavorites = [...(userPreferences?.fav_fields || []), field];
+		} else {
+			updatedFavorites = userPreferences?.fav_fields.filter((item) => item !== field);
+		}
+
+		try {
+			await upsertUserPreferences.mutateAsync([
+				{
+					user_id: user?.id!,
+					fav_fields: updatedFavorites!,
+					fav_users: userPreferences?.fav_users || [],
+					team_invites: userPreferences?.team_invites || [],
+				},
+			]);
+
+			console.log("managed favorites");
+		} catch (error) {
+			console.error("Error managing fav field:", error);
+		}
+	};
+
+	function fieldIsFavorite(fieldId: string) {
+		if (userPreferences?.fav_fields.includes(fieldId)) {
+			return true;
+		}
+		return false;
+	}
+
 	const [showDatePicker, setShowDatePicker] = useState(false);
 	const [showTimePicker, setShowTimePicker] = useState(false);
 
@@ -180,10 +216,27 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 
 	return (
 		<View style={styles.modalView}>
-			<TouchableOpacity style={{ padding: 20, alignItems: "flex-start" }} onPress={onClose}>
-				<Icon name="xmark" size={22} color="#333" />
-			</TouchableOpacity>
+			<View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+				{/* Boton cerrar PopUp */}
+				<TouchableOpacity style={{ padding: 10, alignItems: "flex-start", marginLeft: 10 }} onPress={onClose}>
+					<Icon name="xmark" size={24} color="black" style={{ marginTop: 10 }} />
+				</TouchableOpacity>
 
+				{/* Boton agregar a favoritos */}
+				<TouchableOpacity
+					style={{ padding: 10, alignItems: "flex-start", marginLeft: 10 }}
+					onPress={() => {
+						handleManageFavorites(fieldId);
+					}}
+				>
+					<Icon
+						name={fieldIsFavorite(fieldId) ? "heart-circle-check" : "heart"}
+						size={24}
+						color="black"
+						style={{ marginTop: 10 }}
+					/>
+				</TouchableOpacity>
+			</View>
 			<View style={{ flex: 1, justifyContent: "space-between" }}>
 				<ScrollView contentContainerStyle={[styles.mainInfo, { flexGrow: 1 }]} bounces={false}>
 					<View style={styles.topInfo}>
@@ -199,31 +252,32 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 							</Text>
 							<Text style={{ fontSize: 16, color: "gray", margin: 10 }}>{sport.join(", ")} </Text>
 						</View>
-						<TouchableOpacity onPress={() => setIsModalVisible(true)}>
-							<Image
-								style={{
-									width: 120,
-									height: 120,
-									marginTop: 10,
-									marginRight: 10,
-									borderRadius: 15,
-								}}
-								source={{ uri: images[0] }}
-							/>
-							<Modal
-								style={{
-									backgroundColor: "white",
-									borderRadius: 20,
-									justifyContent: "center",
-									margin: 20,
-									overflow: "hidden",
-									flex: 1,
-								}}
-								visible={isModalVisible}
-								transparent={true}
-								onRequestClose={() => setIsModalVisible(false)}
-							>
-								{/* <View
+						{images && images.length > 0 && (
+							<TouchableOpacity onPress={() => setIsModalVisible(true)}>
+								<Image
+									style={{
+										width: 120,
+										height: 120,
+										marginTop: 10,
+										marginRight: 10,
+										borderRadius: 15,
+									}}
+									source={{ uri: images[0] }}
+								/>
+								<Modal
+									style={{
+										backgroundColor: "white",
+										borderRadius: 20,
+										justifyContent: "center",
+										margin: 20,
+										overflow: "hidden",
+										flex: 1,
+									}}
+									visible={isModalVisible}
+									transparent={true}
+									onRequestClose={() => setIsModalVisible(false)}
+								>
+									{/* <View
               style={{
                 fontSize: 32,
                 fontWeight: "bold",
@@ -234,39 +288,40 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
                 margin: 10,
                 }}
                 ></View> */}
-								<View
-									style={{
-										flex: 1,
-										justifyContent: "center",
-										alignItems: "center",
-										backgroundColor: "rgba(0,0,0,0.8)", // Semi-transparent background
-										padding: 20,
-									}}
-								>
-									<View>
-										<TouchableOpacity style={{ alignItems: "flex-end" }} onPress={onClose}>
-											<Image
-												style={{ width: 20, height: 20, marginTop: 10 }}
-												source={require("@/assets/images/close_white.png")}
-											/>
-										</TouchableOpacity>
-										{images.map((uri, index) => (
-											<Image
-												key={index}
-												style={{
-													width: ScreenWidth * 0.8,
-													height: ScreenWidth * 0.8,
-													borderRadius: 10,
-													marginBottom: 20,
-												}}
-												source={{ uri: uri }}
-												resizeMode="contain"
-											/>
-										))}
+									<View
+										style={{
+											flex: 1,
+											justifyContent: "center",
+											alignItems: "center",
+											backgroundColor: "rgba(0,0,0,0.8)", // Semi-transparent background
+											padding: 20,
+										}}
+									>
+										<View>
+											<TouchableOpacity
+												style={{ alignItems: "flex-start" }}
+												onPress={() => setIsModalVisible(false)}
+											>
+												<Icon name="xmark" size={20} color="white" />
+											</TouchableOpacity>
+											{images.map((uri, index) => (
+												<Image
+													key={index}
+													style={{
+														width: ScreenWidth * 0.8,
+														height: ScreenWidth * 0.8,
+														borderRadius: 10,
+														marginBottom: 20,
+													}}
+													source={{ uri: uri }}
+													resizeMode="contain"
+												/>
+											))}
+										</View>
 									</View>
-								</View>
-							</Modal>
-						</TouchableOpacity>
+								</Modal>
+							</TouchableOpacity>
+						)}
 					</View>
 					<View style={{ flexDirection: "row", alignItems: "center" }}>
 						<Image style={{ width: 25, height: 25 }} source={require("@/assets/images/cancha.png")} />
