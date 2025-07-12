@@ -37,24 +37,36 @@ function myFriends() {
 								const member = usersData.data?.find((user) => user.id === item);
 								if (!member) return null;
 								return (
-									<View style={styles.row}>
-										<Text style={{ fontWeight: "bold" }}>{member.full_name}</Text>
+									<View style={styles.card}>
 										<TouchableOpacity
 											onPress={() => {
 												setSelectedMember(member.id);
 											}}
 										>
-											<Image
-												style={{ width: 20, height: 20 }}
-												source={require("@/assets/images/info.png")}
-											/>
+											<View
+												style={{
+													flexDirection: "row",
+													justifyContent: "space-between",
+													alignItems: "flex-start",
+												}}
+											>
+											<View style={{ flexDirection: "row", gap: 10, alignItems: "center" }}>
+												{member.avatar_url ? (
+													<Image source={{ uri: member.avatar_url || "undefined_image" }} style={styles.avatar} />
+												) : (
+													<Icon name="user" size={35} style={{ padding: 20 }} color="black" />
+												)}
+												<Text style={styles.teamName}>{member.full_name}</Text>
+											</View>
+												<Image
+													style={{ width: 20, height: 20 }}
+													source={require("@/assets/images/info.png")}
+												/>
+											</View>
 										</TouchableOpacity>
 									</View>
 								);
 							}}
-							ItemSeparatorComponent={() => (
-								<View style={{ height: 1, backgroundColor: "#ccc", marginHorizontal: 10 }} />
-							)}
 						/>
 
 						<Modal
@@ -89,6 +101,43 @@ function myFriends() {
 }
 
 const styles = StyleSheet.create({
+	avatar: {
+		width: 30,
+		height: 30,
+		borderRadius: 100,
+	},
+	container: {
+		padding: 16,
+		paddingBottom: 90,
+	},
+	card: {
+		backgroundColor: "#fff",
+		borderRadius: 12,
+		padding: 24,
+		marginBottom: 12,
+		marginHorizontal: 6,
+		shadowColor: "#000",
+		shadowOffset: { width: 0, height: 2 },
+		shadowOpacity: 0.1,
+		shadowRadius: 4,
+		elevation: 3,
+	},
+	teamName: {
+		fontSize: 18,
+		fontWeight: "600",
+		color: "#262626",
+		textAlign: "left",
+	},
+	sport: {
+		fontSize: 14,
+		color: "#888",
+		marginTop: 4,
+	},
+	description: {
+		marginTop: 6,
+		fontSize: 13,
+		color: "#555",
+	},
 	background: {
 		flex: 1,
 		alignItems: "stretch",
@@ -109,11 +158,6 @@ const styles = StyleSheet.create({
 		padding: 10,
 	},
 	dataContainer: {
-		padding: 5,
-		borderWidth: 1,
-		borderColor: "#ccc",
-		borderRadius: 5,
-		margin: 10,
 		marginBottom: 200,
 	},
 	row: {
