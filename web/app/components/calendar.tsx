@@ -68,6 +68,7 @@ export function WeekCalendar({ reservations, supabase }: WeekCalendarProps) {
 	});
 
 	const [selectedReservation, setSelectedReservation] = useState<EnrichedReservation | null>(null);
+	const [isCanceling, setIsCanceling] = useState(false);
 
 	const deleteReservation = useDeleteReservation(supabase);
 
@@ -152,6 +153,7 @@ export function WeekCalendar({ reservations, supabase }: WeekCalendarProps) {
 
 	const handleCancelation = async () => {
 		try {
+			setIsCanceling(true);
 			const { data: reservationsData } = await queries.getUserReservations(supabase, selectedReservation?.owner || "");
 			const reservation = reservationsData?.find((r) => r.date_time === selectedReservation?.date_time);
 
@@ -159,6 +161,7 @@ export function WeekCalendar({ reservations, supabase }: WeekCalendarProps) {
 
 			if (!reservation) {
 				alert("Error: Reserva no encontrada");
+				setIsCanceling(false);
 				return;
 			}
 
@@ -185,6 +188,8 @@ export function WeekCalendar({ reservations, supabase }: WeekCalendarProps) {
 		} catch (error) {
 			console.error("Error al cancelar la reserva:", error);
 			alert("Error al cancelar la reserva");
+		} finally {
+			setIsCanceling(false);
 		}
 	};
 
@@ -346,8 +351,13 @@ export function WeekCalendar({ reservations, supabase }: WeekCalendarProps) {
 								</div>
 							</div>
 
-							<Button variant="destructive" onClick={handleCancelation}>
-								Cancelar Reserva
+							<Button
+								variant="destructive"
+								onClick={handleCancelation}
+								disabled={isCanceling}
+								className={isCanceling ? "animate-pulse" : ""}
+							>
+								{isCanceling ? "Cancelando..." : "Cancelar Reserva"}
 							</Button>
 						</div>
 					)}

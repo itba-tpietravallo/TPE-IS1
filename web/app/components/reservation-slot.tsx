@@ -7,7 +7,7 @@ import { getTeamMembers, getUserSessionById } from "@lib/autogen/queries";
 type ReservationSlotProps = {
 	reservation: {
 		date_time: string;
-		slot_duration: number;
+		slot_duration: number | undefined;
 		event_name: string;
 		payment_status: "pending" | "confirmed";
 		sport?: string;
