@@ -101,14 +101,15 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 		date.getHours() > maximumDate.getHours() && date.setHours(maximumDate.getHours(), 0, 0, 0);
 		setSelectedDateTime(date);
 
-		const offset = 3;
-		const d = new Date(new Date(date).setHours(date.getHours() - offset));
+		// const offset = 3;
+		const d = new Date(new Date(date).setHours(date.getHours()));
 		setSelectedShiftedDateTime(d);
-
+		
 		const taken = isSlotUnavailable(selectedShiftedDateTime, reservations ?? undefined);
+		console.log(`Shifted: ${d.getHours()} ${d.getMinutes()} - Original: ${date.getHours()} ${date.getMinutes()}`);
 
 		setUnavailability(taken);
-	}, []);
+	}, [selectedDateTime, selectedShiftedDateTime, reservations, fieldId, minimumDate, maximumDate]);
 
 	function isTeam(renter: Renter | null): boolean {
 		if (!renter) return false;

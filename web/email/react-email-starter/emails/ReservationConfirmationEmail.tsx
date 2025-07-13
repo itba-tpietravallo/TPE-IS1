@@ -19,7 +19,7 @@ export function ReservationConfirmationEmail({
 		year: "numeric",
 	});
 
-	const time = reservation_date.toLocaleTimeString("es-ES", {
+	const time = new Date(reservation_date.getTime() - 3 * 60 * 60 * 1000).toLocaleTimeString("es-ES", {
 		hour: "2-digit",
 		minute: "2-digit",
 		hour12: false,
