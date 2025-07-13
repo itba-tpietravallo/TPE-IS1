@@ -19,7 +19,7 @@ import {
 } from "@supabase-cache-helpers/postgrest-react-query";
 
 export const queries = {
-	getAllFields: (supabase: SupabaseClient<Database>) => supabase.from("fields").select("*"),
+	getAllFields: (supabase: SupabaseClient<Database>) => supabase.from("fields").select("*").eq("authorized", true),
 
 	getNearbyFields: (supabase: SupabaseClient<Database>, lat: number, long: number, limit?: number) =>
 		supabase.rpc("nearby_fields", { lat, long, lim: limit || 5 }),
