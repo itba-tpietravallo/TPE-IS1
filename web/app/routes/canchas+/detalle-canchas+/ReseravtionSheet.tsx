@@ -2,6 +2,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "~/co
 import { Info } from "lucide-react";
 import { useState } from "react";
 import { getAllTeams, getAllUsers } from "@lib/autogen/queries";
+import { Button } from "~/components/ui/button";
 
 import type { Database } from "@lib/autogen/database.types";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -16,8 +17,47 @@ export function ReservationSheet({
 	supabase: SupabaseClient<Database>;
 }) {
 	const [open, setOpen] = useState(false);
+	const [isCanceling, setIsCanceling] = useState(false);
 	const teamsData = getAllTeams(supabase);
 	const usersData = getAllUsers(supabase);
+
+	const handleCancelation = async () => {
+		try {
+			setIsCanceling(true);
+			const ownerData = await getAllUsers(supabase).then((res) =>
+				res.data?.find((user) => user.id === reservation.owner_id)
+			);
+
+			if (!reservation) {
+				alert("Error: Reserva no encontrada");
+				setIsCanceling(false);
+				return;
+			}
+
+			await fetch(new URL("api/v1/send-email", window.location.origin).toString(), {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					type: "cancelled_reservation",
+					player_email: ownerData?.email || "",
+					player_name: ownerData?.full_name || "",
+					payment_id: reservation.payments_ids?.[0] || "",
+					field_name: reservation.field.name,
+					reservation_date: reservation?.date_time,
+					confirmed: true,
+				}),
+			});
+
+			alert("Reserva cancelada exitosamente");
+		} catch (error) {
+			console.error("Error al cancelar la reserva:", error);
+			alert("Error al cancelar la reserva");
+		} finally {
+			setIsCanceling(false);
+		}
+	};
 
 	return (
 		<Sheet open={open} onOpenChange={setOpen}>
@@ -75,6 +115,14 @@ export function ReservationSheet({
 							})}
 						</ul>
 					</div>
+					<Button
+						variant="destructive"
+						onClick={handleCancelation}
+						disabled={isCanceling}
+						className={isCanceling ? "animate-pulse" : ""}
+					>
+						{isCanceling ? "Cancelando..." : "Cancelar Reserva"}
+					</Button>
 				</div>
 			</SheetContent>
 		</Sheet>
