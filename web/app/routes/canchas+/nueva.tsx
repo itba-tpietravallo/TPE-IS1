@@ -23,7 +23,7 @@ import { createBrowserClient } from "@supabase/ssr";
 import { useLoaderData, useSubmit } from "@remix-run/react";
 import { authenticateUser } from "~/lib/auth.server";
 import { User } from "@supabase/supabase-js";
-import { DollarSign } from "lucide-react";
+import { DollarSign, Loader2 } from "lucide-react";
 import { getAllSports, useInsertField } from "@/lib/autogen/queries";
 import { APIProvider, Map, AdvancedMarker, Pin, InfoWindow } from "@vis.gl/react-google-maps";
 import debounce from "lodash.debounce";
@@ -93,6 +93,8 @@ export function NewField() {
 	const supabase = createBrowserClient<Database>(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
 	const [formError, setFormError] = useState(false);
 	const [geocodingError, setGeocodingError] = useState<string | null>(null);
+	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [loadingText, setLoadingText] = useState("Cargando...");
 
 	const form = useForm<FieldFormData>({
 		resolver: zodResolver(fieldSchema),
@@ -170,14 +172,30 @@ export function NewField() {
 	}, [watchedStreet, watchedStreetNumber, watchedCity, debouncedGeocode]);
 
 	const onSubmit = async (data: FieldFormData) => {
-		console.log("on sub");
 		try {
+			setIsSubmitting(true);
+			const loadingMessages = [
+				"Cargando imágenes...",
+				"Preparando jugadores...",
+				"Acomodando la cancha...",
+				"Revisando el césped...",
+				"Configurando las luces...",
+				"Listo para jugar!",
+			];
+			let messageIndex = 0;
+			const interval = setInterval(() => {
+				setLoadingText(loadingMessages[messageIndex]);
+				messageIndex = (messageIndex + 1) % loadingMessages.length;
+			}, 1000);
+
 			if (!latitude || !longitude) {
 				setGeocodingError(
 					"Por favor, ingrese una dirección válida para ubicarla en el mapa antes de publicar.",
 				);
 				setFormError(true);
-				// return;
+				clearInterval(interval);
+				setIsSubmitting(false);
+				return;
 			}
 
 			const files = data.image || [];
@@ -222,6 +240,7 @@ export function NewField() {
 				avatar_url: user.avatar_url,
 			}]);
 
+			clearInterval(interval);
 			window.location.href = `${URL_ORIGIN}/canchas`;
 		} catch (err: any) {
 			console.error("Submission failed:", err.message || err);
@@ -229,6 +248,8 @@ export function NewField() {
 			setGeocodingError("Error al cargar el formulario");
 			setLatitude(null);
 			setLongitude(null);
+		} finally {
+			setIsSubmitting(false);
 		}
 	};
 
@@ -284,14 +305,24 @@ export function NewField() {
 						form={form}
 					/>
 					<div className="flex w-full items-center justify-center">
-						<Button
-							data-color={formError}
-							disabled={formError}
-							className="mb-11 mt-5 h-10 w-full bg-[#223332] text-base hover:bg-[#f18f01]/80 data-[color=true]:bg-[#c92626]"
-							type="submit"
-						>
-							{formError ? "Se encontró un error, porfavor vuelva a intentar" : "Publicar"}
-						</Button>
+						{
+							isSubmitting && !formError ?
+							<Button
+								className="mb-11 mt-5 h-10 w-full text-base bg-gray-500 animate-pulse flex items-center justify-center"
+							>
+								<Loader2 className="spinner-border animate-spin inline-block w-5 h-5 rounded-full mr-2"/>
+								{loadingText}
+							</Button>
+							:
+							<Button
+								data-color={formError}
+								disabled={formError || (!latitude && !longitude)}
+								className="mb-11 mt-5 h-10 w-full bg-[#223332] text-base hover:bg-[#f18f01]/80 data-[color=true]:bg-[#c92626]"
+								type="submit"
+							>
+								{formError ? "Se encontró un error, porfavor vuelva a intentar" : "Publicar"}
+							</Button>
+						}
 					</div>
 				</form>
 			</Form>
