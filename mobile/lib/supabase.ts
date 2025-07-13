@@ -55,7 +55,7 @@ export const initializeSupabaseClient = async () => {
 		},
 	});
 
-	internal_promise_supabase_resolve(void);
+	internal_promise_supabase_resolve(void 0);
 };
 
 onlineManager.setEventListener((setOnline) => {
