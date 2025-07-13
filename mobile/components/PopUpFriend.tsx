@@ -113,17 +113,13 @@ function PopUpFriend(props: PropsPopUpFriend) {
 							if (selectedTeamObj.team_id === null) return;
 							setSelectedTeam(selectedTeamObj.team_id);
 						}}
-						dropdownStyle={{
-							backgroundColor: "white",
-							gap: 5,
-							borderRadius: 8,
-						}}
+						dropdownStyle={styles.dropdownMenuStyle}
 						renderButton={(selectedItem) => {
 							const noTeams = myTeams?.length === 0;
 							return (
-								<View style={[styles.button, noTeams && { opacity: 0.6 }]}>
+								<View style={[styles.dropdownButtonStyle, noTeams && { opacity: 0.6 }]}>
 									<Icon name="share" size={18} color="black" style={{ marginRight: 10 }} />
-									<Text style={styles.buttonText}>
+									<Text style={styles.dropdownButtonTxtStyle}>
 										{noTeams
 											? "No puedes invitar sin equipos"
 											: selectedItem
@@ -133,21 +129,22 @@ function PopUpFriend(props: PropsPopUpFriend) {
 								</View>
 							);
 						}}
-						renderItem={(item, isSelected) => {
+						renderItem={(item, index, isSelected) => {
 							const isMessage = item.team_id === null;
 							return (
 								<View
-									style={{
-										...styles.dropdownItemStyle,
-										backgroundColor: isMessage ? "#f0f0f0" : isSelected ? "#D2D9DF" : "white",
-									}}
+									style={[
+										styles.dropdownItemStyle,
+										isSelected && styles.dropdownItemSelected,
+										index !== (myTeams?.length ?? 0) - 1 && styles.dropdownItemBorder,
+										isMessage && { backgroundColor: "#f0f0f0" },
+									]}
 								>
 									<Text
-										style={{
-											...styles.dropdownItemTxtStyle,
-											color: isMessage ? "gray" : "black",
-											fontStyle: isMessage ? "italic" : "normal",
-										}}
+										style={[
+											styles.dropdownItemTxtStyle,
+											isMessage && { color: "gray", fontStyle: "italic" },
+										]}
 									>
 										{item.name}
 									</Text>
@@ -256,22 +253,47 @@ const styles = StyleSheet.create({
 		textAlign: "center",
 	},
 	dropdownItemStyle: {
-		width: "100%",
-		backgroundColor: "#F9FCFF",
-		flexDirection: "row",
-		paddingHorizontal: 12,
-		justifyContent: "center",
-		alignItems: "center",
-		paddingVertical: 8,
-		borderRadius: 8,
-		borderBottomWidth: 1,
-		borderColor: "#000000",
+		paddingVertical: 10,
+		paddingHorizontal: 16,
+		backgroundColor: "#fff",
 	},
 	dropdownItemTxtStyle: {
-		flex: 1,
-		fontSize: 18,
-		fontWeight: "500",
-		color: "#151E26",
+		fontSize: 16,
+		color: "#223332",
+	},
+	dropdownButtonStyle: {
+		flexDirection: "row",
+		width: "85%",
+		paddingVertical: 14,
+		paddingHorizontal: 20,
+		justifyContent: "center",
+		alignItems: "center",
+		borderWidth: 1,
+		borderColor: "#ccc",
+		borderRadius: 12,
+		backgroundColor: "#fff",
+		shadowColor: "#000",
+		shadowOffset: { width: 0, height: 1 },
+		shadowOpacity: 0.1,
+		shadowRadius: 2,
+		elevation: 2,
+	},
+	dropdownButtonTxtStyle: {
+		color: "#333",
+		fontSize: 16,
+		textAlign: "center",
+	},
+	dropdownMenuStyle: {
+		backgroundColor: "#fff",
+		borderRadius: 8,
+		paddingVertical: 4,
+	},
+	dropdownItemSelected: {
+		backgroundColor: "#f0f0f0",
+	},
+	dropdownItemBorder: {
+		borderBottomWidth: 1,
+		borderBottomColor: "#eee",
 	},
 });
 

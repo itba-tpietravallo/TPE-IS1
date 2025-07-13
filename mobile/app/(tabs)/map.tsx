@@ -57,7 +57,6 @@ export default function Map() {
 			) : !location || !data ? (
 				<>
 					<ActivityIndicator size="large" />
-					<Text>Loading...</Text>
 				</>
 			) : (
 				<>

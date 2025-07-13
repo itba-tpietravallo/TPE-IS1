@@ -113,16 +113,26 @@ function ReservationInfo({ onClose, field_name, date, time, location, id }: info
 
 			<Button
 				buttonStyle={{
-					padding: 10,
-					borderRadius: 15,
+					width: "85%",
+					paddingVertical: 14,
+					paddingHorizontal: 20,
+					borderRadius: 12,
 					alignSelf: "center",
-					backgroundColor: "#223332",
+					backgroundColor: "#fff",
 					justifyContent: "center",
-
+					alignItems: "center",
+					borderWidth: 1,
+					borderColor: "#ccc",
+					shadowColor: "#000",
+					shadowOffset: { width: 0, height: 1 },
+					shadowOpacity: 0.1,
+					shadowRadius: 2,
+					elevation: 2,
 					marginBottom: 20,
 				}}
 				titleStyle={{
 					fontSize: 16,
+					color: "#333",
 				}}
 				title="Cancelar reserva"
 				onPress={handleCancelation}

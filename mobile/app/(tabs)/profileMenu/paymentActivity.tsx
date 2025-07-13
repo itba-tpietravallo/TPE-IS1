@@ -59,7 +59,7 @@ export default function CardList() {
 			>
 				<TouchableOpacity
 					onPress={() => router.push("/(tabs)/profile")}
-					style={{ position: "absolute", left: 10 }}
+					style={{ position: "absolute", left: 10, padding: 10 }}
 				>
 					<Icon name="arrow-left" size={18} color="#262626" />
 				</TouchableOpacity>
