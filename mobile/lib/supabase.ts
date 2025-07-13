@@ -12,6 +12,11 @@ import { MODE_BASE_URL } from "./mode";
 
 export let supabase: ReturnType<typeof createClient>;
 
+let internal_promise_supabase_resolve: (value: unknown) => void;
+let internal_promise_supabase = new Promise(resolve => {
+	internal_promise_supabase_resolve = resolve;
+});
+
 export let DATABASE_ANON_KEY: string;
 
 export const initializeSupabaseClient = async () => {
@@ -49,6 +54,8 @@ export const initializeSupabaseClient = async () => {
 			debug: false, // enable to print Supabase auth logs
 		},
 	});
+
+	internal_promise_supabase_resolve(void);
 };
 
 onlineManager.setEventListener((setOnline) => {
@@ -63,13 +70,17 @@ onlineManager.setEventListener((setOnline) => {
 // to receive `onAuthStateChange` events with the `TOKEN_REFRESHED` or
 // `SIGNED_OUT` event if the user's session is terminated. This should
 // only be registered once.
-let sub = AppState.addEventListener("change", (state) => {
+let sub = AppState.addEventListener("change", async (state) => {
 	focusManager.setFocused(state === "active");
 
 	if (state === "active") {
-		supabase.auth.startAutoRefresh();
+		internal_promise_supabase.then(() => {
+			supabase.auth.startAutoRefresh();
+		});
 	} else {
-		supabase.auth.stopAutoRefresh();
+		internal_promise_supabase.then(() => {
+			supabase.auth.stopAutoRefresh();
+		});
 	}
 });
 
