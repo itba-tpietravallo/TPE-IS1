@@ -67,7 +67,7 @@ export const action = async ({ request }: { request: Request }) => {
 				console.log(`Sending email to ${recipient.name} at ${recipient.email}`);
 				
 				await resend.emails.send({
-					from: "MatchPoint <no-reply@final.matchpointapp.com.ar>",
+					from: "MatchPoint <no-reply@payments.matchpointapp.com.ar>",
 					to: recipient.email,
 					subject: "Matchpoint te espera 🏟️",
 					cc: 'tpietravallo@itba.edu.ar',
