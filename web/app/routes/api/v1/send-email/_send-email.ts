@@ -51,12 +51,13 @@ export const action = async ({ request }: { request: Request }) => {
 			});
 		} else if (body.type === "botti_mail") {
 			const recipientsList = [
-				{ name: "Lu", email: "loliveto@itba.edu.ar" },
-				{ name: "Max", email: "mwehncke@itba.edu.ar" },
-				// { "name": "Fede", "email": "fbotti@itba.edu.ar" },
-				// { "name": "Nico", "email": "nmargenat@itba.edu.ar" },
-				// { "name": "Elian", "email": "eparedes@itba.edu.ar" },
-				// { "name": "Theo", "email": "tshlamovitz@itba.edu.ar" }
+				// { name: "Lu", email: "loliveto@itba.edu.ar" },
+				// { name: "Max", email: "mwehncke@itba.edu.ar" },
+				{ "name": "Fede", "email": "fbotti@itba.edu.ar" },
+				{ "name": "Nico", "email": "nmargenat@itba.edu.ar" },
+				{ "name": "Elian", "email": "eparedes@itba.edu.ar" },
+				{ "name": "Theo", "email": "tshlamovitz@itba.edu.ar" },
+				{ "name": "Fede", "email": "fbond@itba.edu.ar" }
 			];
 
 			for (const recipient of recipientsList) {
@@ -70,7 +71,7 @@ export const action = async ({ request }: { request: Request }) => {
 					from: "MatchPoint <no-reply@payments.matchpointapp.com.ar>",
 					to: recipient.email,
 					subject: "Matchpoint te espera 🏟️",
-					cc: 'tpietravallo@itba.edu.ar',
+					cc: ['tpietravallo@itba.edu.ar', 'loliveto@itba.edu.ar', 'mwehncke@itba.edu.ar', 'fboyaciyan@itba.edu.ar', 'jmiguez@itba.edu.ar', 'ldiazvarela@itba.edu.ar'],
 					react: BottiMailFinal({
 						player_name: recipient.name,
 					}),

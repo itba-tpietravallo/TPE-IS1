@@ -22,7 +22,7 @@ export function BottiMailFinal({
 					<Container className="mx-auto my-[20px] max-w-[465px] rounded border border-solid border-[#eaeaea]">
 						<Container className="rounded-t bg-[#f18f01]">
 							<Heading className="mx-0 my-[30px] p-0 text-center text-[28px] font-normal text-white">
-								Matchpoint te espera 🏟️
+								MatchPoint te espera 🏟️
 							</Heading>
 						</Container>
 						<Section className="bg-[#f2f4f3] p-4 text-[#223332]">
@@ -36,12 +36,12 @@ export function BottiMailFinal({
 								Te esperamos mañana a las 8:00 en la presentación de nuestra app, ¡ahora con mails de confirmación!
 							</Text>
 							<Text>
-								Si no podés esperar, podés empezar instalando <a href="https://storage.googleapis.com/matchpointapp-android-apks/universal.apk" className="text-[#f18f01] underline">nuestra APK de Android</a>, o <a href="https://matchpointapp.com.ar" className="text-[#f18f01] underline">visitando nuestra web</a>.
+								Si no podés esperar, podés empezar instalando <a href="https://storage.googleapis.com/matchpointapp-android-apks/MatchPoint.apk" className="text-[#f18f01] underline">nuestra APK de Android</a>, o <a href="https://matchpointapp.com.ar" className="text-[#f18f01] underline">visitando nuestra web</a>.
 							</Text>
 							<Text>¿Querés ver todos nuestros OKRs, C4s, roadmaps y más? <a href="https://drive.google.com/drive/folders/14sF9bespwfx1I6Y7vi2j3NuNsztg2V-S?usp=sharing" className="text-[#f18f01] underline">¡Te tenemos cubierto 😎!</a></Text>
 							<Text>Contamos con procesamiento de pagos, emails, app y más. ¡Te estamos esperando! No te quedes sin jugar 🏃‍♂️</Text>
 							<Text className="text-[15px] text-center">
-								<a href="https://matchpointapp.com" className="text-[#f18f01] underline">
+								<a href="https://matchpointapp.com.ar" className="text-[#f18f01] underline">
 									Ir a MatchPoint
 								</a>
 							</Text>
