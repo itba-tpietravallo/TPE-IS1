@@ -58,8 +58,6 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 	const [rating, setRating] = useState<number>(0);
 	const [showReviewModal, setShowReviewModal] = useState(false);
 
-	const timezone = "America/Argentina/Buenos_Aires";
-
 	const { data: userPreferences } = getUserPreferencesByUserId(supabase, user?.id!);
 	const upsertUserPreferences = useUpsertUserPreferences(supabase);
 
@@ -103,38 +101,14 @@ function PopUpReserva({ onClose, name, fieldId, sport, location, images, descrip
 		date.getHours() > maximumDate.getHours() && date.setHours(maximumDate.getHours(), 0, 0, 0);
 		setSelectedDateTime(date);
 
-		const offset = getOffsetHours(date, timezone);
-		setSelectedShiftedDateTime(new Date(date.getTime() - offset * 60 * 60 * 1000));
+		const offset = 3;
+		const d = new Date(new Date(date).setHours(date.getHours() - offset));
+		setSelectedShiftedDateTime(d);
 
 		const taken = isSlotUnavailable(selectedShiftedDateTime, reservations ?? undefined);
 
 		setUnavailability(taken);
 	}, []);
-
-	function getOffsetHours(date: Date, timeZone: string) {
-		const dtf = new Intl.DateTimeFormat("en-US", {
-			timeZone,
-			hour12: false,
-			year: "numeric",
-			month: "2-digit",
-			day: "2-digit",
-			hour: "2-digit",
-			minute: "2-digit",
-			second: "2-digit",
-		});
-
-		const parts = dtf.formatToParts(date);
-		const map: Record<string, string> = {};
-		for (const { type, value } of parts) {
-			map[type] = value;
-		}
-
-		const localDateStr = `${map.year}-${map.month}-${map.day}T${map.hour}:${map.minute}:${map.second}`;
-		const localDate = new Date(localDateStr + "Z"); // treat local time as UTC temporarily
-
-		const offsetMs = date.getTime() - localDate.getTime();
-		return offsetMs / (1000 * 60 * 60); // offset in hours
-	}
 
 	function isTeam(renter: Renter | null): boolean {
 		if (!renter) return false;
