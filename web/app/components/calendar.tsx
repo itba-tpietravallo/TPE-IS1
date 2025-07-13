@@ -10,6 +10,9 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "~/lib/database.types";
 import { ReservationSlot } from "./reservation-slot";
 import { getUsername } from "@lib/autogen/queries";
+import { queries } from "@lib/autogen/queries";
+import { LoaderFunctionArgs } from "@remix-run/node";
+import { useLoaderData } from "@remix-run/react";
 
 type Reservation = {
 	date_time: string;
@@ -36,7 +39,24 @@ function UsernameFromId({ userId, supabase }: { userId: string; supabase: Supaba
 	return <>{data?.full_name || ""}</>;
 }
 
+export function loader({ request }: LoaderFunctionArgs) {
+	const env = {
+		SUPABASE_URL:
+			process.env.VERCEL_ENV === "production" ? process.env.PROD_SUPABASE_URL! : process.env.DEV_SUPABASE_URL!,
+		SUPABASE_ANON_KEY:
+			process.env.VERCEL_ENV === "production"
+				? process.env.PROD_SUPABASE_ANON_KEY!
+				: process.env.DEV_SUPABASE_ANON_KEY!,
+	};
+	return {
+		env,
+		URL_ORIGIN: new URL(request.url).origin,
+	};
+}
+
 export function WeekCalendar({ reservations, supabase }: WeekCalendarProps) {
+	const loaderData = useLoaderData<typeof loader>();
+
 	const [currentWeekStart, setCurrentWeekStart] = useState(() => {
 		const today = new Date();
 		const dayOfWeek = today.getDay();
@@ -126,6 +146,42 @@ export function WeekCalendar({ reservations, supabase }: WeekCalendarProps) {
 
 	const handleReservationClick = (enrichedReservation: EnrichedReservation) => {
 		setSelectedReservation(enrichedReservation);
+	};
+
+	const handleCancelation = async () => {
+		try {
+			const { data: reservationsData } = await queries.getUserReservations(supabase, selectedReservation?.owner || "");
+			const reservation = reservationsData?.find((r) => r.date_time === selectedReservation?.date_time);
+
+			const { data: ownerData } = await queries.getUserSession(supabase, reservation?.owner_id || "");
+
+			if (!reservation) {
+				alert("Error: Reserva no encontrada");
+				return;
+			}
+
+			await fetch(new URL("api/v1/send-email", loaderData.URL_ORIGIN).toString(), {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					type: "cancelled_reservation",
+					player_email: ownerData?.email || "",
+					player_name: ownerData?.full_name || "",
+					payment_id: reservation.payments_ids?.[0] || "",
+					field_name: reservation.field.name,
+					reservation_date: reservation?.date_time,
+					confirmed: true,
+				}),
+			});
+
+			alert("Reserva cancelada exitosamente");
+			setSelectedReservation(null);
+		} catch (error) {
+			console.error("Error al cancelar la reserva:", error);
+			alert("Error al cancelar la reserva");
+		}
 	};
 
 	return (
@@ -285,6 +341,10 @@ export function WeekCalendar({ reservations, supabase }: WeekCalendarProps) {
 									</p>
 								</div>
 							</div>
+
+							<Button variant="destructive" onClick={handleCancelation}>
+								Cancelar Reserva
+							</Button>
 						</div>
 					)}
 				</DialogContent>

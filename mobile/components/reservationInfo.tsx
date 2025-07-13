@@ -43,6 +43,7 @@ function ReservationInfo({ onClose, field_name, date, time, location, id }: info
 					payment_id: reservation.payments_ids?.[0] || "",
 					field_name: reservation.field.name,
 					reservation_date: reservation?.date_time,
+					confirmed: reservation.confirmed
 				})
 			});
 			Alert.alert("Cancelación exitosa", "Reserva cancelada con éxito");

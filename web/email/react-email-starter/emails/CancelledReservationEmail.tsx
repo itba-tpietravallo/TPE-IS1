@@ -6,6 +6,7 @@ interface CancelledReservationEmailProps {
 	payment_id: string;
 	field_name: string;
 	reservation_date: Date;
+	confirmed?: boolean;
 }
 
 export function CancelledReservationEmail({
@@ -14,6 +15,7 @@ export function CancelledReservationEmail({
 	payment_id,
 	field_name,
 	reservation_date,
+	confirmed,
 }: CancelledReservationEmailProps) {
 	const date = reservation_date.toLocaleDateString("es-ES", {
 		day: "2-digit",
@@ -52,17 +54,23 @@ export function CancelledReservationEmail({
 								<strong>{date} a las {time}</strong> ha sido cancelada.
 							</Text>
 							<br />
-							<Text className="text-[15px]">
-								No te preocupes, ya estamos procesando la devolución de tu pago. El reembolso debería aparecer en tu cuenta en los próximos días hábiles.
-							</Text>
+							{confirmed && (
+								<Text className="text-[15px]">
+									No te preocupes, ya estamos procesando la devolución de tu pago. El reembolso debería aparecer en tu cuenta en los próximos días hábiles.
+								</Text>
+							)}
 							<br />
 							<Section>
 								<Text className="text-[15px] font-bold">📋 Detalles de la cancelación</Text>
 								<Text className="text-[15px]">📍 Cancha: {field_name}</Text>
 								<Text className="text-[15px]">📅 Fecha original: {date}</Text>
 								<Text className="text-[15px]">⏰ Hora original: {time}</Text>
-								<Text className="text-[15px]">💰 Monto a reembolsar: ${amount}</Text>
-								<Text className="text-[15px]">🆔 ID de pago: {payment_id}</Text>
+								{confirmed && (
+									<>
+										<Text className="text-[15px]">💰 Monto a reembolsar: ${amount}</Text>
+										<Text className="text-[15px]">🆔 ID de pago: {payment_id}</Text>
+									</>
+								)}
 							</Section>
 							<br />
 							<Text className="text-[15px]">
