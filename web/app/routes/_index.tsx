@@ -78,7 +78,7 @@ export default function Index() {
 								<Button
 									onClick={() =>
 										window.location.replace(
-											"https://storage.googleapis.com/matchpointapp-android-apks/universal.apk",
+											"https://storage.googleapis.com/matchpointapp-android-apks/MatchPoint.apk",
 										)
 									}
 									className="w-full bg-black text-[#F2F4F3] hover:bg-[#f18f01]/50 sm:w-auto"
