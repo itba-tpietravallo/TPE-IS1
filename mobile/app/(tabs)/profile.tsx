@@ -131,6 +131,11 @@ const menuItems = [
 	},
 	{ label: "Chats", icon: "comments", action: () => router.push("/(tabs)/profileMenu/chats") },
 	{ label: "Usuarios favoritos", icon: "user-group", action: () => router.push("/(tabs)/profileMenu/favUsers") },
+	{
+		label: "Invitaciones a equipos",
+		icon: "list-check",
+		action: () => router.push("/(tabs)/profileMenu/teamInvites"),
+	},
 ];
 
 export function ProfileMenuList() {
