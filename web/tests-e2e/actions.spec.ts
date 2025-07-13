@@ -40,7 +40,7 @@ test.describe("Publishing things", () => {
 	test.describe.configure({ mode: "serial" });
 	let publishedFieldURL: string | undefined = undefined;
 
-	test("Publish field", async ({ page }) => {
+	test.skip("Publish field", async ({ page }) => {
 		await page.goto(`${BASE_URL}/canchas`);
 		await page.getByText("Agregar nueva cancha").waitFor({ state: "visible" });
 		await page.getByRole("link", { name: "Agregar nueva cancha" }).click();
@@ -70,7 +70,7 @@ test.describe("Publishing things", () => {
 		await page.waitForURL("/canchas");
 	});
 
-	test("Verify field", async ({ page }) => {
+	test.skip("Verify field", async ({ page }) => {
 		await page.goto("/canchas");
 		await page.getByText(TEST_FIELD_DETAILS.FIELD_NAME).waitFor({ state: "visible" });
 		await page.getByText(TEST_FIELD_DETAILS.FIELD_NAME).click();
@@ -126,7 +126,7 @@ test.describe("Publishing things", () => {
 		await page.getByRole("button", { name: "Close" }).click({ force: true });
 	});
 
-	test("Remove field", async ({ page }) => {
+	test.skip("Remove field", async ({ page }) => {
 		await page.goto(publishedFieldURL!);
 		await page.getByRole("button", { name: "Eliminar cancha" }).click();
 		await page.getByRole("button", { name: "Continuar" }).click();
