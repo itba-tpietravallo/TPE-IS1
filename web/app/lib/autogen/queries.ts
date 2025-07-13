@@ -66,7 +66,7 @@ export const queries = {
 		supabase.from("users").select("full_name, username").eq("id", userId).single(),
 
 	getUserSession: (supabase: SupabaseClient<Database>, userId: string) =>
-		supabase.from("users").select("id, full_name, avatar_url, username").eq("id", userId).single(),
+		supabase.from("users").select("id, full_name, avatar_url, username, email").eq("id", userId).single(),
 
 	getUserAuthSession: (supabase: SupabaseClient<Database>) =>
 		supabase.auth.getSession().then((res) => res.data.session),

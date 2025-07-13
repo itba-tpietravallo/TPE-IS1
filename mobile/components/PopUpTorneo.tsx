@@ -81,8 +81,20 @@ function PopUpTorneo({
 		NonNullable<ReturnType<typeof getAllUsers>["data"]>[number] & { id: string }[]
 	>();
 
+	const handleCloseInscriptionModal = () => {
+		setIsModalVisible(false);
+		if (!submitted) {
+			setSelectedTeam("");
+			setTeam("");
+			setTeamMembers([]);
+			setContactPhone("");
+			setContactEmail("");
+			setCanJoin(false);
+		}
+	};
+
 	const handleSignTeam = async () => {
-		if (!canJoin) return;
+		if (!canJoin || submitted) return;
 		if (selectedTeam == "") {
 			alert("Por favor, selecciona un equipo");
 			return;
@@ -99,7 +111,6 @@ function PopUpTorneo({
 			]);
 			console.log("Team successfully registered for tournament");
 			setSubmitted(true);
-			setIsModalVisible(false);
 		} catch (error) {
 			console.error("Error registering for tournament:", error);
 			alert("Error al inscribir el equipo al torneo. Por favor, intenta de nuevo.");
@@ -164,14 +175,16 @@ function PopUpTorneo({
 						<Text style={styles.label}>Lugar: </Text>
 						<Text style={styles.value}>{location}</Text>
 					</View>
-					<View style={styles.descriptionContainer}>
-						<Text style={styles.label}>Descripción:</Text>
-						<Text style={styles.descriptionText}>{description}</Text>
-					</View>
-					<View style={{ flexDirection: "row" }}>
+					{description && (
+						<View style={styles.descriptionContainer}>
+							<Text style={styles.label}>Descripción:</Text>
+							<Text style={styles.descriptionText}>{description}</Text>
+						</View>
+					)}
+					{/* <View style={{ flexDirection: "row" }}>
 						<Text style={styles.label}>Precio: </Text>
 						<Text style={styles.value}>${price}</Text>
-					</View>
+					</View> */}
 					<View style={{ flexDirection: "row" }}>
 						<Text style={styles.label}>Fecha límite de inscripción: </Text>
 						<Text style={styles.value}>{deadline.toLocaleDateString()}</Text>
@@ -181,81 +194,102 @@ function PopUpTorneo({
 					<Text style={styles.buttonText}>Inscribirse</Text>
 				</TouchableOpacity>
 
-				<Modal visible={isModalVisible} transparent={true} onRequestClose={() => setIsModalVisible(false)}>
+				<Modal visible={isModalVisible} transparent={true} onRequestClose={handleCloseInscriptionModal}>
 					<AutocompleteDropdownContextProvider>
 						<View style={styles.modalContainer}>
 							<View style={styles.modal}>
-								<TouchableOpacity style={styles.closeButton} onPress={() => setIsModalVisible(false)}>
+								<TouchableOpacity style={styles.closeButton} onPress={handleCloseInscriptionModal}>
 									<Icon name="xmark" size={22} color="#333" />
 								</TouchableOpacity>
-								<View style={styles.infoContainer}>
-									<Text style={styles.modalTitle}>Inscripción</Text>
-									<Text style={styles.label}>Elegir equipo</Text>
-									<SelectDropdown
-										data={
-											myTeams?.map((team) => ({
-												label: team.name,
-												value: team.team_id,
-											})) || []
-										}
-										onSelect={(itemValue, index) => setSelectedTeam(itemValue.value)}
-										renderButton={(selectedItem, isOpened) => {
-											return (
-												<View>
-													{myTeams && myTeams.length > 0 ? (
-														<Text style={styles.input}>
-															{selectedItem?.label || "Selecciona un equipo"}
-														</Text>
-													) : (
-														<Text style={styles.input}>No tienes equipos</Text>
-													)}
-												</View>
-											);
-										}}
-										renderItem={(item, index, isSelected) => {
-											return (
-												<View
-													style={[
-														styles.dropdownItem,
-														isSelected && styles.dropdownItemSelected,
-													]}
-												>
-													<Text style={styles.dropdownButtonText}>{item.label}</Text>
-												</View>
-											);
-										}}
-									/>
-
-									<Text style={styles.label}>Telefono de contacto: </Text>
-									{/* <Text style={styles.input}>{contactPhone}</Text> */}
-									<Input keyboardType="numeric" value={contactPhone} onChangeText={setContactPhone} />
-									<Text style={styles.label}>Mail de contacto: </Text>
-									{/* <Text style={styles.input}>{contactEmail}</Text> */}
-									<Input value={contactEmail} onChangeText={setContactEmail} />
-									<View style={{ flexDirection: "column" }}>
-										<Text style={styles.label}>Jugadores:</Text>
-										<Text
-											style={{
-												color: "red",
+								<ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+									<View style={styles.infoContainer}>
+										<Text style={styles.modalTitle}>Inscripción</Text>
+										<Text style={styles.label}>Equipo</Text>
+										<SelectDropdown
+											data={
+												myTeams?.length! > 0
+													? myTeams?.map((team) => ({
+															label: team.name,
+															value: team.team_id,
+														})) || []
+													: [{ label: "No tienes equipos", value: null }]
+											}
+											onSelect={(itemValue, index) => {
+												if (itemValue.value === null) return;
+												setSelectedTeam(itemValue.value);
 											}}
-										>
-											{teamMembers.length < cantPlayers
-												? `Cantidad minima de jugadores por equipo: ${cantPlayers}`
-												: ""}
-										</Text>
-									</View>
-									<ScrollView
-										style={{ maxHeight: ScreenHeight * 0.4, width: "100%" }}
-										horizontal={false}
-										contentContainerStyle={{ flexDirection: "column" }}
-										showsHorizontalScrollIndicator={false}
-										showsVerticalScrollIndicator={false}
-									>
-										{teamMembers.map((member, index) => (
-											<Text key={index} style={{ fontSize: 16, fontWeight: "bold" }}>
-												{usersData.data?.find((user) => user.id === member)?.full_name}
+											dropdownStyle={styles.dropdownMenuStyle}
+											renderButton={(selectedItem, isOpened) => {
+												const noTeams = myTeams?.length === 0;
+												return (
+													<View
+														style={[
+															styles.dropdownButtonStyle,
+															noTeams && { opacity: 0.6 },
+														]}
+													>
+														<Text style={styles.dropdownButtonTxtStyle}>
+															{noTeams
+																? "No tienes equipos"
+																: selectedItem?.label || "Selecciona un equipo"}
+														</Text>
+													</View>
+												);
+											}}
+											renderItem={(item, index, isSelected) => {
+												const isMessage = item.value === null;
+												return (
+													<View
+														style={[
+															styles.dropdownItemStyle,
+															isSelected && styles.dropdownItemSelected,
+															index !== (myTeams?.length ?? 0) - 1 &&
+																styles.dropdownItemBorder,
+															isMessage && { backgroundColor: "#f0f0f0" },
+														]}
+													>
+														<Text
+															style={[
+																styles.dropdownItemTxtStyle,
+																isMessage && { color: "gray", fontStyle: "italic" },
+															]}
+														>
+															{item.label}
+														</Text>
+													</View>
+												);
+											}}
+										/>
+
+										<Text style={styles.label}>Telefono de contacto</Text>
+										{/* <Text style={styles.input}>{contactPhone}</Text> */}
+										<Input
+											keyboardType="numeric"
+											value={contactPhone}
+											onChangeText={setContactPhone}
+										/>
+										<Text style={styles.label}>Mail de contacto</Text>
+										{/* <Text style={styles.input}>{contactEmail}</Text> */}
+										<Input value={contactEmail} onChangeText={setContactEmail} />
+										<View style={{ flexDirection: "column" }}>
+											<Text style={styles.label}>Jugadores</Text>
+											<Text
+												style={{
+													color: "red",
+												}}
+											>
+												{teamMembers.length < cantPlayers
+													? `Cantidad minima de jugadores por equipo: ${cantPlayers}`
+													: ""}
 											</Text>
-										))}
+										</View>
+										<View style={styles.playersContainer}>
+											{teamMembers.map((member, index) => (
+												<Text key={index} style={{ fontSize: 16 }}>
+													{usersData.data?.find((user) => user.id === member)?.full_name}
+												</Text>
+											))}
+										</View>
 										{/* {Array.from({ length: cantPlayers }).map((_, index) => (
 											<Search<
 												NonNullable<ReturnType<typeof getAllUsers>["data"]>[number] & {
@@ -274,15 +308,21 @@ function PopUpTorneo({
 												}}
 											/>
 										))} */}
-									</ScrollView>
-								</View>
+									</View>
+								</ScrollView>
 								<TouchableOpacity
-									style={[styles.button, { backgroundColor: canJoin ? "#f18f04" : "#ccc" }]}
-									onPress={() => {
-										handleSignTeam();
-									}}
+									style={[
+										styles.button,
+										{
+											backgroundColor: submitted ? "#5fd700" : canJoin ? "#f18f04" : "#ccc",
+										},
+									]}
+									onPress={handleSignTeam}
+									disabled={submitted}
 								>
-									<Text style={styles.submitButtonText}>Enviar</Text>
+									<Text style={styles.submitButtonText}>
+										{submitted ? "Equipo inscripto" : "Enviar"}
+									</Text>
 								</TouchableOpacity>
 							</View>
 						</View>
@@ -301,6 +341,7 @@ const styles = StyleSheet.create({
 	},
 	modal: {
 		width: ScreenWidth * 0.85,
+		maxHeight: ScreenHeight * 0.6,
 		backgroundColor: "white",
 		borderRadius: 20,
 		justifyContent: "center",
@@ -326,17 +367,19 @@ const styles = StyleSheet.create({
 	title: {
 		fontSize: 22,
 		fontWeight: "bold",
-		padding: 15,
+		paddingBottom: 20,
 		textAlign: "center",
 		color: "#333",
 	},
 	label: {
+		fontSize: 15,
 		fontWeight: "bold",
 		color: "#555",
 		marginRight: 5,
 		paddingBottom: 5,
 	},
 	value: {
+		fontSize: 15,
 		color: "#333",
 		flexShrink: 1,
 		paddingBottom: 5,
@@ -347,6 +390,11 @@ const styles = StyleSheet.create({
 	descriptionText: {
 		color: "#333",
 		lineHeight: 20,
+	},
+	playersContainer: {
+		maxHeight: ScreenHeight * 0.2,
+		width: "100%",
+		marginBottom: 10,
 	},
 	button: {
 		backgroundColor: "#f18f04",
@@ -415,11 +463,44 @@ const styles = StyleSheet.create({
 		backgroundColor: "#fff",
 	},
 	dropdownItemSelected: {
-		backgroundColor: "#f18f04",
+		backgroundColor: "#f0f0f0",
 	},
 	dropdownItemText: {
 		fontSize: 16,
 		color: "#223332",
+	},
+	dropdownButtonStyle: {
+		width: "100%",
+		padding: 12,
+		borderWidth: 1,
+		borderColor: "#ccc",
+		borderRadius: 8,
+		backgroundColor: "#fff",
+		justifyContent: "center",
+		alignItems: "flex-start",
+		marginBottom: 15,
+	},
+	dropdownButtonTxtStyle: {
+		fontSize: 16,
+		color: "#223332",
+	},
+	dropdownMenuStyle: {
+		backgroundColor: "#fff",
+		borderRadius: 8,
+		paddingVertical: 4,
+	},
+	dropdownItemStyle: {
+		paddingVertical: 10,
+		paddingHorizontal: 16,
+		backgroundColor: "#fff",
+	},
+	dropdownItemTxtStyle: {
+		fontSize: 16,
+		color: "#223332",
+	},
+	dropdownItemBorder: {
+		borderBottomWidth: 1,
+		borderBottomColor: "#eee",
 	},
 });
 

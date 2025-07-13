@@ -1,6 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { Image } from "@rneui/themed";
-import { StyleSheet, Text, TouchableOpacity, View, FlatList, ScrollView } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View, FlatList, ScrollView, ActivityIndicator } from "react-native";
 import { useEffect, useState } from "react";
 import { Session } from "@supabase/supabase-js";
 import { router } from "expo-router";
@@ -36,7 +36,13 @@ export default function Index() {
 		<ScrollView style={buttonStyles.containter} contentContainerStyle={{ paddingBottom: 100 }}>
 			<View style={{ alignItems: "center", paddingVertical: 25 }}>
 				{/* @todo undefined_image is a stub that'll hopefully get logged in RN Dev Tools */}
-				<Image source={{ uri: avatarUrl }} style={{ width: 110, height: 110 }} borderRadius={100} />
+				<Image
+					source={{ uri: avatarUrl }}
+					style={{ width: 110, height: 110 }}
+					borderRadius={100}
+					placeholderStyle={{ backgroundColor: "transparent" }}
+					PlaceholderContent={<ActivityIndicator />}
+				/>
 				<Text
 					style={{
 						fontSize: 16,
@@ -114,11 +120,15 @@ const itemStyles = StyleSheet.create({
 });
 
 const menuItems = [
-	{ label: "Actividad", icon: "money-check", action: () => router.push("/(tabs)/profileMenu/paymentActivity") },
 	{ label: "Reservas", icon: "calendar-check", action: () => router.push("/(tabs)/profileMenu/reservations") },
-	{ label: "Equipos", icon: "people-group", action: () => router.push("/(tabs)/profileMenu/teams") },
-	// { label: "Mis torneos", icon: "medal", action: () => router.push("/(tabs)/profileMenu/teams") },
+	{ label: "Actividad", icon: "money-check", action: () => router.push("/(tabs)/profileMenu/paymentActivity") },
 	{ label: "Pendientes", icon: "spinner", action: () => router.push("/(tabs)/profileMenu/pendings") },
+	{ label: "Equipos", icon: "people-group", action: () => router.push("/(tabs)/profileMenu/teams") },
+	{
+		label: "Invitaciones a equipos",
+		icon: "list-check",
+		action: () => router.push("/(tabs)/profileMenu/teamInvites"),
+	},
 	{ label: "Chats", icon: "comments", action: () => router.push("/(tabs)/profileMenu/chats") },
 	{ label: "Usuarios favoritos", icon: "user-group", action: () => router.push("/(tabs)/profileMenu/favUsers") },
 	{

@@ -12,15 +12,40 @@ import { useEffect, useRef, useState } from "react";
 import { Alert, Text, View, TouchableOpacity, Image } from "react-native";
 import { Button } from "@rneui/themed";
 import { supabase } from "@/lib/supabase";
-import { useDeleteReservation } from "@/lib/autogen/queries";
+import { getUserReservations, queries, useDeleteReservation } from "@/lib/autogen/queries";
 import Icon from "react-native-vector-icons/FontAwesome6";
+import { MODE_BASE_URL } from "@lib/mode";
 
 function ReservationInfo({ onClose, field_name, date, time, location, id }: infoProps) {
 	const deleteReservation = useDeleteReservation(supabase);
 
 	const handleCancelation = async () => {
 		try {
+			const reservation = await queries.getUserReservations(supabase, id).then((res) => res.data?.filter((r) => r.id === id)[0]);
+			const owner = await queries.getUserSession(supabase, reservation?.owner_id || "").then((res) => res.data);
+
+			if (!reservation) {
+				Alert.alert("Error", "Reserva no encontrada");
+				return;
+			}
+
 			await deleteReservation.mutateAsync({ id });
+
+			await fetch(new URL("api/v1/send-email", MODE_BASE_URL).toString(), {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					type: "cancelled_reservation",
+					player_email: owner?.email || "",
+					player_name: owner?.full_name || "",
+					payment_id: reservation.payments_ids?.[0] || "",
+					field_name: reservation.field.name,
+					reservation_date: reservation?.date_time,
+					confirmed: reservation.confirmed
+				})
+			});
 			Alert.alert("Cancelación exitosa", "Reserva cancelada con éxito");
 			onClose();
 		} catch (error) {
@@ -88,16 +113,26 @@ function ReservationInfo({ onClose, field_name, date, time, location, id }: info
 
 			<Button
 				buttonStyle={{
-					padding: 10,
-					borderRadius: 15,
+					width: "85%",
+					paddingVertical: 14,
+					paddingHorizontal: 20,
+					borderRadius: 12,
 					alignSelf: "center",
-					backgroundColor: "#223332",
+					backgroundColor: "#fff",
 					justifyContent: "center",
-
+					alignItems: "center",
+					borderWidth: 1,
+					borderColor: "#ccc",
+					shadowColor: "#000",
+					shadowOffset: { width: 0, height: 1 },
+					shadowOpacity: 0.1,
+					shadowRadius: 2,
+					elevation: 2,
 					marginBottom: 20,
 				}}
 				titleStyle={{
 					fontSize: 16,
+					color: "#333",
 				}}
 				title="Cancelar reserva"
 				onPress={handleCancelation}
