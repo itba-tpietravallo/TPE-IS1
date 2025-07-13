@@ -204,7 +204,7 @@ function PopUpTorneo({
 								<ScrollView contentContainerStyle={{ flexGrow: 1 }}>
 									<View style={styles.infoContainer}>
 										<Text style={styles.modalTitle}>Inscripción</Text>
-										<Text style={styles.label}>Elegir equipo</Text>
+										<Text style={styles.label}>Equipo</Text>
 										<SelectDropdown
 											data={
 												myTeams?.length! > 0
@@ -321,7 +321,7 @@ function PopUpTorneo({
 									disabled={submitted}
 								>
 									<Text style={styles.submitButtonText}>
-										{submitted ? "Inscripción enviada" : "Enviar"}
+										{submitted ? "Equipo inscripto" : "Enviar"}
 									</Text>
 								</TouchableOpacity>
 							</View>
