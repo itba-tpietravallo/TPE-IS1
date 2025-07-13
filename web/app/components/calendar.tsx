@@ -9,7 +9,7 @@ import { Users, CreditCard, Trophy } from "lucide-react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "~/lib/database.types";
 import { ReservationSlot } from "./reservation-slot";
-import { getUsername } from "@lib/autogen/queries";
+import { getUsername, useDeleteReservation } from "@lib/autogen/queries";
 import { queries } from "@lib/autogen/queries";
 import { LoaderFunctionArgs } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
@@ -68,6 +68,8 @@ export function WeekCalendar({ reservations, supabase }: WeekCalendarProps) {
 	});
 
 	const [selectedReservation, setSelectedReservation] = useState<EnrichedReservation | null>(null);
+
+	const deleteReservation = useDeleteReservation(supabase);
 
 	const weekDays = useMemo(() => {
 		const days = [];
@@ -175,6 +177,8 @@ export function WeekCalendar({ reservations, supabase }: WeekCalendarProps) {
 					confirmed: true,
 				}),
 			});
+
+			await deleteReservation.mutateAsync({ id: reservation.id });
 
 			alert("Reserva cancelada exitosamente");
 			setSelectedReservation(null);
