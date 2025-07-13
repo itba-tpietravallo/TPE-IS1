@@ -1,6 +1,6 @@
 import { router } from "expo-router";
 import React from "react";
-import { View, TouchableOpacity, StyleSheet, Image } from "react-native";
+import { View, TouchableOpacity, StyleSheet, Image, Platform } from "react-native";
 
 function NavigationBar() {
 	return (
@@ -16,10 +16,14 @@ function NavigationBar() {
 			<TouchableOpacity style={styles.button} onPress={() => router.push("/(tabs)/torneos")}>
 				<Image style={styles.image} source={require("@/assets/images/torneo.png")} />
 			</TouchableOpacity>
-			<View style={styles.separator} />
-			<TouchableOpacity style={styles.button} onPress={() => router.push("/(tabs)/map")}>
-				<Image style={styles.image} source={require("@/assets/images/map-icon.png")} />
-			</TouchableOpacity>
+			{Platform.OS === "ios" ? (
+				<>
+					<View style={styles.separator} />
+					<TouchableOpacity style={styles.button} onPress={() => router.push("/(tabs)/map")}>
+						<Image style={styles.image} source={require("@/assets/images/map-icon.png")} />
+					</TouchableOpacity>
+				</>
+			) : null}
 		</View>
 	);
 }
