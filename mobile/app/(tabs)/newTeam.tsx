@@ -190,13 +190,12 @@ export default function PostTeam() {
 				<SelectDropdown
 					data={["Público", "Privado"]}
 					onSelect={(itemValue) => setIsPublic(itemValue === "Público")}
+					defaultValue={"Público"}
 					dropdownStyle={{ backgroundColor: "white", gap: 5, borderRadius: 8 }}
 					renderButton={(selectedItem, isOpened) => {
 						return (
 							<View style={styles.dropdownButtonStyle}>
-								<Text style={styles.dropdownButtonTxtStyle}>
-									{selectedItem === true ? "Público" : selectedItem === false ? "Privado" : "Público"}
-								</Text>
+								<Text style={styles.dropdownButtonTxtStyle}>{selectedItem || "Público"}</Text>
 							</View>
 						);
 					}}
