@@ -72,8 +72,6 @@ export function WeekCalendar({ reservations, supabase }: WeekCalendarProps) {
 
 	const deleteReservation = useDeleteReservation(supabase);
 
-	const deleteReservation = useDeleteReservation(supabase);
-
 	const weekDays = useMemo(() => {
 		const days = [];
 		for (let i = 0; i < 7; i++) {

@@ -1,11 +1,28 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "~/components/ui/sheet";
 import { Info } from "lucide-react";
 import { useState } from "react";
-import { getAllTeams, getAllUsers } from "@lib/autogen/queries";
+import { getAllTeams, getAllUsers, queries, useDeleteReservation } from "@lib/autogen/queries";
 import { Button } from "~/components/ui/button";
 
 import type { Database } from "@lib/autogen/database.types";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { LoaderFunctionArgs } from "@remix-run/node";
+import { useLoaderData } from "@remix-run/react";
+
+export function loader({ request }: LoaderFunctionArgs) {
+	const env = {
+		SUPABASE_URL:
+			process.env.VERCEL_ENV === "production" ? process.env.PROD_SUPABASE_URL! : process.env.DEV_SUPABASE_URL!,
+		SUPABASE_ANON_KEY:
+			process.env.VERCEL_ENV === "production"
+				? process.env.PROD_SUPABASE_ANON_KEY!
+				: process.env.DEV_SUPABASE_ANON_KEY!,
+	};
+	return {
+		env,
+		URL_ORIGIN: new URL(request.url).origin,
+	};
+}
 
 export function ReservationSheet({
 	reservation,
@@ -15,18 +32,19 @@ export function ReservationSheet({
 	reservation: any;
 	team: any;
 	supabase: SupabaseClient<Database>;
-}) {
+	}) {
+	const loaderData = useLoaderData<typeof loader>();
 	const [open, setOpen] = useState(false);
 	const [isCanceling, setIsCanceling] = useState(false);
 	const teamsData = getAllTeams(supabase);
 	const usersData = getAllUsers(supabase);
 
+	const deleteReservation = useDeleteReservation(supabase);
+
 	const handleCancelation = async () => {
 		try {
 			setIsCanceling(true);
-			const ownerData = await getAllUsers(supabase).then((res) =>
-				res.data?.find((user) => user.id === reservation.owner_id)
-			);
+			const { data: ownerData } = await queries.getUserSession(supabase, reservation?.owner_id || "");
 
 			if (!reservation) {
 				alert("Error: Reserva no encontrada");
@@ -34,7 +52,7 @@ export function ReservationSheet({
 				return;
 			}
 
-			await fetch(new URL("api/v1/send-email", window.location.origin).toString(), {
+			await fetch(new URL("api/v1/send-email", loaderData.URL_ORIGIN).toString(), {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
@@ -49,6 +67,8 @@ export function ReservationSheet({
 					confirmed: true,
 				}),
 			});
+
+			await deleteReservation.mutateAsync({ id: reservation.id });
 
 			alert("Reserva cancelada exitosamente");
 		} catch (error) {
