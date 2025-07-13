@@ -10,7 +10,7 @@ import {
 	getUserAuthSession,
 	getTeamById,
 	getUserPreferencesByUserId,
-	useUpdateUserPreferences,
+	useUpsertUserPreferences,
 } from "@lib/autogen/queries.ts";
 import { router } from "expo-router";
 import PopUpJoinRequests from "./PopUpJoinRequests.tsx";
@@ -32,7 +32,7 @@ function PopUpTeam(props: PropsPopUpTeam) {
 	const { data: team } = getTeamById(supabase, props.team_id);
 	const { data: userPreferences } = getUserPreferencesByUserId(supabase, user?.id!);
 
-	const updateUserPreferencesMutation = useUpdateUserPreferences(supabase);
+	const upsertUserPreferencesMutation = useUpsertUserPreferences(supabase);
 
 	const [isModalVisibleJoinRequests, setIsModalVisibleJoinRequests] = useState(false); //PopUpJoinRequests
 	const [selectedMember, setSelectedMember] = useState<string | null>(null);
@@ -134,14 +134,18 @@ function PopUpTeam(props: PropsPopUpTeam) {
 		};
 
 		const handleDeleteTeamInvite = async () => {
-			const updatedInvitations = userPreferences?.team_invites.filter((team) => team !== props.team_id);
+			const updatedInvitations = (userPreferences?.team_invites || []).filter((team) => team !== props.team_id);
 			try {
-				await updateUserPreferencesMutation.mutateAsync({
-					user_id: user?.id!,
-					team_invites: updatedInvitations,
-				});
+				await upsertUserPreferencesMutation.mutateAsync([
+					{
+						user_id: user?.id!,
+						team_invites: updatedInvitations,
+						fav_fields: userPreferences?.fav_fields || [],
+						fav_users: userPreferences?.fav_users || [],
+					},
+				]);
 
-				console.log("invitation deleted");
+				console.log("user preference upserted");
 			} catch (error) {
 				console.error("Error updating user preferences:", error);
 			}
